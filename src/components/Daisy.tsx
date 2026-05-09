@@ -66,6 +66,14 @@ export function Daisy({ puzzle, petalDirs, onTapPetal, bursting }: Props) {
               }}
               className={bursting ? "animate-petal-burst" : ""}
             >
+              {/* Flat offset shadow */}
+              <ellipse
+                cx={2}
+                cy={2}
+                rx={PETAL_RX}
+                ry={PETAL_RY}
+                fill="#4d4732"
+              />
               <ellipse
                 cx={0}
                 cy={0}
