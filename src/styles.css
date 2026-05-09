@@ -1,31 +1,20 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap');
 
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Design system definition.
- *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
- *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
- *
- * To add a new semantic color:
- * 1. Add the variable to :root (light value) and .dark (dark value)
- * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ * Daisy Arrow — Soft Neubrutalism design system.
+ * Single source of truth for colors, shadows, fonts.
  */
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -45,91 +34,49 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-ring-offset-background: var(--background);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+  --color-petal: var(--petal);
+  --color-ink: var(--ink);
+  --color-sage: var(--sage);
+  --font-sans: 'Quicksand', system-ui, sans-serif;
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
+  --radius: 0.75rem;
+
+  /* Daisy Arrow palette */
+  --sage: #B2AC88;
+  --ink: #4d4732;          /* outline + secondary text */
+  --petal: #FFFFFF;
+  --primary: #FFD700;       /* center + CTA */
+  --primary-foreground: #705e00;
+  --foreground: #1b1c1c;
+  --background: #B2AC88;
+
+  --card: #FFFFFF;
+  --card-foreground: #1b1c1c;
+  --popover: #FFFFFF;
+  --popover-foreground: #1b1c1c;
+  --secondary: #FFFFFF;
+  --secondary-foreground: #1b1c1c;
+  --muted: #d8d3b5;
+  --muted-foreground: #4d4732;
+  --accent: #FFD700;
+  --accent-foreground: #705e00;
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
+  --destructive-foreground: #ffffff;
+  --border: #4d4732;
+  --input: #4d4732;
+  --ring: #705d00;
+
+  /* Flat offset shadow */
+  --shadow-neo: 4px 4px 0px 0px rgba(77, 71, 50, 1);
+  --shadow-neo-sm: 2px 2px 0px 0px rgba(77, 71, 50, 1);
 }
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  /* Daisy Arrow has one mode — keep tokens identical to light. */
+  --background: #B2AC88;
+  --foreground: #1b1c1c;
 }
 
 @layer base {
@@ -137,8 +84,75 @@
     border-color: var(--color-border);
   }
 
+  html, body, #root {
+    height: 100%;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-weight: 600;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
   }
+}
+
+@layer utilities {
+  .neo {
+    border: 2px solid var(--ink);
+    box-shadow: var(--shadow-neo);
+    transition: transform 80ms ease, box-shadow 80ms ease;
+  }
+  .neo-press:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+  }
+  .neo-sm {
+    border: 2px solid var(--ink);
+    box-shadow: var(--shadow-neo-sm);
+  }
+  .text-display {
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .text-headline {
+    font-size: 24px;
+    font-weight: 700;
+  }
+  .text-body-lg {
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .text-label {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+}
+
+@keyframes petal-burst {
+  0%   { transform: translate(var(--tx, 0), var(--ty, 0)) scale(1); opacity: 1; }
+  100% { transform: translate(calc(var(--tx, 0) * 2.2), calc(var(--ty, 0) * 2.2)) scale(0.6); opacity: 0; }
+}
+.animate-petal-burst {
+  animation: petal-burst 700ms cubic-bezier(.2,.8,.2,1) forwards;
+}
+
+@keyframes center-pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.15); }
+}
+.animate-center-pulse {
+  animation: center-pulse 600ms ease-in-out infinite;
+}
+
+@keyframes pop-in {
+  0%   { transform: scale(0.7); opacity: 0; }
+  100% { transform: scale(1);   opacity: 1; }
+}
+.animate-pop-in {
+  animation: pop-in 280ms cubic-bezier(.2,.9,.3,1.2) forwards;
 }
