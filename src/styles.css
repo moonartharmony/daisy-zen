@@ -141,18 +141,84 @@
   animation: petal-burst 700ms cubic-bezier(.2,.8,.2,1) forwards;
 }
 
-@keyframes center-pulse {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.15); }
-}
-.animate-center-pulse {
-  animation: center-pulse 600ms ease-in-out infinite;
-}
-
 @keyframes pop-in {
   0%   { transform: scale(0.7); opacity: 0; }
   100% { transform: scale(1);   opacity: 1; }
 }
 .animate-pop-in {
   animation: pop-in 280ms cubic-bezier(.2,.9,.3,1.2) forwards;
+}
+
+/* Per-petal interaction states.
+   Inner <g> wraps the petal body; transform-box:fill-box keeps origin local. */
+.petal-inner {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.petal-pressed {
+  transform: scale(0.88);
+}
+.petal-aligned .petal-body {
+  animation: align-flash 320ms ease-out forwards;
+}
+@keyframes align-flash {
+  0%   { fill: #a8e6a3; stroke: #4CAF50; }
+  60%  { fill: #d4f5d4; stroke: #4CAF50; }
+  100% { fill: #FFFFFF; stroke: #4d4732; }
+}
+.petal-error {
+  animation: error-shake 220ms ease-out;
+}
+@keyframes error-shake {
+  0%   { transform: translateX(0); }
+  25%  { transform: translateX(-4px); }
+  75%  { transform: translateX(4px); }
+  100% { transform: translateX(0); }
+}
+.petal-hint {
+  animation: hint-pulse 700ms ease-in-out 3;
+}
+@keyframes hint-pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.06); }
+}
+
+/* Center circle states */
+.center-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: center-pulse 250ms ease-out;
+}
+@keyframes center-pulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+.center-glow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: center-glow 800ms ease-in-out forwards;
+  filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.65));
+}
+@keyframes center-glow {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.2); }
+  100% { transform: scale(1.05); }
+}
+
+/* Chapter transition overlay */
+.animate-chapter-fade {
+  animation: chapter-fade 2500ms ease-in-out forwards;
+}
+@keyframes chapter-fade {
+  0%   { opacity: 0; }
+  18%  { opacity: 1; }
+  78%  { opacity: 1; }
+  100% { opacity: 0; pointer-events: none; }
+}
+
+/* Smooth chapter background transition on body/main */
+.chapter-bg {
+  transition: background-color 800ms ease;
 }
