@@ -98,6 +98,7 @@ export function Daisy({ puzzle, petalDirs, onTapPetal, bursting }: Props) {
 
         {/* Center circle */}
         <g transform={`translate(${CENTER} ${CENTER})`}>
+          <circle cx={4} cy={4} r={CENTER_R} fill="#4d4732" />
           <circle
             r={CENTER_R}
             fill="#FFD700"
