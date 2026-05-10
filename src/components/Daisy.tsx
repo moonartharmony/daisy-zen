@@ -53,6 +53,7 @@ export function Daisy({
   petalDirs,
   petalAnims,
   onTapPetal,
+  onSwipePetal,
   bursting,
   centerPulsing,
   centerGlow,
@@ -60,6 +61,9 @@ export function Daisy({
 }: Props) {
   const { petalCount, centerDir } = puzzle;
   const step = 360 / petalCount;
+  const startRef = useRef<Map<number, { x: number; y: number; idx: number }>>(
+    new Map(),
+  );
 
   return (
     <div
