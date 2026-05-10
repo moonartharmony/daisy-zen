@@ -77,16 +77,16 @@ const BASE_LEVELS: Omit<Puzzle, "level">[] = [
       { hasArrow: false, startDir: null },
     ],
   },
-  // L5: 8 petals, center=west, 4 arrows, some 1 tap away
+  // L5: 8 petals, center=west, 4 arrows (cardinals only)
   {
     petalCount: 8,
     centerDir: "west",
     petals: [
-      { hasArrow: true, startDir: "southwest" }, // 1 tap CW → west
+      { hasArrow: true, startDir: "north" },
       { hasArrow: false, startDir: null },
       { hasArrow: true, startDir: "south" },
       { hasArrow: false, startDir: null },
-      { hasArrow: true, startDir: "southwest" }, // 1 tap CW → west
+      { hasArrow: true, startDir: "east" },
       { hasArrow: false, startDir: null },
       { hasArrow: true, startDir: "north" },
       { hasArrow: false, startDir: null },
