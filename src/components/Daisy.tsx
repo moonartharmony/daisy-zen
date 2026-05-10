@@ -96,8 +96,30 @@ export function Daisy({
               key={i}
               transform={`translate(${CENTER} ${CENTER}) rotate(${angle}) translate(0 ${-PETAL_DIST})`}
               onPointerDown={(e) => {
+                if (bursting || !spec.hasArrow) return;
                 e.preventDefault();
-                if (!bursting && spec.hasArrow) onTapPetal(i);
+                (e.target as Element).setPointerCapture?.(e.pointerId);
+                startRef.current.set(e.pointerId, {
+                  x: e.clientX,
+                  y: e.clientY,
+                  idx: i,
+                });
+              }}
+              onPointerUp={(e) => {
+                if (bursting || !spec.hasArrow) return;
+                const start = startRef.current.get(e.pointerId);
+                startRef.current.delete(e.pointerId);
+                if (!start || start.idx !== i) return;
+                const dx = e.clientX - start.x;
+                const dy = e.clientY - start.y;
+                if (Math.hypot(dx, dy) < SWIPE_THRESHOLD) {
+                  onTapPetal(i);
+                } else {
+                  onSwipePetal(i, angleToCardinal(dx, dy));
+                }
+              }}
+              onPointerCancel={(e) => {
+                startRef.current.delete(e.pointerId);
               }}
               style={{
                 cursor: spec.hasArrow ? "pointer" : "default",
