@@ -105,8 +105,9 @@ export function getPuzzle(level: number): Puzzle {
   if (level <= BASE_LEVELS.length) {
     return { level, ...structuredClone(base) };
   }
-  // Deterministic variation: rotate every arrow by (level % 6) + 1 steps
-  const shift = (level % 6) + 1;
+  // Deterministic variation: rotate every arrow by an even step count
+  // (multiples of 90°) so all start directions stay cardinal.
+  const shift = (((level % 3) + 1) * 2);
   return {
     level,
     petalCount: base.petalCount,
