@@ -10,6 +10,7 @@ import {
 } from "@/lib/puzzles";
 import { getChapter } from "@/lib/chapters";
 import { ChapterTransition } from "@/components/ChapterTransition";
+import { TutorialCoach } from "@/components/TutorialCoach";
 import { haptic } from "@/lib/haptic";
 
 export const Route = createFileRoute("/")({
@@ -37,6 +38,7 @@ function Game() {
   const [won, setWon] = useState(false);
   const [bursting, setBursting] = useState(false);
   const [moves, setMoves] = useState(0);
+  const [hasAligned, setHasAligned] = useState(false);
   const [displayedScore, setDisplayedScore] = useState(0);
   const startedAtRef = useRef<number>(Date.now());
 
@@ -73,6 +75,7 @@ function Game() {
     setPetalDirs(puzzle.petals.map((p) => p.startDir));
     setPetalAnims(puzzle.petals.map(() => null));
     setMoves(0);
+    setHasAligned(false);
     setWon(false);
     setBursting(false);
     setCenterGlow(false);
@@ -140,6 +143,7 @@ function Game() {
     if (willAlign) {
       // Snap into place — satisfying "click"
       haptic.align();
+      setHasAligned(true);
       setPetalAnim(i, "aligned", 320);
       setCenterPulsing(true);
       setTimeout(() => setCenterPulsing(false), 260);
@@ -189,6 +193,7 @@ function Game() {
     setPetalDirs(puzzle.petals.map((p) => p.startDir));
     setPetalAnims(puzzle.petals.map(() => null));
     setMoves(0);
+    setHasAligned(false);
     setCenterGlow(false);
     setBursting(false);
     setWon(false);
@@ -304,6 +309,9 @@ function Game() {
           onDone={() => setTransitionChapterId(null)}
         />
       )}
+
+      {/* First-time interaction guide (L1–L2) */}
+      <TutorialCoach level={level} hasTapped={moves > 0} hasAligned={hasAligned} />
 
       {/* Win overlay */}
       {won && (
