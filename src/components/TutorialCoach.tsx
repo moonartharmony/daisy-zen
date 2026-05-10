@@ -46,6 +46,7 @@ export function TutorialCoach({ level, hasTapped, hasAligned }: Props) {
     return () => clearTimeout(t);
   }, [level, hasTapped]);
 
+  if (!hydrated) return null;
   if (seen && level !== 2) return null;
 
   if (level === 1) {
