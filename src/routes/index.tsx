@@ -193,6 +193,7 @@ function Game() {
     setPetalDirs(puzzle.petals.map((p) => p.startDir));
     setPetalAnims(puzzle.petals.map(() => null));
     setMoves(0);
+    setHasAligned(false);
     setCenterGlow(false);
     setBursting(false);
     setWon(false);
