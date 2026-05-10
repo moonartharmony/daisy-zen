@@ -143,6 +143,7 @@ function Game() {
     if (willAlign) {
       // Snap into place — satisfying "click"
       haptic.align();
+      setHasAligned(true);
       setPetalAnim(i, "aligned", 320);
       setCenterPulsing(true);
       setTimeout(() => setCenterPulsing(false), 260);
