@@ -10,6 +10,7 @@ import {
 } from "@/lib/puzzles";
 import { getChapter } from "@/lib/chapters";
 import { ChapterTransition } from "@/components/ChapterTransition";
+import { TutorialCoach } from "@/components/TutorialCoach";
 import { haptic } from "@/lib/haptic";
 
 export const Route = createFileRoute("/")({
