@@ -16,11 +16,16 @@ const STORAGE_KEY = "daisy.tutorial.seen.v1";
  * - L2: single bottom hint reminder, auto-fades after 4s or first tap.
  */
 export function TutorialCoach({ level, hasTapped, hasAligned }: Props) {
-  const [seen, setSeen] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return window.localStorage.getItem(STORAGE_KEY) === "1";
-  });
+  // Start as "not seen" on both server and first client render to avoid
+  // hydration mismatch; hydrate from localStorage in an effect.
+  const [seen, setSeen] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
   const [l2Visible, setL2Visible] = useState(true);
+
+  useEffect(() => {
+    setHydrated(true);
+    if (window.localStorage.getItem(STORAGE_KEY) === "1") setSeen(true);
+  }, []);
 
   // Mark tutorial as seen once the player aligns their first petal on L1.
   useEffect(() => {
