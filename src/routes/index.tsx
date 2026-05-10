@@ -17,15 +17,17 @@ export const Route = createFileRoute("/")({
   component: Game,
 });
 
+// Rotation step: 90° (4 cardinal directions only).
 function rotateCW(dir: Direction): Direction {
   const i = DIRECTIONS.indexOf(dir);
-  return DIRECTIONS[(i + 1) % 8];
+  return DIRECTIONS[(i + 2) % 8];
 }
 
+// Number of 90° taps needed to go from `from` to `to`.
 function stepsCW(from: Direction, to: Direction): number {
   const f = DIRECTIONS.indexOf(from);
   const t = DIRECTIONS.indexOf(to);
-  return (t - f + 8) % 8;
+  return Math.round((((t - f + 8) % 8) / 2));
 }
 
 const MOVE_BUDGET_MULT = 3;
