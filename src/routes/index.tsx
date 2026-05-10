@@ -38,6 +38,7 @@ function Game() {
   const [won, setWon] = useState(false);
   const [bursting, setBursting] = useState(false);
   const [moves, setMoves] = useState(0);
+  const [hasAligned, setHasAligned] = useState(false);
   const [displayedScore, setDisplayedScore] = useState(0);
   const startedAtRef = useRef<number>(Date.now());
 
