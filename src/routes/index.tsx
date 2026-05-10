@@ -268,6 +268,7 @@ function Game() {
           petalDirs={petalDirs}
           petalAnims={petalAnims}
           onTapPetal={handleTap}
+          onSwipePetal={handleSwipe}
           bursting={bursting}
           centerPulsing={centerPulsing}
           centerGlow={centerGlow}
