@@ -310,6 +310,9 @@ function Game() {
         />
       )}
 
+      {/* First-time interaction guide (L1–L2) */}
+      <TutorialCoach level={level} hasTapped={moves > 0} hasAligned={hasAligned} />
+
       {/* Win overlay */}
       {won && (
         <div
