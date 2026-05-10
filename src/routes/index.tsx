@@ -123,14 +123,22 @@ function Game() {
     }, ms);
   };
 
-  const handleTap = (i: number) => {
+  // Apply a new direction to petal `i`. Plays the right animation/haptic
+  // based on whether it aligns / breaks alignment / is a no-op.
+  const setPetalTo = (i: number, next: Direction) => {
     if (won || paused) return;
     const cur = petalDirs[i];
     if (!cur) return;
-    const next = rotateCW(cur);
     const target = puzzle.centerDir;
     const wasAligned = cur === target;
     const willAlign = next === target;
+
+    if (cur === next) {
+      // No-op swipe (already pointing that way) — soft press feedback only.
+      haptic.tap();
+      setPetalAnim(i, "pressed", 80);
+      return;
+    }
 
     setPetalDirs((prev) => {
       const arr = [...prev];
@@ -138,26 +146,31 @@ function Game() {
       return arr;
     });
     setMoves((m) => m + 1);
-
-    // Reset hint timer on every interaction
     startHintTimer();
 
     if (willAlign) {
-      // Snap into place — satisfying "click"
       haptic.align();
       setHasAligned(true);
       setPetalAnim(i, "aligned", 320);
       setCenterPulsing(true);
       setTimeout(() => setCenterPulsing(false), 260);
-    } else if (wasAligned && !willAlign) {
-      // Was correct, now broke it
+    } else if (wasAligned) {
       haptic.misalign();
       setPetalAnim(i, "error", 220);
     } else {
-      // Plain tap
       haptic.tap();
       setPetalAnim(i, "pressed", 80);
     }
+  };
+
+  const handleTap = (i: number) => {
+    const cur = petalDirs[i];
+    if (!cur) return;
+    setPetalTo(i, rotateCW(cur));
+  };
+
+  const handleSwipe = (i: number, dir: Direction) => {
+    setPetalTo(i, dir);
   };
 
   // Win detection
@@ -255,6 +268,7 @@ function Game() {
           petalDirs={petalDirs}
           petalAnims={petalAnims}
           onTapPetal={handleTap}
+          onSwipePetal={handleSwipe}
           bursting={bursting}
           centerPulsing={centerPulsing}
           centerGlow={centerGlow}
