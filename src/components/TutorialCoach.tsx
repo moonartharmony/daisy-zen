@@ -24,13 +24,21 @@ export function TutorialCoach({ level, hasTapped, hasAligned }: Props) {
 
   useEffect(() => {
     setHydrated(true);
-    if (window.localStorage.getItem(STORAGE_KEY) === "1") setSeen(true);
+    try {
+      if (window.localStorage.getItem(STORAGE_KEY) === "1") setSeen(true);
+    } catch {
+      // localStorage blocked (TWA private mode, storage restrictions) — degrade gracefully
+    }
   }, []);
 
   // Mark tutorial as seen once the player aligns their first petal on L1.
   useEffect(() => {
     if (level === 1 && hasAligned && !seen) {
-      window.localStorage.setItem(STORAGE_KEY, "1");
+      try {
+        window.localStorage.setItem(STORAGE_KEY, "1");
+      } catch {
+        // Persist failed — tutorial will re-show next session, acceptable fallback
+      }
       setSeen(true);
     }
   }, [level, hasAligned, seen]);
@@ -65,8 +73,14 @@ export function TutorialCoach({ level, hasTapped, hasAligned }: Props) {
     if (!message) return null;
 
     return (
-      <div className="pointer-events-none fixed inset-x-0 top-20 z-30 flex justify-center px-4">
-        <div className="neo pointer-events-auto animate-pop-in max-w-xs rounded-2xl bg-white px-4 py-3 text-center">
+      <div
+        className="pointer-events-none fixed inset-x-0 z-30 px-6"
+        style={{ bottom: 200 }}
+      >
+        <div
+          className="neo pointer-events-auto animate-pop-in rounded-2xl bg-white px-5 py-4 text-center"
+          style={{ animation: "slideUp 300ms ease-out" }}
+        >
           <div className="text-body-lg text-[color:var(--ink)]">{message.title}</div>
           <div className="mt-1 text-sm font-medium text-[color:var(--ink)] opacity-75">
             {message.body}
@@ -78,8 +92,11 @@ export function TutorialCoach({ level, hasTapped, hasAligned }: Props) {
 
   if (level === 2 && l2Visible) {
     return (
-      <div className="pointer-events-none fixed inset-x-0 top-20 z-30 flex justify-center px-4">
-        <div className="neo pointer-events-auto animate-pop-in max-w-xs rounded-2xl bg-white px-4 py-2 text-center">
+      <div
+        className="pointer-events-none fixed inset-x-0 z-30 px-6"
+        style={{ bottom: 200 }}
+      >
+        <div className="neo pointer-events-auto animate-pop-in rounded-2xl bg-white px-5 py-3 text-center">
           <div className="text-sm font-semibold text-[color:var(--ink)]">
             İpucu: tüm okları sarı merkezin yönüne çevir.
           </div>

@@ -114,7 +114,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
             __html: `
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js').catch(function() {});
+                  navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function() {});
                 });
               }
             `,
