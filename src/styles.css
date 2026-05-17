@@ -1,117 +1,136 @@
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap');
 @import "tailwindcss";
 
-/* ── COMPATIBILITY: __root.tsx uses these Tailwind tokens ───── */
+/* ── TAILWIND COMPAT tokens for __root.tsx error/404 pages ── */
 @theme inline {
-  --color-background: #FBF9F8;
-  --color-foreground: #1B1C1C;
-  --color-muted-foreground: #7E775F;
-  --color-primary: #FFD700;
-  --color-primary-foreground: #705E00;
-  --color-input: #4D4732;
-  --color-accent: #FFD700;
-  --color-border: #4D4732;
+  --color-background:        #FBF9F8;
+  --color-foreground:        #1B1C1C;
+  --color-muted-foreground:  #7E775F;
+  --color-primary:           #FFD700;
+  --color-primary-foreground:#705E00;
+  --color-input:             #4D4732;
+  --color-accent:            #FFD700;
+  --color-border:            #4D4732;
 }
 
-/* ── TOKENS ─────────────────────────────────────────── */
+/* ── DESIGN TOKENS ───────────────────────────────────────── */
 :root {
   --ink:        #4D4732;
   --ink-light:  #7E775F;
   --yellow:     #FFD700;
   --yellow-txt: #705E00;
   --surface:    #FFFFFF;
-  --bg:         #FBF9F8;
   --text:       #1B1C1C;
 
-  --shadow-md: 4px 4px 0px 0px var(--ink);
-  --shadow-sm: 2px 2px 0px 0px var(--ink);
-  --spring:    cubic-bezier(0.34, 1.56, 0.64, 1);
-  --soft:      cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --shadow-md:  4px 4px 0px 0px rgba(77,71,50,1);
+  --shadow-sm:  2px 2px 0px 0px rgba(77,71,50,1);
+  --spring:     cubic-bezier(0.34,1.56,0.64,1);
+  --soft:       cubic-bezier(0.25,0.46,0.45,0.94);
 
-  /* chapter background — transitions smoothly */
+  /* chapter background — set by JS */
   --chapter-bg: #B2AC88;
 }
 
-* {
+/* ── RESET ───────────────────────────────────────────────── */
+*, *::before, *::after {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
-
 html, body, #root { height: 100%; margin: 0; padding: 0; }
-
 body {
   font-family: 'Quicksand', sans-serif;
   background: var(--chapter-bg);
-  transition: background 1.2s ease-in-out;
+  transition: background 1.4s ease-in-out;
   overflow: hidden;
 }
 
-/* ── NEUBRUTALISM PRESS ─────────────────────────────── */
+/* ── GRAIN TEXTURE ───────────────────────────────────────── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.045;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 300px 300px;
+}
+
+/* ── NEUBRUTALISM PRESS ──────────────────────────────────── */
 .press {
-  transition: transform 75ms ease, box-shadow 75ms ease;
+  transition: transform 70ms ease, box-shadow 70ms ease;
   cursor: pointer;
   user-select: none;
+  -webkit-user-select: none;
 }
 .press:active {
-  transform: translate(2px, 2px) !important;
+  transform: translate(2px,2px) !important;
   box-shadow: none !important;
 }
 
-/* ── PETAL ANIMATIONS ───────────────────────────────── */
-@keyframes petalBounce {
-  0%   { scale: 1; }
-  40%  { scale: 0.88; }
-  100% { scale: 1; }
+/* ── KEYFRAMES ───────────────────────────────────────────── */
+@keyframes anim-bounce-kf {
+  0%   { scale: 1;    }
+  45%  { scale: 0.84; }
+  100% { scale: 1;    }
 }
-@keyframes alignFlash {
-  0%   { background: #a8e6a3; border-color: #4CAF50; }
-  100% { background: var(--surface); border-color: var(--ink); }
+@keyframes anim-align-kf {
+  0%   { filter: brightness(2.2) saturate(2.5); }
+  100% { filter: brightness(1)   saturate(1);   }
 }
-@keyframes errorShake {
-  0%,100% { translate: 0 0; }
+@keyframes anim-shake-kf {
+  0%,100% { translate: 0 0;    }
   25%     { translate: -5px 0; }
-  75%     { translate: 5px 0; }
+  75%     { translate:  5px 0; }
 }
-@keyframes centerPulse {
-  0%,100% { scale: 1; }
-  50%     { scale: 1.12; }
+@keyframes anim-cpulse-kf {
+  0%,100% { scale: 1;    }
+  50%     { scale: 1.13; }
 }
-@keyframes centerWin {
+@keyframes anim-cwin-kf {
   0%   { scale: 1;    box-shadow: var(--shadow-md); }
-  40%  { scale: 1.28; box-shadow: 0 0 40px rgba(255,215,0,.65); }
+  40%  { scale: 1.28; box-shadow: 0 0 48px rgba(255,215,0,.75); }
   100% { scale: 1;    box-shadow: var(--shadow-md); }
 }
-@keyframes petalBurst {
-  0%   { transform: rotate(var(--a)) translateY(var(--orbit)) scale(1);   opacity: 1; }
-  50%  { transform: rotate(var(--a)) translateY(calc(var(--orbit) - 60px)) scale(1.1); opacity: .85; }
-  100% { transform: rotate(var(--a)) translateY(var(--orbit)) scale(1);   opacity: 1; }
-}
-@keyframes hintGlow {
+@keyframes anim-hglow-kf {
   0%,100% { box-shadow: var(--shadow-sm); }
-  50%     { box-shadow: 0 0 0 6px rgba(255,215,0,.5), var(--shadow-sm); }
+  50%     { box-shadow: 0 0 0 7px rgba(255,215,0,.5), var(--shadow-sm); }
 }
-@keyframes slideUp {
-  from { transform: translateY(100%); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
+@keyframes anim-chfade-kf {
+  0%   { opacity: 0; }
+  14%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { opacity: 0; }
 }
-@keyframes chapterFade {
-  0%  { opacity: 0; }
-  15% { opacity: 1; }
-  80% { opacity: 1; }
-  100%{ opacity: 0; }
-}
-@keyframes scoreCount {
-  from { scale: 0.5; opacity: 0; }
+@keyframes anim-score-kf {
+  from { scale: 0.4; opacity: 0; }
   to   { scale: 1;   opacity: 1; }
 }
+@keyframes anim-spin-kf {
+  from { transform: rotate(0deg);   }
+  to   { transform: rotate(360deg); }
+}
+@keyframes anim-slideup-kf {
+  from { transform: translateY(130%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes anim-fadein-kf {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
 
-.petal-bounce { animation: petalBounce  150ms var(--spring); }
-.petal-align  { animation: alignFlash   350ms ease-out forwards; }
-.petal-error  { animation: errorShake   220ms ease-out; }
-.petal-burst  { animation: petalBurst   600ms ease-out forwards; }
-.center-pulse { animation: centerPulse  250ms ease-out; }
-.center-win   { animation: centerWin    800ms ease-in-out forwards; }
-.hint-glow    { animation: hintGlow     700ms ease-in-out 3; }
-.chapter-anim { animation: chapterFade  2800ms ease-in-out forwards; }
-.score-pop    { animation: scoreCount   400ms var(--spring) forwards; }
+/* ── ANIMATION CLASSES ───────────────────────────────────── */
+.anim-bounce  { animation: anim-bounce-kf  160ms var(--spring); }
+.anim-align   { animation: anim-align-kf   380ms ease-out forwards; }
+.anim-shake   { animation: anim-shake-kf   220ms ease-out; }
+.anim-cpulse  { animation: anim-cpulse-kf  260ms ease-out; }
+.anim-cwin    { animation: anim-cwin-kf    850ms ease-in-out forwards; }
+.anim-hglow   { animation: anim-hglow-kf   750ms ease-in-out 3; }
+.anim-chfade  { animation: anim-chfade-kf 2900ms ease-in-out forwards; }
+.anim-score   { animation: anim-score-kf   500ms var(--spring) 300ms both; }
+.anim-spin    { animation: anim-spin-kf     12s  linear       infinite; }
+.anim-slideup { animation: anim-slideup-kf  340ms var(--spring) both; }
+.anim-fadein  { animation: anim-fadein-kf   400ms ease both; }

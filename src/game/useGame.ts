@@ -1,51 +1,58 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { rotateCW, getChapter, DIRS } from './types';
+import { rotateCW, rotateCCW, spinDir, getChapter, DIRS } from './types';
 import type { Phase } from './types';
 import { getPuzzle } from './puzzles';
 
-/* ── Haptic helpers ─────────────────────────────────── */
-const vib = (pattern: number | number[]) =>
-  typeof navigator !== 'undefined' && navigator.vibrate?.(pattern);
+/* ── Haptics ─────────────────────────────────────────── */
+const vib = (p: number | number[]) =>
+  typeof navigator !== 'undefined' && navigator.vibrate?.(p);
 
 export const haptic = {
-  tap:     () => vib(8),
-  align:   () => vib(15),
-  win:     () => vib([40, 60, 40, 60, 80]),
-  chapter: () => vib([20, 40, 20]),
-  hint:    () => vib(6),
+  tap:   () => vib(8),
+  align: () => vib(15),
+  win:   () => vib([40, 60, 40, 60, 80]),
+  ch:    () => vib([20, 40, 20]),
+  hint:  () => vib(6),
 };
 
-/* ── Score formula ──────────────────────────────────── */
+/* ── Score ───────────────────────────────────────────── */
 const calcScore = (moves: number, min: number, sec: number) =>
   100 +
   Math.max(0, (min * 2 - moves)) * 10 +
   (sec < 20 ? 60 : sec < 45 ? 30 : sec < 90 ? 10 : 0);
 
-/* ── State factory ──────────────────────────────────── */
-const fresh = (level: number) => {
+/* ── State factory ───────────────────────────────────── */
+const init = (level: number, prevTotal = 0) => {
   const puzzle  = getPuzzle(level);
   const chapter = getChapter(level);
   const prevCh  = level > 1 ? getChapter(level - 1) : null;
   return {
     level,
     score:          0,
-    totalScore:     0,
+    totalScore:     prevTotal,
     moves:          0,
     puzzle,
     phase:          'playing' as Phase,
     chapter,
-    showTransition: prevCh?.id !== chapter.id || level === 1,
+    showTransition: level === 1 || prevCh?.id !== chapter.id,
     hintReady:      false,
     startTime:      Date.now(),
   };
 };
 
-export const useGame = () => {
-  const [s, setS] = useState(() => fresh(1));
-  const hintRef   = useRef<ReturnType<typeof setTimeout>>();
-  const circleRef = useRef<HTMLDivElement>(null);
+export type GameState = ReturnType<typeof init>;
 
-  /* 45 s hint timer */
+export const useGame = () => {
+  const [s, setS]  = useState<GameState>(() => init(1));
+  const hintRef    = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const circleRef  = useRef<HTMLDivElement>(null);
+
+  /* Chapter background on body */
+  useEffect(() => {
+    document.body.style.setProperty('--chapter-bg', s.chapter.bg);
+  }, [s.chapter.bg]);
+
+  /* 45-second hint timer */
   useEffect(() => {
     if (s.phase !== 'playing') return;
     clearTimeout(hintRef.current);
@@ -56,19 +63,17 @@ export const useGame = () => {
     return () => clearTimeout(hintRef.current);
   }, [s.level, s.phase]);
 
-  /* Chapter background on <body> */
-  useEffect(() => {
-    document.body.style.setProperty('--chapter-bg', s.chapter.bg);
-  }, [s.chapter.bg]);
-
-  /* Tap a petal */
-  const tap = useCallback((idx: number) => {
+  /* ── Tap / spin a petal ──────────────────────────── */
+  const tap = useCallback((idx: number, angleDeg: number) => {
     setS(prev => {
       if (prev.phase !== 'playing') return prev;
 
+      /* Spin direction is determined by petal position, not user choice */
+      const rotate = spinDir(angleDeg) === 'ccw' ? rotateCCW : rotateCW;
+
       const petals = prev.puzzle.petals.map(p => {
         if (p.idx !== idx || !p.hasArrow) return p;
-        const dir     = rotateCW(p.dir);
+        const dir     = rotate(p.dir);
         const aligned = dir === prev.puzzle.center;
         return { ...p, dir, aligned };
       });
@@ -93,8 +98,8 @@ export const useGame = () => {
       const newlyAligned = petals.find(p => p.idx === idx)?.aligned;
       if (newlyAligned) {
         haptic.align();
-        circleRef.current?.classList.add('center-pulse');
-        setTimeout(() => circleRef.current?.classList.remove('center-pulse'), 260);
+        circleRef.current?.classList.add('anim-cpulse');
+        setTimeout(() => circleRef.current?.classList.remove('anim-cpulse'), 270);
       } else {
         haptic.tap();
       }
@@ -104,31 +109,21 @@ export const useGame = () => {
   }, []);
 
   const nextLevel = useCallback(() =>
-    setS(prev => ({
-      ...fresh(prev.level + 1),
-      totalScore: prev.totalScore + prev.score,
-    })),
-  []);
+    setS(p => init(p.level + 1, p.totalScore + p.score)), []);
 
   const reset = useCallback(() =>
-    setS(prev => ({
-      ...fresh(prev.level),
-      totalScore: prev.totalScore,
-    })),
-  []);
+    setS(p => init(p.level, p.totalScore)), []);
 
   const togglePause = useCallback(() =>
-    setS(prev => ({
-      ...prev,
-      phase: prev.phase === 'paused' ? 'playing' : 'paused',
-    })),
-  []);
+    setS(p => ({
+      ...p,
+      phase: p.phase === 'paused' ? 'playing' : 'paused',
+    })), []);
 
-  const dismissTransition = useCallback(() =>
-    setS(prev => ({ ...prev, showTransition: false })),
-  []);
+  const dismissTr = useCallback(() =>
+    setS(p => ({ ...p, showTransition: false })), []);
 
-  /* Hint: petal needing fewest CW rotations */
+  /* Hint: petal closest to aligning (fewest taps away) */
   const hintIdx: number | null = (() => {
     if (!s.hintReady || s.phase !== 'playing') return null;
     let best = { idx: -1, taps: 9 };
@@ -136,11 +131,11 @@ export const useGame = () => {
       if (!p.hasArrow || p.aligned) return;
       const cur    = DIRS.indexOf(p.dir);
       const target = DIRS.indexOf(s.puzzle.center);
-      const taps   = (target - cur + 8) % 8;
+      const taps   = Math.min((target - cur + 8) % 8, (cur - target + 8) % 8);
       if (taps < best.taps) best = { idx: p.idx, taps };
     });
     return best.idx >= 0 ? best.idx : null;
   })();
 
-  return { s, tap, nextLevel, reset, togglePause, dismissTransition, hintIdx, circleRef };
+  return { s, tap, nextLevel, reset, togglePause, dismissTr, hintIdx, circleRef };
 };

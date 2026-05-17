@@ -1,164 +1,197 @@
 import { useRef, useEffect, type RefObject } from 'react';
-import { DIR_DEG } from './types';
-import type { Puzzle } from './types';
+import { DIR_DEG, spinDir } from './types';
+import type { Puzzle, Chapter } from './types';
+import { PETAL_PATHS, Arrow, SpinIndicator, CenterOverlay } from './shapes';
 
-/* ── Petal size table by petal count ── */
-const SIZE_TABLE: Record<number, { w: number; h: number; orbit: number }> = {
-  4:  { w: 64,  h: 112, orbit: 72 },
-  6:  { w: 56,  h: 100, orbit: 76 },
-  8:  { w: 50,  h: 90,  orbit: 78 },
-  10: { w: 44,  h: 82,  orbit: 80 },
-  12: { w: 38,  h: 74,  orbit: 80 },
-};
-const sizeFor = (n: number) => SIZE_TABLE[n] ?? SIZE_TABLE[8];
+/* ── Orbit radius by petal count ── */
+const ORBIT: Record<number, number> = { 4: 76, 6: 80, 8: 83, 10: 85, 12: 86 };
+const orbitFor = (n: number) => ORBIT[n] ?? 83;
 
-/* ── Arrow SVG — always points up (north), rotated by CSS ── */
-const Arrow = ({ deg, white }: { deg: number; white?: boolean }) => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    style={{
-      transform:  `rotate(${deg}deg)`,
-      transition: 'transform 180ms cubic-bezier(0.34,1.56,0.64,1)',
-      flexShrink: 0,
-    }}
-  >
-    <path
-      d="M12 4v16M12 4L7 9M12 4l5 5"
-      stroke={white ? '#fff' : '#1B1C1C'}
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-/* ── Single Petal ── */
+/* ── Single Petal (SVG <g>) ── */
 interface PetalProps {
   idx:      number;
-  angle:    number;
-  sz:       { w: number; h: number; orbit: number };
+  angle:    number;   /* placement angle in degrees (0–360) */
+  orbit:    number;
   hasArrow: boolean;
   dirDeg:   number;
   aligned:  boolean;
   isHint:   boolean;
   isWon:    boolean;
-  onTap:    (i: number) => void;
+  chapter:  Chapter;
+  onTap:    (idx: number, angle: number) => void;
 }
 
-const Petal = ({ idx, angle, sz, hasArrow, dirDeg, aligned, isHint, isWon, onTap }: PetalProps) => {
-  const ref         = useRef<HTMLDivElement>(null);
-  const prevAligned = useRef(aligned);
+const Petal = ({
+  idx, angle, orbit, hasArrow, dirDeg, aligned,
+  isHint, isWon, chapter, onTap,
+}: PetalProps) => {
+  const gRef    = useRef<SVGGElement>(null);
+  const prevAl  = useRef(aligned);
 
   /* Align flash */
   useEffect(() => {
-    if (!ref.current) return;
-    if (aligned && !prevAligned.current) {
-      ref.current.classList.add('petal-align');
-      setTimeout(() => ref.current?.classList.remove('petal-align'), 360);
+    if (!gRef.current) return;
+    if (aligned && !prevAl.current) {
+      gRef.current.classList.add('anim-align');
+      setTimeout(() => gRef.current?.classList.remove('anim-align'), 400);
     }
-    prevAligned.current = aligned;
+    prevAl.current = aligned;
   }, [aligned]);
 
-  /* Win burst */
+  /* Win burst — petals jump outward one by one */
   useEffect(() => {
-    if (!ref.current || !isWon) return;
-    ref.current.style.setProperty('--a',     `${angle}deg`);
-    ref.current.style.setProperty('--orbit', `-${sz.orbit + sz.h / 2}px`);
-    ref.current.classList.add('petal-burst');
-    const t = setTimeout(
-      () => ref.current?.classList.remove('petal-burst'),
-      600 + idx * 40,
-    );
-    return () => clearTimeout(t);
+    if (!gRef.current || !isWon) return;
+    const el    = gRef.current;
+    const burst = orbit + 55;
+    const delay = idx * 35;
+    setTimeout(() => {
+      el.style.transition = `transform 500ms cubic-bezier(0.34,1.56,0.64,1)`;
+      el.setAttribute('transform', `rotate(${angle}) translate(0,-${burst}) scale(1.14)`);
+      setTimeout(() => {
+        el.style.transition = `transform 400ms ease-out`;
+        el.setAttribute('transform', `rotate(${angle}) translate(0,-${orbit})`);
+      }, 500 + delay);
+    }, delay);
   }, [isWon]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleClick = () => {
+  const handlePointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
     if (!hasArrow || isWon) return;
-    ref.current?.classList.add('petal-bounce');
-    setTimeout(() => ref.current?.classList.remove('petal-bounce'), 160);
-    onTap(idx);
+    if (gRef.current) {
+      gRef.current.classList.add('anim-bounce');
+      setTimeout(() => gRef.current?.classList.remove('anim-bounce'), 170);
+    }
+    onTap(idx, angle);
   };
 
+  /* Arrow counter-rotates so it always reads in absolute screen space */
+  const arrowRot = dirDeg - angle;
+  const isCCW    = spinDir(angle) === 'ccw';
+  const path     = PETAL_PATHS[chapter.petalShape]?.(1);
+
   return (
-    <div
-      ref={ref}
-      onClick={handleClick}
-      className={isHint ? 'hint-glow' : ''}
+    <g
+      ref={gRef}
+      onPointerDown={handlePointerDown}
+      transform={`rotate(${angle}) translate(0,-${orbit})`}
       style={{
-        position:        'absolute',
-        width:           sz.w,
-        height:          sz.h,
-        left:            '50%',
-        top:             '50%',
-        marginLeft:      -sz.w / 2,
-        marginTop:       -(sz.orbit + sz.h),
-        transformOrigin: `${sz.w / 2}px ${sz.orbit + sz.h}px`,
-        transform:       `rotate(${angle}deg)`,
-        background:      'white',
-        border:          '2px solid #4D4732',
-        borderRadius:    9999,
-        boxShadow:       '2px 2px 0px 0px rgba(77,71,50,1)',
-        display:         'flex',
-        alignItems:      'flex-start',
-        justifyContent:  'center',
-        paddingTop:      10,
-        cursor:          hasArrow ? 'pointer' : 'default',
-        zIndex:          1,
-        transition:      'background 350ms ease-out, border-color 350ms ease-out',
+        cursor:           hasArrow ? 'pointer' : 'default',
+        transformOrigin:  '0 0',
+        touchAction:      'none',
       }}
     >
-      {hasArrow && <Arrow deg={dirDeg - angle} />}
-    </div>
+      {/* Hint glow ring */}
+      {isHint && (
+        <ellipse
+          cx="0" cy="-46" rx="28" ry="46"
+          fill="none"
+          stroke="#FFD700"
+          strokeWidth="3.5"
+          opacity="0.7"
+          className="anim-hglow"
+        />
+      )}
+
+      {/* Petal body */}
+      <path
+        d={path}
+        fill={chapter.petalColor}
+        stroke="#4D4732"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+
+      {/* Arrow (counter-rotated to point in absolute direction) */}
+      {hasArrow && (
+        <g transform={`translate(0,-48) rotate(${arrowRot})`}>
+          <path
+            d="M0,-10 L0,10 M0,-10 L-4.5,-4 M0,-10 L4.5,-4"
+            stroke="#1B1C1C"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
+        </g>
+      )}
+
+      {/* Spin direction indicator */}
+      {hasArrow && (
+        <foreignObject x="-5" y="-20" width="10" height="10">
+          <SpinIndicator ccw={isCCW} />
+        </foreignObject>
+      )}
+    </g>
   );
 };
 
 /* ── Canvas ── */
 interface Props {
   puzzle:    Puzzle;
-  onTap:     (i: number) => void;
+  chapter:   Chapter;
+  onTap:     (idx: number, angle: number) => void;
   isWon:     boolean;
   hintIdx:   number | null;
   circleRef: RefObject<HTMLDivElement | null>;
 }
 
-export const DaisyCanvas = ({ puzzle, onTap, isWon, hintIdx, circleRef }: Props) => {
-  const n  = puzzle.petals.length;
-  const sz = sizeFor(n);
+export const DaisyCanvas = ({
+  puzzle, chapter, onTap, isWon, hintIdx, circleRef,
+}: Props) => {
+  const n     = puzzle.petals.length;
+  const orbit = orbitFor(n);
+  const SZ    = 320;
+  const C     = SZ / 2;
+
+  const centerRadius = chapter.ctrShape === 'hexagon' || chapter.ctrShape === 'hexbump'
+    ? '14px'
+    : '9999px';
 
   return (
-    <div style={{ position: 'relative', width: 320, height: 320, flexShrink: 0 }}>
-      {puzzle.petals.map(p => (
-        <Petal
-          key={p.idx}
-          idx={p.idx}
-          angle={(360 / n) * p.idx}
-          sz={sz}
-          hasArrow={p.hasArrow}
-          dirDeg={DIR_DEG[p.dir]}
-          aligned={p.aligned}
-          isHint={p.idx === hintIdx}
-          isWon={isWon}
-          onTap={onTap}
-        />
-      ))}
+    <div
+      style={{ position: 'relative', width: SZ, height: SZ, flexShrink: 0 }}
+    >
+      {/* SVG petals */}
+      <svg
+        width={SZ}
+        height={SZ}
+        viewBox={`0 0 ${SZ} ${SZ}`}
+        overflow="visible"
+        style={{ position: 'absolute', inset: 0, touchAction: 'none' }}
+      >
+        <g transform={`translate(${C},${C})`}>
+          {puzzle.petals.map(p => (
+            <Petal
+              key={p.idx}
+              idx={p.idx}
+              angle={(360 / n) * p.idx}
+              orbit={orbit}
+              hasArrow={p.hasArrow}
+              dirDeg={DIR_DEG[p.dir]}
+              aligned={p.aligned}
+              isHint={p.idx === hintIdx}
+              isWon={isWon}
+              chapter={chapter}
+              onTap={onTap}
+            />
+          ))}
+        </g>
+      </svg>
 
-      {/* Center circle */}
+      {/* Center circle — HTML div for animation class support */}
       <div
         ref={circleRef}
-        className={isWon ? 'center-win' : ''}
+        className={isWon ? 'anim-cwin' : ''}
         style={{
           position:       'absolute',
           width:          96,
           height:         96,
           top:            '50%',
           left:           '50%',
-          transform:      'translate(-50%, -50%)',
+          transform:      'translate(-50%,-50%)',
           background:     '#FFD700',
           border:         '2px solid #4D4732',
-          borderRadius:   9999,
+          borderRadius:   centerRadius,
           boxShadow:      '4px 4px 0px 0px rgba(77,71,50,1)',
           display:        'flex',
           alignItems:     'center',
@@ -166,7 +199,8 @@ export const DaisyCanvas = ({ puzzle, onTap, isWon, hintIdx, circleRef }: Props)
           zIndex:         10,
         }}
       >
-        <Arrow deg={DIR_DEG[puzzle.center]} white />
+        <CenterOverlay shape={chapter.ctrShape} size={96} />
+        <Arrow deg={DIR_DEG[puzzle.center]} light size={28} />
       </div>
     </div>
   );

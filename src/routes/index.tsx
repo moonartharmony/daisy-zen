@@ -3,41 +3,31 @@ import { useState } from 'react';
 import { useGame } from '../game/useGame';
 import { DaisyCanvas } from '../game/DaisyCanvas';
 import {
-  Header,
-  ProgressArea,
-  WinOverlay,
-  PauseModal,
-  ChapterTransition,
-  TutorialSheet,
-} from '../game/GameUI';
+  Header, BottomArea, WinScreen,
+  PauseModal, ChapterTransition, TutorialSheet,
+} from '../game/UI';
+import { getChapter } from '../game/types';
 
-export const Route = createFileRoute('/')({
-  component: Game,
-});
+export const Route = createFileRoute('/')({ component: Game });
 
 function Game() {
   const {
-    s,
-    tap,
-    nextLevel,
-    reset,
-    togglePause,
-    dismissTransition,
-    hintIdx,
-    circleRef,
+    s, tap, nextLevel, reset, togglePause,
+    dismissTr, hintIdx, circleRef,
   } = useGame();
 
-  const [tutorialSeen, setTutorialSeen] = useState(false);
-  const showTutorial = s.level === 1 && !tutorialSeen && s.phase === 'playing';
+  const [tutSeen, setTutSeen] = useState(false);
 
-  const { puzzle, phase, chapter, totalScore, level, score, moves, showTransition, hintReady } = s;
+  const { puzzle, phase, chapter, totalScore, level, score, showTransition, hintReady } = s;
 
-  const aligned = puzzle.petals.filter(p => p.hasArrow && p.aligned).length;
-  const total   = puzzle.petals.filter(p => p.hasArrow).length;
+  const aligned  = puzzle.petals.filter(p => p.hasArrow && p.aligned).length;
+  const total    = puzzle.petals.filter(p => p.hasArrow).length;
+  const nextCh   = getChapter(level + 1);
+  const showTut  = level === 1 && !tutSeen && phase === 'playing';
 
-  const handleTap = (idx: number) => {
-    if (showTutorial) setTutorialSeen(true);
-    tap(idx);
+  const handleTap = (idx: number, angle: number) => {
+    if (showTut) setTutSeen(true);
+    tap(idx, angle);
   };
 
   return (
@@ -53,11 +43,11 @@ function Game() {
     }}>
       <Header
         level={level}
+        chapter={chapter}
         totalScore={totalScore}
         onPause={togglePause}
       />
 
-      {/* Canvas */}
       <div style={{
         flex:           1,
         display:        'flex',
@@ -66,6 +56,7 @@ function Game() {
       }}>
         <DaisyCanvas
           puzzle={puzzle}
+          chapter={chapter}
           onTap={handleTap}
           isWon={phase === 'won'}
           hintIdx={hintIdx}
@@ -73,23 +64,29 @@ function Game() {
         />
       </div>
 
-      <ProgressArea
-        chapterName={chapter.name}
+      <BottomArea
+        chapter={chapter}
         aligned={aligned}
         total={total}
-        moves={moves}
         onReset={reset}
         onHint={() => {}}
         hintReady={hintReady}
       />
 
-      {/* Overlays — stacked by z-index */}
-      {showTutorial && (
-        <TutorialSheet onDismiss={() => setTutorialSeen(true)} />
+      {showTut && (
+        <TutorialSheet onDismiss={() => setTutSeen(true)} />
       )}
+
       {phase === 'won' && (
-        <WinOverlay score={score} onNext={nextLevel} />
+        <WinScreen
+          score={score}
+          nextCh={nextCh}
+          curCh={chapter}
+          petalCount={puzzle.petals.length}
+          onNext={nextLevel}
+        />
       )}
+
       {phase === 'paused' && (
         <PauseModal
           chapter={chapter}
@@ -97,11 +94,9 @@ function Game() {
           onRestart={reset}
         />
       )}
+
       {showTransition && (
-        <ChapterTransition
-          chapter={chapter}
-          onDismiss={dismissTransition}
-        />
+        <ChapterTransition chapter={chapter} onDismiss={dismissTr} />
       )}
     </div>
   );

@@ -71,21 +71,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Daisy Arrow — Minimal Puzzle" },
-      { name: "description", content: "A minimal hyper-casual daisy puzzle game. Tap petals to rotate arrows." },
-      { name: "author", content: "Daisy Arrow" },
-      { property: "og:title", content: "Daisy Arrow — Minimal Puzzle" },
-      { property: "og:description", content: "Tap petals to align arrows. Playful zen puzzle game." },
-      { property: "og:type", content: "website" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" },
+      { title: "Daisy Zen — Minimal Puzzle" },
+      { name: "description", content: "A minimal zen puzzle game. Tap petals to align arrows through five chapters." },
+      { name: "author", content: "Daisy Zen" },
+      /* PWA */
+      { name: "mobile-web-app-capable",        content: "yes" },
+      { name: "apple-mobile-web-app-capable",  content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title",    content: "Daisy Zen" },
+      { name: "theme-color",                   content: "#4D4732" },
+      /* OG */
+      { property: "og:title",       content: "Daisy Zen — Minimal Puzzle" },
+      { property: "og:description", content: "Tap petals to align arrows. Five chapters of zen." },
+      { property: "og:type",        content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "stylesheet",  href: appCss },
+      { rel: "manifest",    href: "/manifest.json" },
+      { rel: "icon",        href: "/icons/icon.svg", type: "image/svg+xml" },
+      { rel: "apple-touch-icon", href: "/icons/icon-192.png" },
     ],
   }),
   shellComponent: RootShell,
@@ -103,6 +109,17 @@ function RootShell({ children }: { children: React.ReactNode }) {
       <body>
         {children}
         <Scripts />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').catch(function() {});
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );
