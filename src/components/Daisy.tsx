@@ -26,12 +26,22 @@ function angleToCardinal(dx: number, dy: number): Direction {
   return "west";
 }
 
-const SIZE = 360;
-const CENTER = SIZE / 2;
-const PETAL_RX = 28;
-const PETAL_RY = 54;
-const PETAL_DIST = 114;
-const CENTER_R = 44;
+// ── Flower geometry ───────────────────────────────────────────────────────────
+// All values are in SVG viewBox units (1:1 with px at native render size).
+// Key invariant:  CENTER_R > (PETAL_DIST - PETAL_RY)
+//   → petals overlap the center circle, creating a natural flower silhouette.
+//
+//   overlap  = CENTER_R − (PETAL_DIST − PETAL_RY)  = 48 − 40 = 8 px (14 % of RY)
+//   headroom = SIZE/2   − (PETAL_DIST + PETAL_RY)  = 160 − 152 = 8 px (+ 2 shadow)
+//   fill %   = (PETAL_DIST + PETAL_RY) / (SIZE/2)  = 152/160  = 95 %
+//   aspect   = PETAL_RY / PETAL_RX                 = 56/30   ≈ 1.87 : 1
+// ─────────────────────────────────────────────────────────────────────────────
+const SIZE      = 320;
+const CENTER    = SIZE / 2;   // 160
+const PETAL_RX  = 30;
+const PETAL_RY  = 56;
+const PETAL_DIST = 96;        // distance from SVG center to ellipse center
+const CENTER_R  = 48;         // center circle radius
 
 function ArrowSvg({ size = 28, color = "#1b1c1c" }: { size?: number; color?: string }) {
   const s = size;
@@ -70,7 +80,12 @@ export function Daisy({
       className="relative mx-auto select-none"
       style={{ width: SIZE, height: SIZE, maxWidth: "90vw", aspectRatio: "1 / 1" }}
     >
-      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="absolute inset-0 h-full w-full">
+      {/* overflow:visible → burst/hint animations don't clip at viewBox edge */}
+      <svg
+        viewBox={`0 0 ${SIZE} ${SIZE}`}
+        overflow="visible"
+        className="absolute inset-0 h-full w-full"
+      >
         {puzzle.petals.map((spec, i) => {
           const angle = i * step;
           const dir = petalDirs[i];
@@ -90,6 +105,15 @@ export function Daisy({
                   : anim === "hint"
                     ? "petal-hint"
                     : "";
+
+          // --tx/--ty: burst vector in SVG units, relative to petal's resting
+          // position (not SVG origin). Burst animation translates the petal
+          // outward from center. We pass the absolute displacement vector
+          // from SVG center so the CSS keyframe can move it correctly.
+          // Note: CSS translate operates in the element's CSS stacking context
+          // (post-SVG-transform), so values must be in rendered px. Since the
+          // SVG scales uniformly via viewBox, these SVG-unit values match
+          // rendered px 1:1 at native size and scale proportionally otherwise.
 
           return (
             <g

@@ -153,15 +153,22 @@ body::after {
 .anim-slideup { animation: anim-slideup-kf  340ms var(--spring) both; }
 .anim-fadein  { animation: anim-fadein-kf   400ms ease both; }
 
-/* ── DAISY COMPONENT (components/Daisy.tsx) PetalAnim classes ─ */
-/*   Applied to the <g class="petal-inner"> SVG group.            */
-.petal-tapped .petal-body  { animation: anim-bounce-kf 160ms var(--spring); }
+/* ── DAISY COMPONENT (components/Daisy.tsx) PetalAnim classes ──────────────
+   SVG elements default transform-origin to the SVG VIEWPORT origin (0,0),
+   not the element's own center. Without transform-box:fill-box every CSS
+   scale/translate animates from the wrong point → visual drift.
+   Rule: every animated SVG element gets fill-box + center.              */
 
-.petal-aligned .petal-body {
-  animation: anim-align-kf 380ms ease-out forwards;
+/* petal-inner <g> and petal-body <ellipse> */
+.petal-inner,
+.petal-body {
+  transform-box:    fill-box;
+  transform-origin: center;
 }
 
-.petal-error   { animation: anim-shake-kf  220ms ease-out; }
+.petal-tapped .petal-body  { animation: anim-bounce-kf 160ms var(--spring); }
+.petal-aligned .petal-body { animation: anim-align-kf  380ms ease-out forwards; }
+.petal-error               { animation: anim-shake-kf  220ms ease-out; }
 
 @keyframes petal-hint-kf {
   0%,100% { filter: drop-shadow(0 0 0px rgba(255,215,0,0)); }
@@ -169,21 +176,33 @@ body::after {
 }
 .petal-hint { animation: petal-hint-kf 700ms ease-in-out 3; }
 
-/* center-pulse / center-glow (components/Daisy.tsx center <g>) */
+/* center-pulse / center-glow — <g transform="translate(160 160)"> */
+.center-pulse,
+.center-glow {
+  transform-box:    fill-box;
+  transform-origin: center;
+}
 .center-pulse { animation: anim-cpulse-kf 260ms ease-out; }
 
 @keyframes center-glow-kf {
   0%,100% { filter: drop-shadow(0 0 0px rgba(255,215,0,0)); }
   50%     { filter: drop-shadow(0 0 10px rgba(255,215,0,.8)); }
 }
-.center-glow { animation: center-glow-kf 900ms ease-in-out infinite; }
+.center-glow  { animation: center-glow-kf 900ms ease-in-out infinite; }
 
-/* animate-petal-burst — petals fly outward on win */
+/* animate-petal-burst — petal <g> flies toward --tx/--ty on win
+   The <g> already has SVG transform positioning it at rest; CSS translate
+   is a separate layer that adds ON TOP of the SVG transform, so zero is
+   the resting position and (--tx,--ty) is the displacement delta.
+   We use a burst multiplier of ×0.35 so petals fly ~34px outward,
+   avoiding viewport overflow while still reading as an explosion.     */
 @keyframes petal-burst-kf {
-  0%   { translate: 0 0;           opacity: 1; }
-  60%  { translate: var(--tx) var(--ty); opacity: .7; scale: 1.12; }
-  100% { translate: var(--tx) var(--ty); opacity: 0; }
+  0%   { translate: 0 0;                                    opacity: 1; scale: 1;    }
+  55%  { translate: calc(var(--tx)*0.35) calc(var(--ty)*0.35); opacity: .8; scale: 1.1; }
+  100% { translate: calc(var(--tx)*0.35) calc(var(--ty)*0.35); opacity: 0; scale: 1;    }
 }
 .animate-petal-burst {
+  transform-box:    fill-box;
+  transform-origin: center;
   animation: petal-burst-kf 620ms var(--soft) forwards;
 }
