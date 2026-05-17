@@ -1,224 +1,117 @@
-@import "tailwindcss" source(none);
-@source "../src";
-@import "tw-animate-css";
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap');
+@import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *));
-
-/*
- * Daisy Arrow — Soft Neubrutalism design system.
- * Single source of truth for colors, shadows, fonts.
- */
-
+/* ── COMPATIBILITY: __root.tsx uses these Tailwind tokens ───── */
 @theme inline {
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-petal: var(--petal);
-  --color-ink: var(--ink);
-  --color-sage: var(--sage);
-  --font-sans: 'Quicksand', system-ui, sans-serif;
+  --color-background: #FBF9F8;
+  --color-foreground: #1B1C1C;
+  --color-muted-foreground: #7E775F;
+  --color-primary: #FFD700;
+  --color-primary-foreground: #705E00;
+  --color-input: #4D4732;
+  --color-accent: #FFD700;
+  --color-border: #4D4732;
 }
 
+/* ── TOKENS ─────────────────────────────────────────── */
 :root {
-  --radius: 0.75rem;
+  --ink:        #4D4732;
+  --ink-light:  #7E775F;
+  --yellow:     #FFD700;
+  --yellow-txt: #705E00;
+  --surface:    #FFFFFF;
+  --bg:         #FBF9F8;
+  --text:       #1B1C1C;
 
-  /* Daisy Arrow palette */
-  --sage: #B2AC88;
-  --ink: #4d4732;          /* outline + secondary text */
-  --petal: #FFFFFF;
-  --primary: #FFD700;       /* center + CTA */
-  --primary-foreground: #705e00;
-  --foreground: #1b1c1c;
-  --background: #B2AC88;
+  --shadow-md: 4px 4px 0px 0px var(--ink);
+  --shadow-sm: 2px 2px 0px 0px var(--ink);
+  --spring:    cubic-bezier(0.34, 1.56, 0.64, 1);
+  --soft:      cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
-  --card: #FFFFFF;
-  --card-foreground: #1b1c1c;
-  --popover: #FFFFFF;
-  --popover-foreground: #1b1c1c;
-  --secondary: #FFFFFF;
-  --secondary-foreground: #1b1c1c;
-  --muted: #d8d3b5;
-  --muted-foreground: #4d4732;
-  --accent: #FFD700;
-  --accent-foreground: #705e00;
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: #ffffff;
-  --border: #4d4732;
-  --input: #4d4732;
-  --ring: #705d00;
-
-  /* Flat offset shadow */
-  --shadow-neo: 4px 4px 0px 0px rgba(77, 71, 50, 1);
-  --shadow-neo-sm: 2px 2px 0px 0px rgba(77, 71, 50, 1);
+  /* chapter background — transitions smoothly */
+  --chapter-bg: #B2AC88;
 }
 
-.dark {
-  /* Daisy Arrow has one mode — keep tokens identical to light. */
-  --background: #B2AC88;
-  --foreground: #1b1c1c;
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
-@layer base {
-  * {
-    border-color: var(--color-border);
-  }
+html, body, #root { height: 100%; margin: 0; padding: 0; }
 
-  html, body, #root {
-    height: 100%;
-  }
-
-  body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
-    font-family: var(--font-sans);
-    font-weight: 600;
-    -webkit-tap-highlight-color: transparent;
-    overscroll-behavior: none;
-  }
+body {
+  font-family: 'Quicksand', sans-serif;
+  background: var(--chapter-bg);
+  transition: background 1.2s ease-in-out;
+  overflow: hidden;
 }
 
-@layer utilities {
-  .neo {
-    border: 2px solid var(--ink);
-    box-shadow: var(--shadow-neo);
-    transition: transform 80ms ease, box-shadow 80ms ease;
-  }
-  .neo-press:active {
-    transform: translate(2px, 2px);
-    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
-  }
-  .neo-sm {
-    border: 2px solid var(--ink);
-    box-shadow: var(--shadow-neo-sm);
-  }
-  .text-display {
-    font-size: 40px;
-    font-weight: 700;
-    line-height: 1.1;
-  }
-  .text-headline {
-    font-size: 24px;
-    font-weight: 700;
-  }
-  .text-body-lg {
-    font-size: 18px;
-    font-weight: 600;
-  }
-  .text-label {
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
+/* ── NEUBRUTALISM PRESS ─────────────────────────────── */
+.press {
+  transition: transform 75ms ease, box-shadow 75ms ease;
+  cursor: pointer;
+  user-select: none;
+}
+.press:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: none !important;
 }
 
-@keyframes petal-burst {
-  0%   { transform: translate(var(--tx, 0), var(--ty, 0)) scale(1); opacity: 1; }
-  100% { transform: translate(calc(var(--tx, 0) * 2.2), calc(var(--ty, 0) * 2.2)) scale(0.6); opacity: 0; }
+/* ── PETAL ANIMATIONS ───────────────────────────────── */
+@keyframes petalBounce {
+  0%   { scale: 1; }
+  40%  { scale: 0.88; }
+  100% { scale: 1; }
 }
-.animate-petal-burst {
-  animation: petal-burst 700ms cubic-bezier(.2,.8,.2,1) forwards;
+@keyframes alignFlash {
+  0%   { background: #a8e6a3; border-color: #4CAF50; }
+  100% { background: var(--surface); border-color: var(--ink); }
 }
-
-@keyframes pop-in {
-  0%   { transform: scale(0.7); opacity: 0; }
-  100% { transform: scale(1);   opacity: 1; }
+@keyframes errorShake {
+  0%,100% { translate: 0 0; }
+  25%     { translate: -5px 0; }
+  75%     { translate: 5px 0; }
 }
-.animate-pop-in {
-  animation: pop-in 280ms cubic-bezier(.2,.9,.3,1.2) forwards;
+@keyframes centerPulse {
+  0%,100% { scale: 1; }
+  50%     { scale: 1.12; }
 }
-
-/* Per-petal interaction states.
-   Inner <g> wraps the petal body; transform-box:fill-box keeps origin local. */
-.petal-inner {
-  transform-box: fill-box;
-  transform-origin: center;
-  transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
+@keyframes centerWin {
+  0%   { scale: 1;    box-shadow: var(--shadow-md); }
+  40%  { scale: 1.28; box-shadow: 0 0 40px rgba(255,215,0,.65); }
+  100% { scale: 1;    box-shadow: var(--shadow-md); }
 }
-.petal-pressed {
-  transform: scale(0.88);
+@keyframes petalBurst {
+  0%   { transform: rotate(var(--a)) translateY(var(--orbit)) scale(1);   opacity: 1; }
+  50%  { transform: rotate(var(--a)) translateY(calc(var(--orbit) - 60px)) scale(1.1); opacity: .85; }
+  100% { transform: rotate(var(--a)) translateY(var(--orbit)) scale(1);   opacity: 1; }
 }
-.petal-aligned .petal-body {
-  animation: align-flash 320ms ease-out forwards;
+@keyframes hintGlow {
+  0%,100% { box-shadow: var(--shadow-sm); }
+  50%     { box-shadow: 0 0 0 6px rgba(255,215,0,.5), var(--shadow-sm); }
 }
-@keyframes align-flash {
-  0%   { fill: #a8e6a3; stroke: #4CAF50; }
-  60%  { fill: #d4f5d4; stroke: #4CAF50; }
-  100% { fill: #FFFFFF; stroke: #4d4732; }
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
 }
-.petal-error {
-  animation: error-shake 220ms ease-out;
+@keyframes chapterFade {
+  0%  { opacity: 0; }
+  15% { opacity: 1; }
+  80% { opacity: 1; }
+  100%{ opacity: 0; }
 }
-@keyframes error-shake {
-  0%   { transform: translateX(0); }
-  25%  { transform: translateX(-4px); }
-  75%  { transform: translateX(4px); }
-  100% { transform: translateX(0); }
-}
-.petal-hint {
-  animation: hint-pulse 700ms ease-in-out 3;
-}
-@keyframes hint-pulse {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.06); }
+@keyframes scoreCount {
+  from { scale: 0.5; opacity: 0; }
+  to   { scale: 1;   opacity: 1; }
 }
 
-/* Center circle states */
-.center-pulse {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: center-pulse 250ms ease-out;
-}
-@keyframes center-pulse {
-  0%   { transform: scale(1); }
-  50%  { transform: scale(1.12); }
-  100% { transform: scale(1); }
-}
-.center-glow {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: center-glow 800ms ease-in-out forwards;
-  filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.65));
-}
-@keyframes center-glow {
-  0%   { transform: scale(1); }
-  30%  { transform: scale(1.2); }
-  100% { transform: scale(1.05); }
-}
-
-/* Chapter transition overlay */
-.animate-chapter-fade {
-  animation: chapter-fade 2500ms ease-in-out forwards;
-}
-@keyframes chapter-fade {
-  0%   { opacity: 0; }
-  18%  { opacity: 1; }
-  78%  { opacity: 1; }
-  100% { opacity: 0; pointer-events: none; }
-}
-
-/* Smooth chapter background transition on body/main */
-.chapter-bg {
-  transition: background-color 800ms ease;
-}
+.petal-bounce { animation: petalBounce  150ms var(--spring); }
+.petal-align  { animation: alignFlash   350ms ease-out forwards; }
+.petal-error  { animation: errorShake   220ms ease-out; }
+.petal-burst  { animation: petalBurst   600ms ease-out forwards; }
+.center-pulse { animation: centerPulse  250ms ease-out; }
+.center-win   { animation: centerWin    800ms ease-in-out forwards; }
+.hint-glow    { animation: hintGlow     700ms ease-in-out 3; }
+.chapter-anim { animation: chapterFade  2800ms ease-in-out forwards; }
+.score-pop    { animation: scoreCount   400ms var(--spring) forwards; }
