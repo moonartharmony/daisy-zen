@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { DIR_DEG, type Direction, type Puzzle } from "@/lib/puzzles";
 
-export type PetalAnim = "pressed" | "aligned" | "error" | "hint" | null;
+export type PetalAnim = "tapped" | "aligned" | "error" | "hint" | null;
 
 type Props = {
   puzzle: Puzzle;
@@ -26,12 +26,12 @@ function angleToCardinal(dx: number, dy: number): Direction {
   return "west";
 }
 
-const SIZE = 320;
+const SIZE = 360;
 const CENTER = SIZE / 2;
-const PETAL_RX = 30;
-const PETAL_RY = 56;
-const PETAL_DIST = 96;
-const CENTER_R = 48;
+const PETAL_RX = 28;
+const PETAL_RY = 54;
+const PETAL_DIST = 114;
+const CENTER_R = 44;
 
 function ArrowSvg({ size = 28, color = "#1b1c1c" }: { size?: number; color?: string }) {
   const s = size;
@@ -81,8 +81,8 @@ export function Daisy({
           const anim = petalAnims[i];
 
           const animClass =
-            anim === "pressed"
-              ? "petal-pressed"
+            anim === "tapped"
+              ? "petal-tapped"
               : anim === "aligned"
                 ? "petal-aligned"
                 : anim === "error"
