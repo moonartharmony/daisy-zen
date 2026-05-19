@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { rotateCW, rotateCCW, spinDir, getChapter, DIRS } from './types';
-import type { Phase } from './types';
+import { rotateCW, rotateCCW, spinDir, getChapter, DIRS, DIR_DEG } from './types';
+import type { Phase, Dir } from './types';
 import { getPuzzle } from './puzzles';
 
 /* ── Haptics ─────────────────────────────────────────── */
@@ -132,6 +132,68 @@ export const useGame = () => {
     });
   }, []);
 
+  /* ── Swipe / set a petal direction directly ─────── */
+  const setDir = useCallback((idx: number, dir: Dir) => {
+    setS(prev => {
+      if (prev.phase !== 'playing') return prev;
+      const cur = prev.puzzle.petals.find(p => p.idx === idx);
+      if (!cur || !cur.hasArrow || cur.dir === dir) return prev;
+
+      const petals = prev.puzzle.petals.map(p =>
+        p.idx === idx
+          ? { ...p, dir, aligned: dir === prev.puzzle.center }
+          : p,
+      );
+
+      const won   = petals.filter(p => p.hasArrow).every(p => p.aligned);
+      const moves = prev.moves + 1;
+
+      if (won) {
+        const sec    = Math.round((Date.now() - prev.startTime) / 1000);
+        const gained = calcScore(moves, prev.puzzle.minMoves, sec);
+        haptic.win();
+        return {
+          ...prev,
+          puzzle:     { ...prev.puzzle, petals },
+          moves,
+          score:      gained,
+          totalScore: prev.totalScore + gained,
+          phase:      'won' as Phase,
+        };
+      }
+
+      const newlyAligned = petals.find(p => p.idx === idx)?.aligned;
+      if (newlyAligned) {
+        haptic.align();
+        circleRef.current?.classList.add('anim-cpulse');
+        setTimeout(() => circleRef.current?.classList.remove('anim-cpulse'), 270);
+      } else {
+        haptic.tap();
+      }
+
+      return { ...prev, puzzle: { ...prev.puzzle, petals }, moves };
+    });
+  }, []);
+
+  /* Snap a screen-space swipe vector to the nearest allowed chapter direction. */
+  const snapSwipe = useCallback((dx: number, dy: number): Dir => {
+    /* atan2(-dy, dx): convert screen coords (y-down) so North = 90°.
+       Then map to compass degrees (N=0, E=90, S=180, W=270). */
+    const compass = (90 - (Math.atan2(-dy, dx) * 180) / Math.PI + 360) % 360;
+    const allowed = s.chapter.dirs;
+    let best: Dir = allowed[0];
+    let bestD = 999;
+    for (const d of allowed) {
+      const diff = Math.min(
+        Math.abs(DIR_DEG[d] - compass),
+        360 - Math.abs(DIR_DEG[d] - compass),
+      );
+      if (diff < bestD) { bestD = diff; best = d; }
+    }
+    return best;
+  }, [s.chapter.dirs]);
+
+
   const nextLevel = useCallback(() =>
     setS(p => init(p.level + 1, p.totalScore + p.score)), []);
 
@@ -161,5 +223,10 @@ export const useGame = () => {
     return best.idx >= 0 ? best.idx : null;
   })();
 
-  return { s, tap, nextLevel, reset, togglePause, dismissTr, hintIdx, circleRef, lastTap: s.lastTap };
+  return {
+    s, tap, setDir, snapSwipe,
+    nextLevel, reset, togglePause, dismissTr,
+    hintIdx, circleRef,
+    lastTap: s.lastTap,
+  };
 };

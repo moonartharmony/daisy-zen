@@ -454,33 +454,106 @@ export const ChapterTransition = ({
 
 /* ── TUTORIAL BOTTOM SHEET (level 1 only) ───────────── */
 export const TutorialSheet = ({
-  onDismiss,
+  step, onDismiss,
 }: {
+  step:      1 | 2;
   onDismiss: () => void;
-}) => (
-  <div
-    onClick={onDismiss}
-    className="anim-slideup"
-    style={{
-      position:     'absolute',
-      left:         18,
-      right:        18,
-      bottom:       158,
-      background:   surface,
-      border:       `2px solid ${ink}`,
-      borderRadius: 16,
-      boxShadow:    shadowMd,
-      padding:      '14px 18px',
-      zIndex:       40,
-      cursor:       'pointer',
-    }}
-  >
-    <div style={{ ...font(14), color: text, marginBottom: 5 }}>
-      Bir yaprağa dokun
+}) => {
+  const title = step === 1
+    ? 'Bir yaprağa dokun'
+    : 'Ya da yaprağı bir yöne savur';
+  const body  = step === 1
+    ? 'Her dokunuş, oku bir adım çevirir. Sol yapraklar ters döner — sanki çiçeği iki elinle tutuyorsun.'
+    : 'Parmağını N · E · S · W yönünde kaydır; ok en yakın yöne snap olur. Tek hamlede hedef yön.';
+
+  return (
+    <div
+      onClick={onDismiss}
+      className="anim-slideup"
+      style={{
+        position:     'absolute',
+        left:         18,
+        right:        18,
+        bottom:       158,
+        background:   surface,
+        border:       `2px solid ${ink}`,
+        borderRadius: 16,
+        boxShadow:    shadowMd,
+        padding:      '14px 18px',
+        zIndex:       40,
+        cursor:       'pointer',
+        display:      'flex',
+        alignItems:   'center',
+        gap:          14,
+      }}
+    >
+      {/* Visual: tap finger (step 1) or compass with snap arrows (step 2) */}
+      <div style={{ flexShrink: 0, width: 56, height: 56 }}>
+        {step === 1 ? (
+          <svg viewBox="0 0 56 56" width="56" height="56">
+            <ellipse cx="28" cy="30" rx="18" ry="22"
+              fill="#FFFFFF" stroke={ink} strokeWidth="2" />
+            <path d="M28 18 L28 26 M28 18 L24 22 M28 18 L32 22"
+              stroke={ink} strokeWidth="2" strokeLinecap="round"
+              strokeLinejoin="round" fill="none" />
+            <circle cx="28" cy="30" r="9" fill="none"
+              stroke={yellow} strokeWidth="2"
+              strokeDasharray="2 3" opacity="0.85">
+              <animate attributeName="r" values="6;12;6" dur="1.6s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.9;0.2;0.9" dur="1.6s" repeatCount="indefinite" />
+            </circle>
+          </svg>
+        ) : (
+          <svg viewBox="0 0 56 56" width="56" height="56">
+            {/* compass ring */}
+            <circle cx="28" cy="28" r="22" fill="#FFF9E0"
+              stroke={ink} strokeWidth="2" />
+            {/* N E S W tick labels */}
+            <text x="28" y="13" textAnchor="middle"
+              style={{ font: 'bold 7px Quicksand, sans-serif' }} fill={ink}>N</text>
+            <text x="48" y="30" textAnchor="middle"
+              style={{ font: 'bold 7px Quicksand, sans-serif' }} fill={ink}>E</text>
+            <text x="28" y="50" textAnchor="middle"
+              style={{ font: 'bold 7px Quicksand, sans-serif' }} fill={ink}>S</text>
+            <text x="8"  y="30" textAnchor="middle"
+              style={{ font: 'bold 7px Quicksand, sans-serif' }} fill={ink}>W</text>
+            {/* center arrow snapping between cardinals */}
+            <g transform="translate(28 28)">
+              <path d="M0,-9 L0,9 M0,-9 L-3.5,-4.5 M0,-9 L3.5,-4.5"
+                stroke={ink} strokeWidth="2"
+                strokeLinecap="round" strokeLinejoin="round" fill="none">
+                <animateTransform attributeName="transform" type="rotate"
+                  values="0;90;180;270;0" keyTimes="0;0.25;0.5;0.75;1"
+                  dur="2.8s" repeatCount="indefinite"
+                  calcMode="discrete" />
+              </path>
+            </g>
+            {/* swipe trail */}
+            <path d="M16 28 Q22 24 28 28"
+              stroke={yellow} strokeWidth="2" fill="none"
+              strokeLinecap="round" strokeDasharray="3 3" opacity="0.85" />
+          </svg>
+        )}
+      </div>
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ ...font(14), color: text, marginBottom: 4 }}>
+          {title}
+        </div>
+        <div style={{ ...font(12, 500), color: muted, lineHeight: 1.5 }}>
+          {body}
+        </div>
+        <div style={{
+          ...font(9, 600),
+          color:         muted,
+          marginTop:     6,
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+        }}>
+          {step} / 2 · {step === 1 ? 'dokun ile başla' : 'savur ile snap'}
+        </div>
+      </div>
     </div>
-    <div style={{ ...font(12, 500), color: muted, lineHeight: 1.55 }}>
-      Her dokunuş oku bir yön çevirir. Sol yapraklar ters döner — sanki çiçeği iki elinle döndürüyorsun.
-      {' '}Tüm okları merkezdeki yönle hizala.
-    </div>
-  </div>
-);
+  );
+};
+
