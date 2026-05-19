@@ -158,13 +158,14 @@ interface Props {
   puzzle:    Puzzle;
   chapter:   Chapter;
   onTap:     (idx: number, angle: number) => void;
+  onSwipe:   (idx: number, dx: number, dy: number) => void;
   isWon:     boolean;
   hintIdx:   number | null;
   circleRef: RefObject<HTMLDivElement | null>;
 }
 
 export const DaisyCanvas = ({
-  puzzle, chapter, onTap, isWon, hintIdx, circleRef,
+  puzzle, chapter, onTap, onSwipe, isWon, hintIdx, circleRef,
 }: Props) => {
   const n     = puzzle.petals.length;
   const orbit = orbitFor(n);
@@ -201,6 +202,8 @@ export const DaisyCanvas = ({
               isWon={isWon}
               chapter={chapter}
               onTap={onTap}
+              onSwipe={onSwipe}
+
             />
           ))}
         </g>
