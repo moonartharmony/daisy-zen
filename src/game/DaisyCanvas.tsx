@@ -99,6 +99,8 @@ const Petal = ({
     <g
       ref={gRef}
       onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
       transform={`rotate(${angle}) translate(0,-${orbit})`}
       style={{
         cursor:           hasArrow ? 'pointer' : 'default',
