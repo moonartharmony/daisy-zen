@@ -1,6 +1,7 @@
 import { useRef, useEffect, type RefObject } from 'react';
 import { DIR_DEG, spinDir } from './types';
 import type { Puzzle, Chapter } from './types';
+import type { LastTap } from './useGame';
 import { PETAL_PATHS, Arrow, SpinIndicator, CenterOverlay } from './shapes';
 
 /* ── Orbit radius by petal count ── */
@@ -17,24 +18,37 @@ interface PetalProps {
   aligned:  boolean;
   isHint:   boolean;
   isWon:    boolean;
+  lastTap:  LastTap;
   chapter:  Chapter;
   onTap:    (idx: number, angle: number) => void;
 }
 
 const Petal = ({
   idx, angle, orbit, hasArrow, dirDeg, aligned,
-  isHint, isWon, chapter, onTap,
+  isHint, isWon, lastTap, chapter, onTap,
 }: PetalProps) => {
-  const gRef    = useRef<SVGGElement>(null);
-  const prevAl  = useRef(aligned);
+  const gRef   = useRef<SVGGElement>(null);
+  const prevAl = useRef(aligned);
 
-  /* Align flash */
+  /* ── System 1: react to lastTap for this petal ── */
   useEffect(() => {
-    if (!gRef.current) return;
-    if (aligned && !prevAl.current) {
-      gRef.current.classList.add('anim-align');
-      setTimeout(() => gRef.current?.classList.remove('anim-align'), 400);
+    if (!gRef.current || !lastTap || lastTap.idx !== idx) return;
+    const el = gRef.current;
+
+    if (lastTap.result === 'misaligned') {
+      // Shake: quick horizontal displacement — wrong direction feedback
+      el.classList.add('anim-shake');
+      setTimeout(() => el.classList.remove('anim-shake'), 240);
+    } else if (lastTap.result === 'aligned') {
+      // Flash: brightness burst — "locked in" confirmation
+      el.classList.add('anim-align');
+      setTimeout(() => el.classList.remove('anim-align'), 400);
     }
+    // 'won' — win burst handled separately below
+  }, [lastTap]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* System 2: track aligned → prevAl for any external-driven align */
+  useEffect(() => {
     prevAl.current = aligned;
   }, [aligned]);
 
@@ -132,11 +146,12 @@ interface Props {
   onTap:     (idx: number, angle: number) => void;
   isWon:     boolean;
   hintIdx:   number | null;
+  lastTap:   LastTap;
   circleRef: RefObject<HTMLDivElement | null>;
 }
 
 export const DaisyCanvas = ({
-  puzzle, chapter, onTap, isWon, hintIdx, circleRef,
+  puzzle, chapter, onTap, isWon, hintIdx, lastTap, circleRef,
 }: Props) => {
   const n     = puzzle.petals.length;
   const orbit = orbitFor(n);
@@ -171,6 +186,7 @@ export const DaisyCanvas = ({
               aligned={p.aligned}
               isHint={p.idx === hintIdx}
               isWon={isWon}
+              lastTap={lastTap}
               chapter={chapter}
               onTap={onTap}
             />
@@ -181,7 +197,7 @@ export const DaisyCanvas = ({
       {/* Center circle — HTML div for animation class support */}
       <div
         ref={circleRef}
-        className={isWon ? 'anim-cwin' : ''}
+        className={isWon ? 'anim-cwin' : 'center-breathe'}
         style={{
           position:       'absolute',
           width:          96,

@@ -8,11 +8,10 @@ const vib = (p: number | number[]) =>
   typeof navigator !== 'undefined' && navigator.vibrate?.(p);
 
 export const haptic = {
-  tap:   () => vib(8),
-  align: () => vib(15),
-  win:   () => vib([40, 60, 40, 60, 80]),
-  ch:    () => vib([20, 40, 20]),
-  hint:  () => vib(6),
+  tap:      () => vib(8),
+  align:    () => vib(15),
+  misalign: () => vib(12),
+  win:      () => vib([40, 60, 40, 60, 80]),
 };
 
 /* ── Score ───────────────────────────────────────────── */
@@ -20,6 +19,10 @@ const calcScore = (moves: number, min: number, sec: number) =>
   100 +
   Math.max(0, (min * 2 - moves)) * 10 +
   (sec < 20 ? 60 : sec < 45 ? 30 : sec < 90 ? 10 : 0);
+
+/* ── Last-tap record (drives per-petal animations without extra renders) ── */
+export type TapResult = 'aligned' | 'misaligned' | 'won';
+export type LastTap   = { idx: number; result: TapResult; ts: number } | null;
 
 /* ── State factory ───────────────────────────────────── */
 const init = (level: number, prevTotal = 0) => {
@@ -37,6 +40,7 @@ const init = (level: number, prevTotal = 0) => {
     showTransition: level === 1 || prevCh?.id !== chapter.id,
     hintReady:      false,
     startTime:      Date.now(),
+    lastTap:        null as LastTap,
   };
 };
 
@@ -58,17 +62,19 @@ export const useGame = () => {
     clearTimeout(hintRef.current);
     hintRef.current = setTimeout(() => {
       setS(p => ({ ...p, hintReady: true }));
-      haptic.hint();
     }, 45_000);
     return () => clearTimeout(hintRef.current);
   }, [s.level, s.phase]);
 
   /* ── Tap / spin a petal ──────────────────────────── */
   const tap = useCallback((idx: number, angleDeg: number) => {
+    // Capture result synchronously from the updater so we can fire
+    // haptics + DOM animations outside React's render cycle.
+    let result: TapResult = 'misaligned';
+
     setS(prev => {
       if (prev.phase !== 'playing') return prev;
 
-      /* Spin direction is determined by petal position, not user choice */
       const rotate = spinDir(angleDeg) === 'ccw' ? rotateCCW : rotateCW;
 
       const petals = prev.puzzle.petals.map(p => {
@@ -82,9 +88,9 @@ export const useGame = () => {
       const moves = prev.moves + 1;
 
       if (won) {
+        result = 'won';
         const sec    = Math.round((Date.now() - prev.startTime) / 1000);
         const gained = calcScore(moves, prev.puzzle.minMoves, sec);
-        haptic.win();
         return {
           ...prev,
           puzzle:     { ...prev.puzzle, petals },
@@ -92,19 +98,37 @@ export const useGame = () => {
           score:      gained,
           totalScore: prev.totalScore + gained,
           phase:      'won' as Phase,
+          lastTap:    { idx, result: 'won',  ts: Date.now() },
         };
       }
 
-      const newlyAligned = petals.find(p => p.idx === idx)?.aligned;
-      if (newlyAligned) {
-        haptic.align();
-        circleRef.current?.classList.add('anim-cpulse');
-        setTimeout(() => circleRef.current?.classList.remove('anim-cpulse'), 270);
-      } else {
-        haptic.tap();
-      }
+      const newlyAligned = petals.find(p => p.idx === idx)?.aligned ?? false;
+      result = newlyAligned ? 'aligned' : 'misaligned';
 
-      return { ...prev, puzzle: { ...prev.puzzle, petals }, moves };
+      return {
+        ...prev,
+        puzzle:  { ...prev.puzzle, petals },
+        moves,
+        lastTap: { idx, result, ts: Date.now() },
+      };
+    });
+
+    // ── System 1: fire side-effects immediately after state is queued ──
+    // requestAnimationFrame keeps us on the paint frame after the update.
+    requestAnimationFrame(() => {
+      switch (result) {
+        case 'aligned':
+          haptic.align();
+          circleRef.current?.classList.add('anim-cpulse');
+          setTimeout(() => circleRef.current?.classList.remove('anim-cpulse'), 270);
+          break;
+        case 'misaligned':
+          haptic.misalign();
+          break;
+        case 'won':
+          haptic.win();
+          break;
+      }
     });
   }, []);
 
@@ -137,5 +161,5 @@ export const useGame = () => {
     return best.idx >= 0 ? best.idx : null;
   })();
 
-  return { s, tap, nextLevel, reset, togglePause, dismissTr, hintIdx, circleRef };
+  return { s, tap, nextLevel, reset, togglePause, dismissTr, hintIdx, circleRef, lastTap: s.lastTap };
 };

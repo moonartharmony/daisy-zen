@@ -13,7 +13,7 @@ export const Route = createFileRoute('/')({ component: Game });
 function Game() {
   const {
     s, tap, nextLevel, reset, togglePause,
-    dismissTr, hintIdx, circleRef,
+    dismissTr, hintIdx, circleRef, lastTap,
   } = useGame();
 
   const [tutSeen, setTutSeen] = useState(false);
@@ -60,6 +60,7 @@ function Game() {
           onTap={handleTap}
           isWon={phase === 'won'}
           hintIdx={hintIdx}
+          lastTap={lastTap}
           circleRef={circleRef}
         />
       </div>

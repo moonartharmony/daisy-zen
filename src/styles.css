@@ -139,19 +139,60 @@ body::after {
   to   { opacity: 1; }
 }
 
+/* ── System 1 keyframes: misalign shake ─────────────────────
+   SVG <g> elements need translate (not CSS left/right) for the
+   shake, AND transform-box: fill-box so the origin is the
+   group's own bounding box center, not the SVG viewport (0,0). */
+@keyframes anim-shake-svg-kf {
+  0%,100% { translate: 0px 0px; }
+  20%     { translate: -6px 0px; }
+  40%     { translate:  5px 0px; }
+  60%     { translate: -4px 0px; }
+  80%     { translate:  3px 0px; }
+}
+
+/* ── System 2 keyframes: center breathing (pacing cue) ──────
+   A slow, barely-perceptible glow pulse on the center circle.
+   Frequency: ~3.8 s — matches calm resting breath rate.       */
+@keyframes center-breathe-kf {
+  0%,100% { box-shadow: 4px 4px 0 0 rgba(77,71,50,1),
+                        0 0  0px rgba(255,215,0,0); }
+  50%     { box-shadow: 4px 4px 0 0 rgba(77,71,50,1),
+                        0 0 16px rgba(255,215,0,.28); }
+}
+
+/* ── System 2 keyframes: aligned-petal persistent glow ─────
+   Once a petal locks in, its path gets a subtle gold tint.     */
+@keyframes petal-locked-kf {
+  from { filter: brightness(1.6) saturate(1.8); }
+  to   { filter: brightness(1)   saturate(1);   }
+}
+
 /* ── ANIMATION CLASSES ───────────────────────────────────── */
 /* DaisyCanvas (game/DaisyCanvas.tsx) */
-.anim-bounce  { animation: anim-bounce-kf  160ms var(--spring); }
-.anim-align   { animation: anim-align-kf   380ms ease-out forwards; }
-.anim-shake   { animation: anim-shake-kf   220ms ease-out; }
-.anim-cpulse  { animation: anim-cpulse-kf  260ms ease-out; }
-.anim-cwin    { animation: anim-cwin-kf    850ms ease-in-out forwards; }
-.anim-hglow   { animation: anim-hglow-kf   750ms ease-in-out 3; }
-.anim-chfade  { animation: anim-chfade-kf 2900ms ease-in-out forwards; }
-.anim-score   { animation: anim-score-kf   500ms var(--spring) 300ms both; }
-.anim-spin    { animation: anim-spin-kf     12s  linear       infinite; }
-.anim-slideup { animation: anim-slideup-kf  340ms var(--spring) both; }
-.anim-fadein  { animation: anim-fadein-kf   400ms ease both; }
+.anim-bounce  { animation: anim-bounce-kf     160ms var(--spring); }
+.anim-align   { animation: anim-align-kf      380ms ease-out forwards; }
+
+/* System 1: misalign shake — SVG <g> version */
+.anim-shake {
+  transform-box:    fill-box;
+  transform-origin: center;
+  animation: anim-shake-svg-kf 240ms ease-out;
+}
+
+.anim-cpulse  { animation: anim-cpulse-kf    260ms ease-out; }
+.anim-cwin    { animation: anim-cwin-kf      850ms ease-in-out forwards; }
+.anim-hglow   { animation: anim-hglow-kf     750ms ease-in-out 3; }
+.anim-chfade  { animation: anim-chfade-kf   2900ms ease-in-out forwards; }
+.anim-score   { animation: anim-score-kf     500ms var(--spring) 300ms both; }
+.anim-spin    { animation: anim-spin-kf       12s  linear       infinite; }
+.anim-slideup { animation: anim-slideup-kf   340ms var(--spring) both; }
+.anim-fadein  { animation: anim-fadein-kf    400ms ease both; }
+
+/* System 2: center breathing — applied when phase === 'playing' */
+.center-breathe {
+  animation: center-breathe-kf 3.8s ease-in-out infinite;
+}
 
 /* ── DAISY COMPONENT (components/Daisy.tsx) PetalAnim classes ──────────────
    SVG elements default transform-origin to the SVG VIEWPORT origin (0,0),
