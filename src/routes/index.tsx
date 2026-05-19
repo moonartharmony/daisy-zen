@@ -12,11 +12,12 @@ export const Route = createFileRoute('/')({ component: Game });
 
 function Game() {
   const {
-    s, tap, nextLevel, reset, togglePause,
+    s, tap, setDir, snapSwipe, nextLevel, reset, togglePause,
     dismissTr, hintIdx, circleRef,
   } = useGame();
 
-  const [tutSeen, setTutSeen] = useState(false);
+  const [tutSeen, setTutSeen]   = useState(false);
+  const [tutStep, setTutStep]   = useState<1 | 2>(1);
 
   const { puzzle, phase, chapter, totalScore, level, score, showTransition, hintReady } = s;
 
@@ -26,8 +27,13 @@ function Game() {
   const showTut  = level === 1 && !tutSeen && phase === 'playing';
 
   const handleTap = (idx: number, angle: number) => {
-    if (showTut) setTutSeen(true);
+    if (showTut && tutStep === 1) setTutStep(2);   /* advance to swipe step */
     tap(idx, angle);
+  };
+
+  const handleSwipe = (idx: number, dx: number, dy: number) => {
+    if (showTut) setTutSeen(true);                 /* swipe ends the tutorial */
+    setDir(idx, snapSwipe(dx, dy));
   };
 
   return (
@@ -58,6 +64,7 @@ function Game() {
           puzzle={puzzle}
           chapter={chapter}
           onTap={handleTap}
+          onSwipe={handleSwipe}
           isWon={phase === 'won'}
           hintIdx={hintIdx}
           circleRef={circleRef}
@@ -74,7 +81,10 @@ function Game() {
       />
 
       {showTut && (
-        <TutorialSheet onDismiss={() => setTutSeen(true)} />
+        <TutorialSheet
+          step={tutStep}
+          onDismiss={() => setTutSeen(true)}
+        />
       )}
 
       {phase === 'won' && (
@@ -101,3 +111,4 @@ function Game() {
     </div>
   );
 }
+

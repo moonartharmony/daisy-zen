@@ -19,14 +19,18 @@ interface PetalProps {
   isWon:    boolean;
   chapter:  Chapter;
   onTap:    (idx: number, angle: number) => void;
+  onSwipe:  (idx: number, dx: number, dy: number) => void;
 }
+
+const SWIPE_THRESHOLD = 16; // px — below this counts as a tap
 
 const Petal = ({
   idx, angle, orbit, hasArrow, dirDeg, aligned,
-  isHint, isWon, chapter, onTap,
+  isHint, isWon, chapter, onTap, onSwipe,
 }: PetalProps) => {
   const gRef    = useRef<SVGGElement>(null);
   const prevAl  = useRef(aligned);
+  const startRef = useRef<{ x: number; y: number } | null>(null);
 
   /* Align flash */
   useEffect(() => {
@@ -55,14 +59,36 @@ const Petal = ({
   }, [isWon]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handlePointerDown = (e: React.PointerEvent) => {
-    e.preventDefault();
     if (!hasArrow || isWon) return;
+    e.preventDefault();
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+    startRef.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (!hasArrow || isWon) return;
+    const start = startRef.current;
+    startRef.current = null;
+    if (!start) return;
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+
     if (gRef.current) {
       gRef.current.classList.add('anim-bounce');
       setTimeout(() => gRef.current?.classList.remove('anim-bounce'), 170);
     }
-    onTap(idx, angle);
+
+    if (Math.hypot(dx, dy) < SWIPE_THRESHOLD) {
+      onTap(idx, angle);
+    } else {
+      onSwipe(idx, dx, dy);
+    }
   };
+
+  const handlePointerCancel = () => {
+    startRef.current = null;
+  };
+
 
   /* Arrow counter-rotates so it always reads in absolute screen space */
   const arrowRot = dirDeg - angle;
@@ -73,6 +99,8 @@ const Petal = ({
     <g
       ref={gRef}
       onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
       transform={`rotate(${angle}) translate(0,-${orbit})`}
       style={{
         cursor:           hasArrow ? 'pointer' : 'default',
@@ -130,13 +158,14 @@ interface Props {
   puzzle:    Puzzle;
   chapter:   Chapter;
   onTap:     (idx: number, angle: number) => void;
+  onSwipe:   (idx: number, dx: number, dy: number) => void;
   isWon:     boolean;
   hintIdx:   number | null;
   circleRef: RefObject<HTMLDivElement | null>;
 }
 
 export const DaisyCanvas = ({
-  puzzle, chapter, onTap, isWon, hintIdx, circleRef,
+  puzzle, chapter, onTap, onSwipe, isWon, hintIdx, circleRef,
 }: Props) => {
   const n     = puzzle.petals.length;
   const orbit = orbitFor(n);
@@ -173,6 +202,8 @@ export const DaisyCanvas = ({
               isWon={isWon}
               chapter={chapter}
               onTap={onTap}
+              onSwipe={onSwipe}
+
             />
           ))}
         </g>
