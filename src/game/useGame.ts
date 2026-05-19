@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { rotateCW, rotateCCW, spinDir, getChapter, DIRS } from './types';
-import type { Phase } from './types';
+import { rotateCW, rotateCCW, spinDir, getChapter, DIRS, DIR_DEG } from './types';
+import type { Phase, Dir } from './types';
 import { getPuzzle } from './puzzles';
 
 /* ── Haptics ─────────────────────────────────────────── */
