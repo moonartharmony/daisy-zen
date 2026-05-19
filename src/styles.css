@@ -168,6 +168,49 @@ body::after {
   to   { filter: brightness(1)   saturate(1);   }
 }
 
+/* ── System 1: spring press ─────────────────────────────────────────────────
+   Applied to every petal <g> via className="petal-group".
+
+   WHY this doesn't break the polar coordinate system
+   ─────────────────────────────────────────────────
+   The SVG `transform` attribute (rotate(angle) translate(0,-orbit)) is the
+   polar positioning layer. It lives in the SVG attribute rendering pipeline.
+   CSS `scale` (used by .petal-pressed) is composited AFTER the SVG transform
+   in a separate CSS stacking context. They never share state.
+
+   The CSS transform-origin determines where `scale` is anchored:
+     • Existing inline style  → transformOrigin: '0 0'
+       (0,0) in the group's local post-SVG-transform space = petal center ✓
+     • transform-box: fill-box; transform-origin: center (on .petal-group)
+       fill-box center of a symmetric oval at (0,0) = (0,0) ✓  SAME POINT.
+   Both resolve identically. The inline style (specificity 1000) wins the
+   cascade over the class (specificity 10) for transform-origin, but
+   transform-box: fill-box (not set inline) is added by the class freely.
+   Belt-and-suspenders: both declarations say the same thing.
+
+   Two-phase interaction
+   ─────────────────────
+   Class add    → transition 80ms  spring → scale 1.0 → 0.88  (compression)
+   Class remove → transition 300ms spring → scale 0.88 → 1.0  (overshoot + settle)
+
+   This replaces anim-bounce on the <g>: CSS animation + transition on the
+   same property causes the animation to win. By removing anim-bounce from
+   handlePointerDown we eliminate the conflict and let the transition own
+   the press feel entirely.                                                   */
+.petal-group {
+  transform-box:    fill-box;   /* anchors percentage/keyword origins to bbox */
+  scale:            1;
+  /* spring-back fires when .petal-pressed is removed */
+  transition:       scale 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change:      scale;       /* compositor hint — no layout recalc on scale */
+}
+
+/* Added on pointerdown, removed after 80 ms */
+.petal-pressed {
+  scale:      0.88;
+  transition: scale 80ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
 /* ── ANIMATION CLASSES ───────────────────────────────────── */
 /* DaisyCanvas (game/DaisyCanvas.tsx) */
 .anim-bounce  { animation: anim-bounce-kf     160ms var(--spring); }

@@ -71,10 +71,20 @@ const Petal = ({
   const handlePointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
     if (!hasArrow || isWon) return;
-    if (gRef.current) {
-      gRef.current.classList.add('anim-bounce');
-      setTimeout(() => gRef.current?.classList.remove('anim-bounce'), 170);
+
+    // ── System 1: CSS spring press ──────────────────────────────────────
+    // Add .petal-pressed → 80 ms transition (scale 1→0.88).
+    // Remove after 80 ms → .petal-group's 300 ms spring transition fires
+    //   (scale 0.88→1, cubic-bezier(0.34,1.56,0.64,1) = overshoot + settle).
+    // This replaces anim-bounce; both animate `scale` so they conflict —
+    // CSS animations beat transitions, so the old bounce would have muted
+    // the press feel entirely.
+    const el = gRef.current;
+    if (el) {
+      el.classList.add('petal-pressed');
+      setTimeout(() => el.classList.remove('petal-pressed'), 80);
     }
+
     onTap(idx, angle);
   };
 
@@ -88,10 +98,18 @@ const Petal = ({
       ref={gRef}
       onPointerDown={handlePointerDown}
       transform={`rotate(${angle}) translate(0,-${orbit})`}
+      // petal-group: base class that owns the spring-back transition.
+      // petal-pressed is added/removed imperatively on pointer events.
+      // The className on <g> is stable (no re-render driven toggling)
+      // so the transition fires purely via classList mutation — zero GC.
+      className="petal-group"
       style={{
-        cursor:           hasArrow ? 'pointer' : 'default',
-        transformOrigin:  '0 0',
-        touchAction:      'none',
+        cursor:          hasArrow ? 'pointer' : 'default',
+        // transformOrigin '0 0' = petal center in local post-SVG-transform
+        // space. Belt-and-suspenders with .petal-group's transform-box:fill-box
+        // (both resolve to the same pixel point for a symmetric shape).
+        transformOrigin: '0 0',
+        touchAction:     'none',
       }}
     >
       {/* Hint glow ring */}
