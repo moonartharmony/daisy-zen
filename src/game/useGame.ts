@@ -199,5 +199,5 @@ export const useGame = () => {
     return best.idx >= 0 ? best.idx : null;
   })();
 
-  return { s, tap, nextLevel, reset, togglePause, dismissTr, hintIdx, circleRef };
+  return { s, tap, setDir, snapSwipe, nextLevel, reset, togglePause, dismissTr, hintIdx, circleRef };
 };
