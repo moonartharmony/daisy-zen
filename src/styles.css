@@ -44,6 +44,10 @@
   --spring:     cubic-bezier(0.34,1.56,0.64,1);
   --soft:       cubic-bezier(0.25,0.46,0.45,0.94);
 
+  /* ── Sprint 1: emotional engine CSS vars (updated by useEmotionState) ── */
+  --breath-period:   5s;   /* calming default; range 2.5s (anxious) → 9s (harmonized) */
+  --bg-pulse-speed:  1.2s; /* chapter bg transition speed */
+
   /* chapter background — set by JS on /play */
   --chapter-bg: #B2AC88;
 
@@ -259,9 +263,11 @@ body::after {
 .anim-slideup { animation: anim-slideup-kf   340ms var(--spring) both; }
 .anim-fadein  { animation: anim-fadein-kf    400ms ease both; }
 
-/* System 2: center breathing — applied when phase === 'playing' */
+/* System 2: center breathing — speed driven by Sprint 1 --breath-period.
+   useEmotionState writes the var to :root; CSS picks it up immediately.
+   Range: 2.5 s (anxious, fast) → 9 s (harmonized, pacing a slow breath). */
 .center-breathe {
-  animation: center-breathe-kf 3.8s ease-in-out infinite;
+  animation: center-breathe-kf var(--breath-period, 3.8s) ease-in-out infinite;
 }
 
 /* ── DAISY COMPONENT (components/Daisy.tsx) PetalAnim classes ──────────────
