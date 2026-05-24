@@ -1,0 +1,352 @@
+/* ── Daisy Zen Prototype — Design System ────────────────────────────────────
+   100% Solid / Flat Neubrutalism. Zero gradients. Zero blur.
+   Every surface is a physical object you can press.
+   ──────────────────────────────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@600;700;800&display=swap');
+
+/* ── Design Tokens ─────────────────────────────────────────────────────── */
+:root {
+  /* Surfaces */
+  --bg:           #F6F3EE;   /* Soft Neutral Cream — premium matte paper */
+  --surface:      #FAF9F6;   /* Matte Ivory — control panels, cards */
+
+  /* Ink */
+  --ink:          #1F1F1F;   /* Soft matte black — borders, type */
+  --shadow:       #2F2F2F;   /* Hard flat drop shadow — zero blur */
+
+  /* Chapter accent (mutated by JS on chapter change) */
+  --accent:       #FFD700;   /* Garden: Asil Altın Sarısı */
+  --accent-dark:  #D4B000;   /* Pressed-state shadow for accent elements */
+
+  /* Geometry */
+  --radius-xl:    28px;
+  --radius-lg:    20px;
+  --radius-md:    14px;
+
+  /* Physics */
+  --spring:       cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Emotion-driven breathing (written by DaisyFlower via JS) */
+  --breath-period: 5s;
+
+  /* Chapter background (written by DaisyApp on chapter change) */
+  --chapter-bg:   #B2AC88;
+}
+
+/* ── Reset ──────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Quicksand', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Chapter background transition — driven by --chapter-bg */
+  transition: background-color var(--breath-period, 5s) ease-in-out;
+}
+
+/* ── Subtle paper grain (flat-safe — no colour, no glow) ────────────────── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.025;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+}
+
+/* ── App Shell ──────────────────────────────────────────────────────────── */
+.dz-app {
+  width: 100%;
+  max-width: 430px;
+  height: 100vh;
+  max-height: 932px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+}
+
+/* ── Top Bar ────────────────────────────────────────────────────────────── */
+.dz-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dz-title-area {
+  text-align: center;
+}
+
+.dz-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.dz-subtitle {
+  font-size: 0.75rem;
+  font-weight: 800;
+  opacity: 0.5;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 2px 0 0;
+}
+
+/* ── Neubrutalist Buttons ───────────────────────────────────────────────── */
+.dz-btn {
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 3px solid var(--ink);
+  border-radius: var(--radius-md);
+  box-shadow: 4px 4px 0px var(--shadow);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 18px;
+  height: 46px;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  white-space: nowrap;
+}
+
+.dz-btn:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0px 0px 0px var(--shadow);
+}
+
+.dz-btn:disabled,
+.dz-btn[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.dz-btn--accent {
+  background: var(--accent);
+}
+
+/* ── Flower Canvas Area ─────────────────────────────────────────────────── */
+.dz-flower-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Control Panel ──────────────────────────────────────────────────────── */
+.dz-panel {
+  background: var(--surface);
+  border: 3px solid var(--ink);
+  border-radius: var(--radius-xl);
+  box-shadow: 6px 6px 0px var(--shadow);
+  padding: 22px;
+}
+
+.dz-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  margin-bottom: 12px;
+}
+
+/* Progress Track */
+.dz-progress-track {
+  width: 100%;
+  height: 18px;
+  background: #FFFFFF;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.dz-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-right: 3px solid var(--ink);
+  border-radius: inherit;
+  transition: width 0.4s var(--spring);
+}
+
+/* Action Row */
+.dz-action-zone {
+  display: flex;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.dz-action-btn {
+  flex: 1;
+  height: 52px;
+  border-radius: var(--radius-lg);
+  border: 3px solid var(--ink);
+  background: #FFFFFF;
+  color: var(--ink);
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 4px 4px 0px var(--shadow);
+  transition: transform 0.08s ease, box-shadow 0.08s ease, opacity 0.2s ease;
+  white-space: nowrap;
+}
+
+.dz-action-btn:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0px 0px 0px var(--shadow);
+}
+
+.dz-action-btn.accent {
+  background: var(--accent);
+}
+
+.dz-action-btn.locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ── SVG Petal Group ────────────────────────────────────────────────────── */
+.petal-group {
+  transform-box:  fill-box;
+  scale:          1;
+  transition:     scale 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change:    scale;
+}
+
+.petal-pressed {
+  scale:      0.88;
+  transition: scale 80ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Direction affordance glyphs — dim by default, reveal on hover */
+.petal-glyph {
+  opacity: 0.22;
+  transition: opacity 0.15s ease;
+}
+
+.petal-group:hover .petal-glyph {
+  opacity: 0.65;
+}
+
+/* ── Keyframe Animations ────────────────────────────────────────────────── */
+
+/* Organic breathing — speed wired to --breath-period by DaisyFlower */
+@keyframes daisy-breathe-kf {
+  0%, 100% { transform: scale(1);     }
+  50%       { transform: scale(1.022); }
+}
+
+.daisy-breathing {
+  animation: daisy-breathe-kf var(--breath-period, 5s) ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* Aligned-petal flash (on lock-in) */
+@keyframes petal-align-kf {
+  0%   { filter: brightness(2.2) saturate(2.5); }
+  100% { filter: brightness(1)   saturate(1);   }
+}
+
+.petal-align-flash {
+  animation: petal-align-kf 380ms ease-out forwards;
+}
+
+/* Misalign shake (SVG translate — fill-box safe) */
+@keyframes petal-shake-kf {
+  0%, 100% { translate: 0 0;    }
+  20%      { translate: -5px 0; }
+  50%      { translate:  4px 0; }
+  80%      { translate: -3px 0; }
+}
+
+.petal-shake {
+  transform-box:    fill-box;
+  transform-origin: center;
+  animation: petal-shake-kf 240ms ease-out;
+}
+
+/* Center core glow-breathe */
+@keyframes center-breathe-kf {
+  0%, 100% {
+    box-shadow: 4px 4px 0 0 rgba(31,31,31,1), 0 0  0px rgba(255,215,0,0);
+  }
+  50% {
+    box-shadow: 4px 4px 0 0 rgba(31,31,31,1), 0 0 16px rgba(255,215,0,.28);
+  }
+}
+
+.center-breathe {
+  animation: center-breathe-kf var(--breath-period, 5s) ease-in-out infinite;
+}
+
+/* Win celebration pulse on core */
+@keyframes core-win-kf {
+  0%   { transform: translate(-50%,-50%) scale(1);    box-shadow: 4px 4px 0 0 rgba(31,31,31,1); }
+  40%  { transform: translate(-50%,-50%) scale(1.28); box-shadow: 0 0 48px rgba(255,215,0,.75); }
+  100% { transform: translate(-50%,-50%) scale(1);    box-shadow: 4px 4px 0 0 rgba(31,31,31,1); }
+}
+
+.core-win {
+  animation: core-win-kf 850ms ease-in-out forwards;
+}
+
+/* Hint glow ring on petal */
+@keyframes hint-ring-kf {
+  0%, 100% { box-shadow: none; }
+  50%      { box-shadow: 0 0 0 7px rgba(255,215,0,.45); }
+}
+
+/* Score pop */
+@keyframes score-pop-kf {
+  from { transform: scale(0.4) translateX(-50%); opacity: 0; }
+  to   { transform: scale(1)   translateX(-50%); opacity: 1; }
+}
+
+.score-pop {
+  animation: score-pop-kf 500ms var(--spring) 300ms both;
+}
+
+/* Chapter transition fade */
+@keyframes chapter-fade-kf {
+  0%   { opacity: 0; }
+  14%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.chapter-fade {
+  animation: chapter-fade-kf 2.9s ease-in-out forwards;
+}
