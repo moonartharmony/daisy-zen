@@ -13,6 +13,7 @@ export const haptic = {
   tap: () => v(8),
   align: () => v(15),
   misalign: () => v(12),
+  hint: () => v(6),
   win: () => v([40, 60, 40, 60, 80]),
   chapter: () => v([20, 40, 20]),
 };

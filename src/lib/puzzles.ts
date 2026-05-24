@@ -22,9 +22,23 @@ export type Puzzle = {
   petalCount: number;
   centerDir: Direction;
   petals: PetalSpec[];
+  minMoves: number;
 };
 
-const BASE_LEVELS: Omit<Puzzle, "level">[] = [
+function stepsCW(from: Direction, to: Direction): number {
+  const f = DIRECTIONS.indexOf(from);
+  const t = DIRECTIONS.indexOf(to);
+  return Math.round(((t - f + 8) % 8) / 2);
+}
+
+function calcMinMoves(centerDir: Direction, petals: PetalSpec[]): number {
+  return petals.reduce((sum, p) => {
+    if (!p.hasArrow || !p.startDir) return sum;
+    return sum + stepsCW(p.startDir, centerDir);
+  }, 0);
+}
+
+const BASE_LEVELS: Omit<Puzzle, "level" | "minMoves">[] = [
   // L1: 4 petals, center=north, 2 arrows starting south
   {
     petalCount: 4,
@@ -101,22 +115,22 @@ function rotateDir(d: Direction, steps: number): Direction {
 
 export function getPuzzle(level: number): Puzzle {
   const base = BASE_LEVELS[(level - 1) % BASE_LEVELS.length];
-  // Cycle 1-5 verbatim, then apply variation for 6+
   if (level <= BASE_LEVELS.length) {
-    return { level, ...structuredClone(base) };
+    const petals = structuredClone(base.petals);
+    return { level, ...base, petals, minMoves: calcMinMoves(base.centerDir, petals) };
   }
-  // Deterministic variation: rotate every arrow by an even step count
-  // (multiples of 90°) so all start directions stay cardinal.
   const shift = (((level % 3) + 1) * 2);
+  const petals = base.petals.map((p) =>
+    p.hasArrow && p.startDir
+      ? { hasArrow: true, startDir: rotateDir(p.startDir, shift) }
+      : { hasArrow: p.hasArrow, startDir: null },
+  );
   return {
     level,
     petalCount: base.petalCount,
     centerDir: base.centerDir,
-    petals: base.petals.map((p) =>
-      p.hasArrow && p.startDir
-        ? { hasArrow: true, startDir: rotateDir(p.startDir, shift) }
-        : { hasArrow: p.hasArrow, startDir: null },
-    ),
+    petals,
+    minMoves: calcMinMoves(base.centerDir, petals),
   };
 }
 
