@@ -55,3 +55,45 @@ Dark-mode ağırlıklı şeffaf cam katmanlar (backdrop-blur) ve neon ambient pa
 ## 2026-05-19 — Karşılama ekranı ve dark mode
 
 Landing route `/` oluşturuldu; oyun `/play`'e taşındı. Dark mode: `[data-theme="dark"]` on `<html>`, `localStorage` ile kalıcı. Otomatik sistem tercihi algılama (`prefers-color-scheme: dark`).
+
+---
+
+## 2026-05-24 — Sprint 1: Organik Prototip tamamlandı
+
+Üç yeni prototip dosyası oluşturuldu (proje kökünde, TanStack Router'dan bağımsız):
+
+**`daisy-flower.jsx`** (647 satır) — Sprint 1 organik Bezier petal motoru:
+- 5 petal şekli: oval · leaf · diamond · spike · clover (24 sayılık flat dizi, `lerpNums()` ile morph)
+- Knuth LCG `organicNums(base, factor, seed)` → tohum bazlı asimetri, her `(petalIdx × 1000 + level × 17)` için benzersiz
+- 5 durum duygu motoru: `anxious → seeking → calming → meditative → harmonized`
+- `deriveEmotion(alignedFrac, recentMisaligns, hintReady)` — saf fonksiyon
+- `--breath-period` CSS değişkeni duygu durumuna göre 2.5s–9.0s arasında değişir
+- Yarım küre yönlü döndürme glifleri: `angle > 180° → ↺ (CCW)`, `≤ 180° → ↻ (CW)`
+- `useOrganicPath` rAF morph hook — şekil değişimi 800ms, duygu geçişi 600ms
+- SMIL-animasyonlu `ParticleField` — JS'siz per-frame, `round6` SSR güvenli
+
+**`daisy-app.jsx`** (417 satır) — Tam oyun shell:
+- 5 bölüm: The Garden · The Forest · The Mountain · The Storm · The Void
+- LCG tohum-bazlı deterministik bulmaca üretimi (`makeLCG(level * 137 + 42)`)
+- `handleTap(idx, angleDeg)` → `spinDir` → CW/CCW rotasyon
+- `handleSwipe(idx, dx, dy)` → `atan2` → 45° snap yönü
+- 8 saniyelik kayan pencere misalign sayacı → duygu türetimi
+- Win → 700ms → auto-advance (veya "Next level" butonu)
+- Hint timer 45 saniye
+
+**`daisy-styles.css`** (352 satır) — Neubrutalist tasarım sistemi:
+- Sıfır gradient, sıfır blur — tam flat/solid
+- `--spring: cubic-bezier(0.34, 1.56, 0.64, 1)` fizik dili
+- `petal-group` / `petal-pressed` / `petal-shake` / `petal-align-flash` CSS sınıfları
+- `daisy-breathing` → `--breath-period` CSS var ile bağlı
+
+**Canlı test sonuçları (2026-05-24):**
+- ✅ Landing sayfa: dark/light mod geçişi, glassmorphism, Türkçe kopya
+- ✅ /play: Organik Bezier yapraklar, parçacık alanı, nefes animasyonu
+- ✅ Tap → hemisferik rotasyon (CW sağ yarım küre / CCW sol yarım küre)
+- ✅ Hizalama tespiti → skor güncelleme → kazanma ekranı
+- ✅ "Next level →" → Level 2'ye geçiş, birikimli skor (0100→0200)
+- ✅ Duygu durumu: misalign → anxious (pembe yapraklar, hızlı nefes)
+- ✅ İpucu halkası: 45s ipucu timer → altın SMIL animasyonu
+
+**Git commit:** `3dd2b86` — `feat(sprint1): organic prototype — daisy-flower, daisy-app, daisy-styles`

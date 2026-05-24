@@ -55,6 +55,12 @@ Her anlamlı değişiklik sonunda commit atılır. Birden fazla dosyayı kapsaya
 ## Dosya Yapısı
 
 ```
+# ── Prototip (proje kökü, framework-agnostic) ─────────────────────────────
+daisy-flower.jsx      # Sprint 1: Organik Bezier petal motoru + 5-durum duygu sistemi
+daisy-app.jsx         # Sprint 1: Oyun shell — bölümler, bulmaca, tap/swipe, skor
+daisy-styles.css      # Sprint 1: Neubrutalist tasarım sistemi, keyframe'ler
+
+# ── Üretim uygulaması (TanStack Start + Vite 7) ───────────────────────────
 src/
   game/
     DaisyCanvas.tsx   # SVG canvas, petal render, two-layer <g>
@@ -72,6 +78,18 @@ src/
     play.tsx          # Game screen
   styles.css          # Design tokens, keyframes, animations
 ```
+
+## Prototip Mimarisi (Sprint 1)
+
+| Dosya | Sorumluluk |
+|---|---|
+| `daisy-flower.jsx` | Bezier petal geometrisi, organicNums LCG, 5-durum duygu motoru, ParticleField |
+| `daisy-app.jsx` | Oyun durumu, bölüm yönetimi, tap/swipe handler, win/hint logic |
+| `daisy-styles.css` | Design tokens, `--breath-period`, petal CSS sınıfları, keyframe animasyonlar |
+
+**Yarım küre rotasyon kuralı:** `placementAngle > 180° → CCW (↺)`, `≤ 180° → CW (↻)`
+**Duygu türetimi:** `deriveEmotion(alignedFrac, recentMisaligns, hintReady)` — 8s kayan pencere
+**Nefes senkronizasyonu:** `--breath-period` CSS var → `useEffect` ile `document.documentElement.style.setProperty`
 
 ## Tasarım Sistemi
 
