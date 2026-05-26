@@ -1,0 +1,1867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Daisy Zen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+/* ── Daisy Zen — Design System ───────────────────────────────────────────────
+   100% Solid / Flat Neubrutalism. Zero gradients. Zero blur.
+   Every surface is a physical object you can press.
+   ──────────────────────────────────────────────────────────────────────── */
+
+/* ── Design Tokens ─────────────────────────────────────────────────────── */
+:root {
+  /* Surfaces */
+  --bg:           #F6F3EE;
+  --surface:      #FAF9F6;
+
+  /* Ink */
+  --ink:          #1F1F1F;
+  --shadow:       #2F2F2F;
+
+  /* Chapter accent (mutated by JS on chapter change) */
+  --accent:       #FFD700;
+  --accent-dark:  #D4B000;
+
+  /* Geometry */
+  --radius-xl:    28px;
+  --radius-lg:    20px;
+  --radius-md:    14px;
+
+  /* Physics */
+  --spring:       cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Emotion-driven breathing (written by DaisyFlower via JS) */
+  --breath-period: 5s;
+
+  /* Chapter background */
+  --chapter-bg:   #B2AC88;
+}
+
+/* ── Reset ──────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Quicksand', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--breath-period, 5s) ease-in-out;
+}
+
+/* ── Subtle paper grain ──────────────────────────────────────────────────── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.025;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+}
+
+/* ── App Shell ──────────────────────────────────────────────────────────── */
+.dz-app {
+  width: 100%;
+  max-width: 430px;
+  height: 100vh;
+  max-height: 932px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+}
+
+/* ── Top Bar ────────────────────────────────────────────────────────────── */
+.dz-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dz-title-area {
+  text-align: center;
+}
+
+.dz-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.dz-subtitle {
+  font-size: 0.75rem;
+  font-weight: 800;
+  opacity: 0.5;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 2px 0 0;
+}
+
+/* ── Neubrutalist Buttons ───────────────────────────────────────────────── */
+.dz-btn {
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 3px solid var(--ink);
+  border-radius: var(--radius-md);
+  box-shadow: 4px 4px 0px var(--shadow);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 18px;
+  height: 46px;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  white-space: nowrap;
+}
+
+.dz-btn:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0px 0px 0px var(--shadow);
+}
+
+.dz-btn:disabled,
+.dz-btn[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.dz-btn--accent {
+  background: var(--accent);
+}
+
+.dz-btn--full {
+  width: 100%;
+  justify-content: center;
+}
+
+/* ── Flower Canvas Area ─────────────────────────────────────────────────── */
+.dz-flower-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Control Panel ──────────────────────────────────────────────────────── */
+.dz-panel {
+  background: var(--surface);
+  border: 3px solid var(--ink);
+  border-radius: var(--radius-xl);
+  box-shadow: 6px 6px 0px var(--shadow);
+  padding: 22px;
+}
+
+.dz-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  margin-bottom: 12px;
+}
+
+/* Progress Track */
+.dz-progress-track {
+  width: 100%;
+  height: 18px;
+  background: #FFFFFF;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.dz-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-right: 3px solid var(--ink);
+  border-radius: inherit;
+  transition: width 0.4s var(--spring);
+}
+
+/* Action Row */
+.dz-action-zone {
+  display: flex;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.dz-action-btn {
+  flex: 1;
+  height: 52px;
+  border-radius: var(--radius-lg);
+  border: 3px solid var(--ink);
+  background: #FFFFFF;
+  color: var(--ink);
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 4px 4px 0px var(--shadow);
+  transition: transform 0.08s ease, box-shadow 0.08s ease, opacity 0.2s ease;
+  white-space: nowrap;
+}
+
+.dz-action-btn:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0px 0px 0px var(--shadow);
+}
+
+.dz-action-btn.accent {
+  background: var(--accent);
+}
+
+.dz-action-btn.locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ── SVG Petal Group ────────────────────────────────────────────────────── */
+.petal-group {
+  transform-box:  fill-box;
+  scale:          1;
+  transition:     scale 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change:    scale;
+}
+
+.petal-pressed {
+  scale:      0.88;
+  transition: scale 80ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Direction affordance glyphs */
+.petal-glyph {
+  opacity: 0.22;
+  transition: opacity 0.15s ease;
+}
+
+.petal-group:hover .petal-glyph {
+  opacity: 0.65;
+}
+
+/* ── Keyframe Animations ────────────────────────────────────────────────── */
+
+@keyframes daisy-breathe-kf {
+  0%, 100% { transform: scale(1);     }
+  50%       { transform: scale(1.022); }
+}
+
+.daisy-breathing {
+  animation: daisy-breathe-kf var(--breath-period, 5s) ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes petal-align-kf {
+  0%   { filter: brightness(2.2) saturate(2.5); }
+  100% { filter: brightness(1)   saturate(1);   }
+}
+
+.petal-align-flash {
+  animation: petal-align-kf 380ms ease-out forwards;
+}
+
+@keyframes petal-shake-kf {
+  0%, 100% { translate: 0 0;    }
+  20%      { translate: -5px 0; }
+  50%      { translate:  4px 0; }
+  80%      { translate: -3px 0; }
+}
+
+.petal-shake {
+  transform-box:    fill-box;
+  transform-origin: center;
+  animation: petal-shake-kf 240ms ease-out;
+}
+
+@keyframes center-breathe-kf {
+  0%, 100% {
+    box-shadow: 4px 4px 0 0 rgba(31,31,31,1), 0 0  0px rgba(255,215,0,0);
+  }
+  50% {
+    box-shadow: 4px 4px 0 0 rgba(31,31,31,1), 0 0 16px rgba(255,215,0,.28);
+  }
+}
+
+.center-breathe {
+  animation: center-breathe-kf var(--breath-period, 5s) ease-in-out infinite;
+}
+
+@keyframes core-win-kf {
+  0%   { transform: translate(-50%,-50%) scale(1);    box-shadow: 4px 4px 0 0 rgba(31,31,31,1); }
+  40%  { transform: translate(-50%,-50%) scale(1.28); box-shadow: 0 0 48px rgba(255,215,0,.75); }
+  100% { transform: translate(-50%,-50%) scale(1);    box-shadow: 4px 4px 0 0 rgba(31,31,31,1); }
+}
+
+.core-win {
+  animation: core-win-kf 850ms ease-in-out forwards;
+}
+
+@keyframes score-pop-kf {
+  from { transform: scale(0.4) translateX(-50%); opacity: 0; }
+  to   { transform: scale(1)   translateX(-50%); opacity: 1; }
+}
+
+.score-pop {
+  animation: score-pop-kf 500ms var(--spring) 300ms both;
+}
+
+@keyframes chapter-fade-kf {
+  0%   { opacity: 0; }
+  14%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.chapter-fade {
+  animation: chapter-fade-kf 2.9s ease-in-out forwards;
+}
+
+/* ── App Root ────────────────────────────────────────────────────────────── */
+.dz-app-root {
+  position: relative;
+  width: 100%;
+  max-width: 430px;
+  height: 100vh;
+  max-height: 932px;
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+/* ── Win Overlay ─────────────────────────────────────────────────────────── */
+.dz-win-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(27,28,28,0.85);
+}
+
+.dz-win-card {
+  background: var(--surface);
+  border: 3px solid var(--ink);
+  border-radius: var(--radius-xl);
+  box-shadow: 6px 6px 0px var(--shadow);
+  padding: 32px 24px;
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+  animation: win-card-in 500ms var(--spring) both;
+}
+
+.dz-win-score {
+  font-size: 64px;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+  text-shadow: 4px 4px 0 rgba(31,31,31,0.2);
+  letter-spacing: -0.02em;
+}
+
+.dz-win-epigraph {
+  font-size: 13px;
+  font-weight: 500;
+  color: #7E775F;
+  font-style: italic;
+  margin: 10px 0 6px;
+  line-height: 1.5;
+}
+
+/* ── Pause Overlay ───────────────────────────────────────────────────────── */
+.dz-pause-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(27,28,28,0.87);
+}
+
+.dz-pause-card {
+  background: var(--surface);
+  border: 3px solid var(--ink);
+  border-radius: var(--radius-xl);
+  box-shadow: 6px 6px 0px var(--shadow);
+  padding: 28px 22px;
+  width: 100%;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  animation: win-card-in 400ms var(--spring) both;
+}
+
+.dz-pause-chapter {
+  font-size: 10px;
+  font-weight: 800;
+  color: #7E775F;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+/* ── Chapter Transition ──────────────────────────────────────────────────── */
+.dz-chapter-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  animation: chapter-fade-kf 2.9s ease-in-out forwards;
+  pointer-events: none;
+}
+
+.dz-chapter-watermark {
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  opacity: 0.1;
+}
+
+.dz-chapter-name {
+  font-size: 40px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+}
+
+.dz-chapter-epigraph {
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.72);
+  font-style: italic;
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 0 32px;
+}
+
+/* ── Journey Map ─────────────────────────────────────────────────────────── */
+.dz-journey {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  max-width: 430px;
+  margin: 0 auto;
+}
+
+.dz-jm-header {
+  background: var(--surface);
+  border-bottom: 3px solid var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.dz-jm-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.dz-jm-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 14px 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.dz-jm-list::-webkit-scrollbar { display: none; }
+
+/* ── Chapter Cards ───────────────────────────────────────────────────────── */
+.dz-ch-card {
+  border: 3px solid var(--ink);
+  border-radius: var(--radius-xl);
+  padding: 16px;
+  box-shadow: 6px 6px 0px var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 70ms ease, box-shadow 70ms ease;
+}
+
+.dz-ch-card:not(.dz-ch-card--locked):active {
+  transform: translate(2px,2px);
+  box-shadow: 0 0 0 var(--shadow);
+}
+
+.dz-ch-card--done   { background: var(--surface); }
+.dz-ch-card--active { background: var(--accent); }
+.dz-ch-card--locked { background: #E8E4D8; border-color: #A09583; box-shadow: 2px 2px 0 #A09583; opacity: 0.7; }
+
+.dz-ch-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.dz-ch-icon {
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  box-shadow: 2px 2px 0 var(--shadow);
+}
+
+.dz-ch-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.dz-ch-num {
+  font-size: 10px;
+  font-weight: 800;
+  color: #7E775F;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dz-ch-card--active .dz-ch-num { color: #705E00; }
+
+.dz-ch-name {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.dz-ch-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border: 2px solid var(--ink);
+  border-radius: 9999px;
+  background: var(--surface);
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: 0.04em;
+  box-shadow: 2px 2px 0 var(--shadow);
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+.dz-ch-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dz-ch-range {
+  font-size: 12px;
+  font-weight: 600;
+  color: #7E775F;
+}
+
+.dz-ch-progress-track {
+  height: 7px;
+  background: rgba(0,0,0,0.12);
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.dz-ch-progress-fill {
+  height: 100%;
+  background: var(--ink);
+  border-radius: 9999px;
+  transition: width 400ms ease;
+}
+
+.dz-ch-btn {
+  padding: 9px 18px;
+  border: 2px solid var(--ink);
+  border-radius: 9999px;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--shadow);
+  transition: transform 70ms ease, box-shadow 70ms ease;
+  white-space: nowrap;
+  min-height: 38px;
+}
+
+.dz-ch-btn:active { transform: translate(2px,2px); box-shadow: none; }
+
+.dz-ch-btn--continue { background: var(--ink); color: var(--surface); }
+.dz-ch-btn--replay   { background: #516C45; color: #fff; }
+.dz-ch-btn--locked   { background: #D9D4C4; color: #9E9074; border-color: #A09583; box-shadow: none; pointer-events: none; }
+
+/* ── Bottom Navigation ───────────────────────────────────────────────────── */
+.dz-bottom-nav {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 14px;
+  height: 72px;
+  background: var(--surface);
+  border: 3px solid var(--ink);
+  border-radius: 26px;
+  box-shadow: 6px 6px 0px var(--shadow);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  z-index: 50;
+  overflow: hidden;
+}
+
+.dz-nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 8px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: 'Quicksand', sans-serif;
+  min-height: 72px;
+}
+
+.dz-nav-btn svg { stroke: #7E775F; }
+.dz-nav-btn span { font-size: 10px; font-weight: 800; color: #7E775F; }
+
+.dz-nav-icon {
+  width: 46px;
+  height: 36px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 150ms ease, transform 150ms ease;
+}
+
+.dz-nav-btn--active .dz-nav-icon {
+  background: var(--accent);
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--shadow);
+  transform: translateY(-3px);
+}
+
+.dz-nav-btn--active svg  { stroke: #705E00; }
+.dz-nav-btn--active span { color: var(--ink); }
+
+/* ── Sparkles ────────────────────────────────────────────────────────────── */
+.dz-spark-layer {
+  pointer-events: none;
+  z-index: 5;
+  overflow: hidden;
+}
+
+.dz-spark {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 1.5px solid var(--ink);
+  opacity: 0;
+  animation: spark-anim 1s ease-out forwards;
+}
+
+/* ── Extra Keyframes ─────────────────────────────────────────────────────── */
+@keyframes win-card-in {
+  from { transform: scale(0.6); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+@keyframes spark-anim {
+  0%   { opacity: 0; transform: scale(0.3); }
+  25%  { opacity: 1; transform: scale(1.2); }
+  80%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.6) translateY(-20px); }
+}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React 18 + ReactDOM 18 UMD -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- Babel Standalone — JSX transform, no bundler needed -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+    /* ── React hooks — destructured from UMD global ────────────────────── */
+    const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+    /* ══════════════════════════════════════════════════════════════════════
+       ██████████  DAISY-FLOWER  ██████████
+       Organic Bezier SVG petals + 5-state emotion engine + particle field.
+       ══════════════════════════════════════════════════════════════════════ */
+
+    /* ── SECTION 1: EMOTION ENGINE ────────────────────────────────────── */
+
+    const EMOTION_PROFILES = {
+      anxious:    { breathingPeriod: 2.5, asymmetryFactor: 0.15, particleDensity: 20, bgPulseSpeed: '0.4s' },
+      seeking:    { breathingPeriod: 4.0, asymmetryFactor: 0.08, particleDensity: 10, bgPulseSpeed: '0.8s' },
+      calming:    { breathingPeriod: 5.0, asymmetryFactor: 0.04, particleDensity:  5, bgPulseSpeed: '1.2s' },
+      meditative: { breathingPeriod: 7.0, asymmetryFactor: 0.01, particleDensity:  2, bgPulseSpeed: '2.0s' },
+      harmonized: { breathingPeriod: 9.0, asymmetryFactor: 0.00, particleDensity:  0, bgPulseSpeed: '3.0s' },
+    };
+
+    function deriveEmotion(alignedFrac, recentMisaligns, hintReady) {
+      if (alignedFrac >= 1)                                           return 'harmonized';
+      if (alignedFrac >= 0.6 && recentMisaligns === 0 && !hintReady) return 'meditative';
+      if (alignedFrac >= 0.3 && recentMisaligns <= 1 && !hintReady)  return 'calming';
+      if (hintReady   || recentMisaligns >= 3)                        return 'anxious';
+      return 'seeking';
+    }
+
+    function emotionTipColor(state, petalColor) {
+      switch (state) {
+        case 'anxious':    return '#E8C4B0';
+        case 'seeking':    return '#EDE0B0';
+        case 'calming':    return petalColor;
+        case 'meditative': return '#B8C8DA';
+        case 'harmonized': return '#FFE082';
+        default:           return petalColor;
+      }
+    }
+
+    /* ── SECTION 2: BEZIER PATH ENGINE ───────────────────────────────── */
+
+    const PETAL_NUMS = {
+      oval: [
+         11, -16,  16, -44,  16, -58,
+         14, -74,   6, -86,   0, -92,
+         -6, -86, -14, -74, -16, -58,
+        -16, -44, -11, -16,   0,   0,
+      ],
+      leaf: [
+         14, -18,  20, -52,  10, -74,
+          4, -90,  -4, -98,   0, -92,
+         -8, -84, -16, -60, -14, -44,
+        -14, -28,  -8, -10,   0,   0,
+      ],
+      diamond: [
+          2,  -2,  13, -34,  13, -36,
+         13, -40,   2, -88,   0, -92,
+         -2, -88, -13, -40, -13, -36,
+        -13, -34,  -2,  -2,   0,   0,
+      ],
+      spike: [
+          5,  -6,   8, -28,   8, -44,
+          6, -62,   2, -80,   0, -92,
+         -2, -80,  -6, -62,  -8, -44,
+         -8, -28,  -5,  -6,   0,   0,
+      ],
+      clover: [
+         18,  -8,  26, -38,  14, -56,
+          2, -70,   0, -74,   0, -88,
+          0, -74,  -2, -70, -14, -56,
+        -26, -38, -18,  -8,   0,   0,
+      ],
+    };
+
+    function numsToPath(n) {
+      let d = 'M 0,0';
+      for (let i = 0; i < n.length; i += 6) {
+        d += ` C ${n[i]},${n[i + 1]} ${n[i + 2]},${n[i + 3]} ${n[i + 4]},${n[i + 5]}`;
+      }
+      return d + ' Z';
+    }
+
+    function lerpNums(a, b, t) {
+      return a.map((v, i) => v + (b[i] - v) * t);
+    }
+
+    function easeInOut3(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    function organicNums(base, factor, seed) {
+      if (factor === 0) return [...base];
+      let s = seed >>> 0;
+      const rand = () => {
+        s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+        return s / 0xffffffff;
+      };
+      return base.map(v => {
+        const noise = (rand() - 0.5) * 2;
+        const mag   = Math.abs(v) || 8;
+        return v + noise * factor * mag;
+      });
+    }
+
+    /* ── SECTION 3: HOOKS ─────────────────────────────────────────────── */
+
+    function useOrganicPath(shapeKey, asymmetryFactor, seed) {
+      const baseTarget = useMemo(
+        () => organicNums(PETAL_NUMS[shapeKey] ?? PETAL_NUMS.oval, asymmetryFactor, seed),
+        [shapeKey, asymmetryFactor, seed],
+      );
+
+      const currentRef    = useRef(baseTarget);
+      const rafRef        = useRef(0);
+      const prevShapeRef  = useRef(shapeKey);
+      const prevFactorRef = useRef(asymmetryFactor);
+      const prevSeedRef   = useRef(seed);
+
+      const [path, setPath] = useState(() => numsToPath(baseTarget));
+
+      useEffect(() => {
+        const shapeChanged  = shapeKey        !== prevShapeRef.current;
+        const factorChanged = asymmetryFactor !== prevFactorRef.current;
+        const seedChanged   = seed            !== prevSeedRef.current;
+        if (!shapeChanged && !factorChanged && !seedChanged) return;
+
+        prevShapeRef.current  = shapeKey;
+        prevFactorRef.current = asymmetryFactor;
+        prevSeedRef.current   = seed;
+
+        const from = currentRef.current;
+        const to   = baseTarget;
+        const dur  = shapeChanged ? 800 : 600;
+        const t0   = performance.now();
+
+        cancelAnimationFrame(rafRef.current);
+
+        const tick = (now) => {
+          const raw          = Math.min((now - t0) / dur, 1);
+          const t            = easeInOut3(raw);
+          const interpolated = lerpNums(from, to, t);
+          currentRef.current = interpolated;
+          setPath(numsToPath(interpolated));
+          if (raw < 1) {
+            rafRef.current = requestAnimationFrame(tick);
+          } else {
+            currentRef.current = to;
+          }
+        };
+
+        rafRef.current = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(rafRef.current);
+      }, [shapeKey, asymmetryFactor, seed, baseTarget]);
+
+      return path;
+    }
+
+    function useEmotionalGradient(emotionState, petalColor, gradId) {
+      useEffect(() => {
+        const tipColor = emotionTipColor(emotionState, petalColor);
+        const el       = document.getElementById(gradId);
+        if (!el) return;
+        const stops = el.querySelectorAll('stop');
+        if (stops.length >= 2) {
+          stops[0].setAttribute('stop-color', petalColor);
+          stops[1].setAttribute('stop-color', tipColor);
+        }
+      }, [emotionState, petalColor, gradId]);
+    }
+
+    /* ── SECTION 4: PARTICLE FIELD ───────────────────────────────────── */
+
+    function ParticleField({ count, color }) {
+      const pts = useMemo(() =>
+        Array.from({ length: count }, (_, i) => {
+          const angle  = (i / Math.max(count, 1)) * 360 + (i % 3) * 22;
+          const r      = 92 + (i % 5) * 16;
+          const rad    = (angle * Math.PI) / 180;
+          const round6 = (v) => Math.round(v * 1e6) / 1e6;
+          return {
+            cx:    round6(Math.cos(rad) * r),
+            cy:    round6(Math.sin(rad) * r),
+            size:  1.0 + (i % 3) * 0.5,
+            dur:   2.4 + (i % 5) * 0.6,
+            delay: (i * 0.22) % 2.8,
+          };
+        }),
+      [count]);
+
+      return (
+        <>
+          {pts.map((p, i) => (
+            <circle key={i} cx={p.cx} cy={p.cy} r={p.size} fill={color} opacity="0">
+              <animate
+                attributeName="opacity"
+                values="0;0.32;0"
+                dur={`${p.dur}s`}
+                begin={`${p.delay}s`}
+                repeatCount="indefinite"
+              />
+            </circle>
+          ))}
+        </>
+      );
+    }
+
+    /* ── SECTION 5: SINGLE PETAL ─────────────────────────────────────── */
+
+    const SWIPE_THRESHOLD = 16;
+
+    function Petal({
+      idx, angle, orbit, hasArrow, dirDeg, aligned,
+      isHint, isWon, lastTap,
+      shapeKey, asymmetryFactor, level,
+      gradId,
+      onTap, onSwipe,
+    }) {
+      const innerRef = useRef(null);
+      const startRef = useRef(null);
+
+      const isCCW = angle > 180;
+      const seed  = idx * 1000 + level * 17;
+      const path  = useOrganicPath(shapeKey, asymmetryFactor, seed);
+      const arrowRot = dirDeg - angle;
+
+      /* Tap feedback animations */
+      useEffect(() => {
+        if (!innerRef.current || !lastTap || lastTap.idx !== idx) return;
+        const el = innerRef.current;
+        if (lastTap.result === 'misaligned') {
+          el.classList.add('petal-shake');
+          const id = setTimeout(() => el.classList.remove('petal-shake'), 240);
+          return () => clearTimeout(id);
+        }
+        if (lastTap.result === 'aligned') {
+          el.classList.add('petal-align-flash');
+          const id = setTimeout(() => el.classList.remove('petal-align-flash'), 380);
+          return () => clearTimeout(id);
+        }
+      }, [lastTap]); // eslint-disable-line
+
+      /* Win burst */
+      useEffect(() => {
+        if (!innerRef.current || !isWon) return;
+        const el    = innerRef.current;
+        const delay = idx * 35;
+        const BURST = 55;
+        const t1 = setTimeout(() => {
+          if (!el.isConnected) return;
+          el.style.transition = 'transform 500ms cubic-bezier(0.34,1.56,0.64,1)';
+          el.style.transform  = `translate(0px, -${BURST}px) scale(1.14)`;
+          const t2 = setTimeout(() => {
+            if (!el.isConnected) return;
+            el.style.transition = 'transform 400ms ease-out';
+            el.style.transform  = 'translate(0px, 0px) scale(1)';
+            const t3 = setTimeout(() => {
+              if (el.isConnected) { el.style.transition = ''; el.style.transform = ''; }
+            }, 420);
+            return () => clearTimeout(t3);
+          }, 500 + delay);
+          return () => clearTimeout(t2);
+        }, delay);
+        return () => clearTimeout(t1);
+      }, [isWon]); // eslint-disable-line
+
+      const handlePointerDown = (e) => {
+        if (!hasArrow || isWon) return;
+        e.preventDefault();
+        e.target.setPointerCapture?.(e.pointerId);
+        startRef.current = { x: e.clientX, y: e.clientY };
+        const el = innerRef.current;
+        if (el) {
+          el.classList.add('petal-pressed');
+          setTimeout(() => el.classList.remove('petal-pressed'), 80);
+        }
+      };
+
+      const handlePointerUp = (e) => {
+        if (!hasArrow || isWon) return;
+        const start = startRef.current;
+        startRef.current = null;
+        if (!start) return;
+        const dx   = e.clientX - start.x;
+        const dy   = e.clientY - start.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist < SWIPE_THRESHOLD) {
+          onTap(idx, angle);
+        } else {
+          onSwipe?.(idx, dx, dy);
+        }
+      };
+
+      return (
+        <g transform={`rotate(${angle}) translate(0,-${orbit})`}>
+          <g
+            ref={innerRef}
+            onPointerDown={handlePointerDown}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={() => { startRef.current = null; }}
+            className="petal-group"
+            role={hasArrow ? 'button' : undefined}
+            aria-label={hasArrow ? `Petal ${idx + 1}, rotate ${isCCW ? 'counter-clockwise' : 'clockwise'}` : undefined}
+            tabIndex={hasArrow ? 0 : undefined}
+            style={{
+              cursor:          hasArrow ? 'pointer' : 'default',
+              transformOrigin: '0 0',
+              touchAction:     'none',
+            }}
+          >
+            {isHint && (
+              <ellipse cx="0" cy="-46" rx="28" ry="46"
+                fill="none" stroke="#FFD700" strokeWidth="3.5" opacity="0.7">
+                <animate attributeName="opacity" values="0.3;0.9;0.3"
+                  dur="750ms" repeatCount="3" />
+              </ellipse>
+            )}
+
+            <path
+              d={path}
+              fill={`url(#${gradId})`}
+              stroke="var(--ink)"
+              strokeWidth={aligned ? 4 : 1.8}
+              strokeLinejoin="round"
+              style={{ transition: 'stroke-width 0.2s ease' }}
+            />
+
+            {hasArrow && (
+              <g transform={`translate(0,-48) rotate(${arrowRot})`}>
+                <path
+                  d="M0,-10 L0,10 M0,-10 L-4.5,-4 M0,-10 L4.5,-4"
+                  stroke="#1B1C1C"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+              </g>
+            )}
+
+            {hasArrow && (
+              <text
+                x="0" y="-22"
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fontSize="10"
+                fontWeight="800"
+                fill="var(--ink)"
+                transform={`rotate(${-angle})`}
+                className="petal-glyph"
+                style={{ pointerEvents: 'none', userSelect: 'none' }}
+              >
+                {isCCW ? '↺' : '↻'}
+              </text>
+            )}
+          </g>
+        </g>
+      );
+    }
+
+    /* ── SECTION 6: DAISY FLOWER ─────────────────────────────────────── */
+
+    const ORBIT_BY_COUNT = { 4: 76, 6: 80, 8: 83, 10: 85, 12: 86 };
+
+    function DaisyFlower({
+      puzzle,
+      shapeKey     = 'oval',
+      petalColor   = '#FFFFFF',
+      accentColor  = '#FFD700',
+      emotionState = 'seeking',
+      onTap,
+      onSwipe,
+      isWon        = false,
+      hintIdx      = null,
+      lastTap      = null,
+      circleRef,
+    }) {
+      const n      = puzzle.petals.length;
+      const orbit  = ORBIT_BY_COUNT[n] ?? 83;
+      const SZ     = 320;
+      const C      = SZ / 2;
+      const gradId = 'dz-petal-grad';
+
+      const profile = EMOTION_PROFILES[emotionState] ?? EMOTION_PROFILES.seeking;
+
+      useEffect(() => {
+        document.documentElement.style.setProperty('--breath-period', `${profile.breathingPeriod}s`);
+      }, [profile.breathingPeriod]);
+
+      useEmotionalGradient(emotionState, petalColor, gradId);
+
+      const DIR_DEG = { n: 0, ne: 45, e: 90, se: 135, s: 180, sw: 225, w: 270, nw: 315 };
+      const centerDeg = DIR_DEG[puzzle.center] ?? 0;
+
+      return (
+        <div style={{ position: 'relative', width: SZ, height: SZ, flexShrink: 0 }}>
+          <svg
+            width={SZ} height={SZ}
+            viewBox={`0 0 ${SZ} ${SZ}`}
+            overflow="visible"
+            style={{ position: 'absolute', inset: 0, touchAction: 'none' }}
+          >
+            <defs>
+              <linearGradient id={gradId} x1="0" y1="1" x2="0" y2="0" gradientUnits="objectBoundingBox">
+                <stop offset="0%"   stopColor={petalColor} />
+                <stop offset="100%" stopColor={emotionTipColor(emotionState, petalColor)} />
+              </linearGradient>
+            </defs>
+
+            <g transform={`translate(${C},${C})`} className="daisy-breathing">
+              <ParticleField count={profile.particleDensity} color={accentColor} />
+
+              {puzzle.petals.map(p => (
+                <Petal
+                  key={p.idx}
+                  idx={p.idx}
+                  angle={(360 / n) * p.idx}
+                  orbit={orbit}
+                  hasArrow={p.hasArrow}
+                  dirDeg={DIR_DEG[p.dir] ?? 0}
+                  aligned={p.aligned}
+                  isHint={p.idx === hintIdx}
+                  isWon={isWon}
+                  lastTap={lastTap}
+                  shapeKey={shapeKey}
+                  asymmetryFactor={profile.asymmetryFactor}
+                  level={puzzle.level}
+                  gradId={gradId}
+                  onTap={onTap}
+                  onSwipe={onSwipe}
+                />
+              ))}
+            </g>
+          </svg>
+
+          <div
+            ref={circleRef}
+            className={isWon ? 'core-win' : 'center-breathe'}
+            style={{
+              position:       'absolute',
+              width:          96,
+              height:         96,
+              top:            '50%',
+              left:           '50%',
+              transform:      'translate(-50%,-50%)',
+              background:     accentColor,
+              border:         '2px solid var(--ink)',
+              borderRadius:   '9999px',
+              boxShadow:      '4px 4px 0px 0px rgba(31,31,31,1)',
+              display:        'flex',
+              alignItems:     'center',
+              justifyContent: 'center',
+              zIndex:         10,
+            }}
+          >
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+              style={{ transform: `rotate(${centerDeg}deg)` }}>
+              <path
+                d="M12 19V5M5 12l7-7 7 7"
+                stroke="#1B1C1C"
+                strokeWidth="2.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+        </div>
+      );
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════
+       ██████████  DAISY-APP  ██████████
+       Game shell: 5-chapter progression, Journey Map, WinCard, PauseModal,
+       ChapterTransition, sparkles, score calculation, hint system.
+       ══════════════════════════════════════════════════════════════════════ */
+
+    /* ── SECTION 1: DIRECTION SYSTEM ──────────────────────────────────── */
+
+    const DIRS    = ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'];
+    const DIR_DEG = { n:0, ne:45, e:90, se:135, s:180, sw:225, w:270, nw:315 };
+
+    const rotateCW  = d => DIRS[(DIRS.indexOf(d) + 1) % 8];
+    const rotateCCW = d => DIRS[(DIRS.indexOf(d) + 7) % 8];
+    const spinDir   = angleDeg => angleDeg > 180 ? 'ccw' : 'cw';
+
+    /* ── SECTION 2: CHAPTER DEFINITIONS ──────────────────────────────── */
+
+    const CHAPTERS = [
+      {
+        id: 'garden',   name: 'The Garden',   epigraph: 'Where arrows first spoke.',
+        levels: [1, 10],   bg: '#B2AC88', accent: '#FFD700', accentDark: '#D4B000',
+        petalColor: '#FFFFFF', shapeKey: 'oval',    dirs: DIRS,
+        icon: '🌸',
+      },
+      {
+        id: 'forest',   name: 'The Forest',   epigraph: 'Deeper paths, older silence.',
+        levels: [11, 25],  bg: '#8FA67A', accent: '#516C45', accentDark: '#3C5233',
+        petalColor: '#F4F9F0', shapeKey: 'leaf',    dirs: DIRS,
+        icon: '🌲',
+      },
+      {
+        id: 'mountain', name: 'The Mountain', epigraph: 'Stillness is not emptiness.',
+        levels: [26, 40],  bg: '#A5ADB8', accent: '#708090', accentDark: '#506070',
+        petalColor: '#F0F2F5', shapeKey: 'diamond', dirs: ['n','e','s','w'],
+        icon: '⛰️',
+      },
+      {
+        id: 'storm',    name: 'The Storm',    epigraph: 'Find the eye.',
+        levels: [41, 55],  bg: '#6B5B4E', accent: '#C06030', accentDark: '#904020',
+        petalColor: '#FAF0EC', shapeKey: 'spike',   dirs: DIRS,
+        icon: '⚡',
+      },
+      {
+        id: 'void',     name: 'The Void',     epigraph: 'You have always known the way.',
+        levels: [56, 99],  bg: '#1A1A2E', accent: '#9B5DE5', accentDark: '#7B3DC5',
+        petalColor: '#E8D5FF', shapeKey: 'clover',  dirs: DIRS,
+        icon: '🌑',
+      },
+    ];
+
+    const getChapter = level =>
+      CHAPTERS.find(c => level >= c.levels[0] && level <= c.levels[1]) ?? CHAPTERS[0];
+
+    /* ── SECTION 3: PUZZLE GENERATION ────────────────────────────────── */
+
+    function makeLCG(seed) {
+      let s = seed >>> 0;
+      return () => {
+        s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+        return s / 0xffffffff;
+      };
+    }
+
+    function generatePuzzle(level, chapter) {
+      const rng = makeLCG(level * 137 + 42);
+
+      const base       = [4, 6, 8, 6];
+      const petalCount = base[(level - 1) % 4] + (Math.floor((level - 1) / 4) % 2) * 2;
+      const n          = Math.min(petalCount, 12);
+      const dirs       = chapter.dirs ?? DIRS;
+      /* BUG-1 FIX: center direction is seeded from level via LCG — never hardcoded */
+      const center     = dirs[Math.floor(rng() * dirs.length)];
+
+      const activeCount = Math.max(2, Math.floor(n * (0.5 + rng() * 0.25)));
+      const activeSlots = new Set();
+      while (activeSlots.size < activeCount) {
+        activeSlots.add(Math.floor(rng() * n));
+      }
+
+      const petals = Array.from({ length: n }, (_, i) => {
+        if (!activeSlots.has(i)) return { idx: i, hasArrow: false, dir: center, aligned: true };
+        let dir;
+        do { dir = dirs[Math.floor(rng() * dirs.length)]; } while (dir === center);
+        return { idx: i, hasArrow: true, dir, aligned: false };
+      });
+
+      return { level, center, petals };
+    }
+
+    /* ── SECTION 4: SCORE CALCULATION ────────────────────────────────── */
+
+    function calcScore(moves, arrowCount, elapsedSec) {
+      const moveBonus = Math.max(0, (arrowCount * 3 - moves)) * 12;
+      const timeBonus = elapsedSec < 20 ? 60 : elapsedSec < 45 ? 30 : elapsedSec < 90 ? 10 : 0;
+      return 100 + moveBonus + timeBonus;
+    }
+
+    /* ── SECTION 5: HAPTIC FEEDBACK ──────────────────────────────────── */
+
+    const vib = p => {
+      if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+        try { navigator.vibrate(p); } catch { /* ignore */ }
+      }
+    };
+
+    const haptic = {
+      tap:      () => vib(8),
+      align:    () => vib(15),
+      misalign: () => vib(12),
+      win:      () => vib([40, 60, 40, 60, 80]),
+    };
+
+    /* ── SECTION 6: GAME STATE INITIALISER ───────────────────────────── */
+
+    function initState(level, prevTotalScore = 0) {
+      const chapter = getChapter(level);
+      const puzzle  = generatePuzzle(level, chapter);
+      return {
+        level, chapter, puzzle,
+        phase:      'playing',
+        moves:      0,
+        totalScore: prevTotalScore,
+        hintReady:  false,
+        hintIdx:    null,
+        startTime:  Date.now(),
+        lastTap:    null,
+      };
+    }
+
+    /* ── SECTION 7: SUB-COMPONENTS ───────────────────────────────────── */
+
+    /* Chapter Transition */
+    function ChapterTransition({ chapter }) {
+      const petals = Array.from({ length: 8 }, (_, i) =>
+        <ellipse key={i} cx="100" cy="44" rx="14" ry="30" fill="white"
+          transform={`rotate(${i * 45} 100 100)`} />,
+      );
+      return (
+        <div className="dz-chapter-transition" style={{ background: chapter.bg }}>
+          <svg className="dz-chapter-watermark" viewBox="0 0 200 200">
+            {petals}
+            <circle cx="100" cy="100" r="26" fill="white" />
+          </svg>
+          <div className="dz-chapter-name">{chapter.name}</div>
+          <div className="dz-chapter-epigraph">"{chapter.epigraph}"</div>
+        </div>
+      );
+    }
+
+    /* Win Card */
+    function WinCard({ score, totalScore, epigraph, onNext }) {
+      const [displayed, setDisplayed] = useState(0);
+
+      useEffect(() => {
+        let count = 0;
+        const step = Math.max(1, Math.ceil(score / 30));
+        const id = setInterval(() => {
+          count = Math.min(count + step, score);
+          setDisplayed(count);
+          if (count >= score) clearInterval(id);
+        }, 30);
+        return () => clearInterval(id);
+      }, [score]);
+
+      return (
+        <div className="dz-win-overlay">
+          <div className="dz-win-card">
+            <div style={{ fontSize: '0.65rem', fontWeight: 800, opacity: 0.4, letterSpacing: '0.08em', marginBottom: 8 }}>
+              LEVEL COMPLETE
+            </div>
+            <div className="dz-win-score">{String(displayed).padStart(4, '0')}</div>
+            <div className="dz-win-epigraph">"{epigraph}"</div>
+            <div style={{ fontSize: '0.72rem', fontWeight: 800, opacity: 0.45, marginBottom: 20 }}>
+              TOPLAM · {String(totalScore + score).padStart(4, '0')}
+            </div>
+            <button className="dz-btn dz-btn--accent dz-btn--full" onClick={onNext}>
+              Next level →
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    /* Pause Modal */
+    function PauseModal({ chapterName, onContinue, onReset, onJourney }) {
+      return (
+        <div className="dz-pause-overlay">
+          <div className="dz-pause-card">
+            <div className="dz-pause-chapter">{chapterName}</div>
+            <button className="dz-btn dz-btn--accent dz-btn--full" onClick={onContinue}>
+              Devam Et
+            </button>
+            <button className="dz-btn dz-btn--full" onClick={onJourney}>
+              Journey Map
+            </button>
+            <button className="dz-btn dz-btn--full" onClick={onReset}>
+              Baştan Başla
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    /* Journey Map — BUG-5 FIX: all status derived dynamically from currentLevel */
+    function JourneyMap({ currentLevel, totalScore, onClose, onReplay }) {
+      return (
+        <div className="dz-journey">
+          <div className="dz-jm-header">
+            <button className="dz-btn" style={{ minWidth: 46 }} onClick={onClose} aria-label="Back">
+              ←
+            </button>
+            <span className="dz-jm-title">Journey Map</span>
+            <div style={{ width: 46 }} />
+          </div>
+
+          <div style={{ padding: '10px 16px 0', textAlign: 'center', fontSize: '0.72rem', fontWeight: 800, opacity: 0.5, letterSpacing: '0.06em' }}>
+            TOTAL SCORE · {String(totalScore).padStart(4, '0')}
+          </div>
+
+          <div className="dz-jm-list">
+            {CHAPTERS.map((ch, idx) => {
+              /* BUG-5 FIX: derive status from currentLevel at render time */
+              const isDone   = currentLevel > ch.levels[1];
+              const isActive = currentLevel >= ch.levels[0] && currentLevel <= ch.levels[1];
+              const isLocked = currentLevel < ch.levels[0];
+              const status   = isDone ? 'done' : isActive ? 'active' : 'locked';
+
+              const total     = ch.levels[1] - ch.levels[0] + 1;
+              const completed = isDone ? total : isActive ? currentLevel - ch.levels[0] : 0;
+              const pct       = isDone ? 100 : isActive ? (completed / total) * 100 : 0;
+
+              return (
+                <div key={ch.id} className={`dz-ch-card dz-ch-card--${status}`}>
+                  <div className="dz-ch-card-top">
+                    <div className="dz-ch-icon">{ch.icon}</div>
+                    <div className="dz-ch-info">
+                      <span className="dz-ch-num">BÖLÜM {idx + 1}</span>
+                      <span className="dz-ch-name">{ch.name}</span>
+                      {isActive && <span className="dz-ch-badge">⚡ AKTİF</span>}
+                      {isDone  && <span className="dz-ch-badge">✓ TAMAMLANDI</span>}
+                    </div>
+                    {isLocked && <span style={{ fontSize: '1.2rem', opacity: 0.5 }}>🔒</span>}
+                  </div>
+
+                  <div className="dz-ch-card-bottom">
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span className="dz-ch-range">Seviye {ch.levels[0]}–{ch.levels[1]}</span>
+                      {(isActive || isDone) && (
+                        <div className="dz-ch-progress-track">
+                          <div className="dz-ch-progress-fill" style={{ width: `${pct}%` }} />
+                        </div>
+                      )}
+                    </div>
+
+                    {isDone  && (
+                      <button className="dz-ch-btn dz-ch-btn--replay" onClick={() => onReplay(ch)}>
+                        TEKRARLA
+                      </button>
+                    )}
+                    {isActive && (
+                      <button className="dz-ch-btn dz-ch-btn--continue" onClick={onClose}>
+                        DEVAM ET
+                      </button>
+                    )}
+                    {isLocked && (
+                      <button className="dz-ch-btn dz-ch-btn--locked" disabled>
+                        KİLİTLİ
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <nav className="dz-bottom-nav">
+            <button className="dz-nav-btn" onClick={onClose}>
+              <div className="dz-nav-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 11L12 4l9 7v9h-6v-5H9v5H3z"/>
+                </svg>
+              </div>
+              <span>Ana Sayfa</span>
+            </button>
+            <button className="dz-nav-btn dz-nav-btn--active">
+              <div className="dz-nav-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2V6z"/>
+                  <path d="M9 4v14M15 6v14"/>
+                </svg>
+              </div>
+              <span>Journey</span>
+            </button>
+            <button className="dz-nav-btn">
+              <div className="dz-nav-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="8" r="4"/>
+                  <path d="M4 21c0-5 3-8 8-8s8 3 8 8"/>
+                </svg>
+              </div>
+              <span>Profil</span>
+            </button>
+          </nav>
+        </div>
+      );
+    }
+
+    /* ── SECTION 8: SPARKLE SYSTEM ───────────────────────────────────── */
+
+    function triggerSparkles(container) {
+      if (!container) return;
+      container.innerHTML = '';
+      const cx = 160, cy = 160;
+
+      for (let k = 0; k < 18; k++) {
+        const angle = (k / 18) * Math.PI * 2 + Math.random() * 0.3;
+        const dist  = 70 + Math.random() * 70;
+        const x     = cx + Math.cos(angle) * dist;
+        const y     = cy + Math.sin(angle) * dist;
+        const size  = 7 + Math.random() * 8;
+        const s     = document.createElement('div');
+        s.className = 'dz-spark';
+        s.style.cssText = [
+          `width:${size}px`, `height:${size}px`,
+          `left:${x - size / 2}px`, `top:${y - size / 2}px`,
+          `animation-delay:${(Math.random() * 0.2).toFixed(3)}s`,
+          `animation-duration:${(0.85 + Math.random() * 0.45).toFixed(3)}s`,
+        ].join(';');
+        container.appendChild(s);
+      }
+
+      setTimeout(() => { if (container.isConnected) container.innerHTML = ''; }, 1600);
+    }
+
+    /* ── SECTION 9: DAISY APP ────────────────────────────────────────── */
+
+    function DaisyApp() {
+      const [g, setG]           = useState(() => initState(1));
+      const [emotion, setEm]    = useState('seeking');
+      const [levelScore, setLevelScore] = useState(0);
+      const [navMode, setNavMode]       = useState('game');       // 'game' | 'journey'
+      const [transitionCh, setTransitionCh] = useState(null);
+
+      const misalignRef   = useRef([]);
+      const circleRef     = useRef(null);
+      const hintTimerRef  = useRef(null);
+      const winLockedRef  = useRef(false);
+      const sparkLayerRef = useRef(null);
+
+      /* Apply chapter colours */
+      useEffect(() => {
+        document.documentElement.style.setProperty('--accent',      g.chapter.accent);
+        document.documentElement.style.setProperty('--accent-dark', g.chapter.accentDark);
+        document.body.style.background = g.chapter.bg;
+      }, [g.chapter]);
+
+      /* 45-second hint timer */
+      useEffect(() => {
+        if (g.phase !== 'playing') return;
+        clearTimeout(hintTimerRef.current);
+        hintTimerRef.current = setTimeout(
+          () => setG(prev => ({ ...prev, hintReady: true })),
+          45_000,
+        );
+        return () => clearTimeout(hintTimerRef.current);
+      }, [g.level, g.phase]);
+
+      /* Emotion derivation */
+      useEffect(() => {
+        if (g.lastTap?.result === 'misaligned') {
+          const now = Date.now();
+          misalignRef.current = [...misalignRef.current.filter(t => now - t < 8_000), now];
+        }
+        const active  = g.puzzle.petals.filter(p => p.hasArrow);
+        const aligned = active.filter(p => p.aligned).length;
+        const frac    = active.length > 0 ? aligned / active.length : 0;
+        const recents = misalignRef.current.filter(t => Date.now() - t < 8_000).length;
+        setEm(deriveEmotion(frac, recents, g.hintReady));
+      }, [g.lastTap, g.hintReady, g.phase]); // eslint-disable-line
+
+      /* Reset on level change */
+      useEffect(() => {
+        misalignRef.current = [];
+        setEm('seeking');
+        winLockedRef.current = false;
+      }, [g.level]);
+
+      /* Win — score + sparkles */
+      useEffect(() => {
+        if (g.phase !== 'won') return;
+        haptic.win();
+        const elapsedSec = Math.round((Date.now() - g.startTime) / 1000);
+        const arrowCount = g.puzzle.petals.filter(p => p.hasArrow).length;
+        setLevelScore(calcScore(g.moves, arrowCount, elapsedSec));
+        triggerSparkles(sparkLayerRef.current);
+      }, [g.phase]); // eslint-disable-line
+
+      /* TAP HANDLER */
+      const handleTap = useCallback((idx, angleDeg) => {
+        if (g.phase !== 'playing') return;
+        let tapResult = 'misaligned';
+
+        setG(prev => {
+          if (prev.phase !== 'playing') return prev;
+          const rotate    = spinDir(angleDeg) === 'ccw' ? rotateCCW : rotateCW;
+          const newPetals = prev.puzzle.petals.map(p => {
+            if (p.idx !== idx || !p.hasArrow) return p;
+            const newDir     = rotate(p.dir);
+            const nowAligned = newDir === prev.puzzle.center;
+            if (nowAligned) tapResult = 'aligned';
+            return { ...p, dir: newDir, aligned: nowAligned };
+          });
+          const allAligned = newPetals.filter(p => p.hasArrow).every(p => p.aligned);
+          if (allAligned) tapResult = 'won';
+
+          const next = {
+            ...prev,
+            moves:   prev.moves + 1,
+            puzzle:  { ...prev.puzzle, petals: newPetals },
+            lastTap: { idx, result: tapResult === 'won' ? 'aligned' : tapResult, ts: Date.now() },
+          };
+          if (allAligned && !winLockedRef.current) {
+            winLockedRef.current = true;
+            next.phase = 'won';
+          }
+          return next;
+        });
+
+        if (tapResult === 'aligned' || tapResult === 'won') haptic.align();
+        else                                                 haptic.misalign();
+      }, [g.phase]); // eslint-disable-line
+
+      /* SWIPE HANDLER */
+      const handleSwipe = useCallback((idx, dx, dy) => {
+        if (g.phase !== 'playing') return;
+        const angleDeg = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+        const snapDir  = DIRS[Math.round(angleDeg / 45) % 8];
+
+        setG(prev => {
+          if (prev.phase !== 'playing') return prev;
+          const newPetals = prev.puzzle.petals.map(p => {
+            if (p.idx !== idx || !p.hasArrow) return p;
+            return { ...p, dir: snapDir, aligned: snapDir === prev.puzzle.center };
+          });
+          const allAligned = newPetals.filter(p => p.hasArrow).every(p => p.aligned);
+          if (allAligned && !winLockedRef.current) winLockedRef.current = true;
+          return {
+            ...prev,
+            moves:   prev.moves + 1,
+            puzzle:  { ...prev.puzzle, petals: newPetals },
+            phase:   allAligned ? 'won' : prev.phase,
+            lastTap: { idx, result: 'aligned', ts: Date.now() },
+          };
+        });
+      }, [g.phase]); // eslint-disable-line
+
+      /* NEXT LEVEL */
+      const handleNextLevel = useCallback(() => {
+        const nextLevel   = g.level + 1;
+        const prevChId    = g.chapter.id;
+        const nextChapter = getChapter(nextLevel);
+        const newTotal    = g.totalScore + levelScore;
+
+        misalignRef.current  = [];
+        winLockedRef.current = false;
+        setEm('seeking');
+
+        if (nextChapter.id !== prevChId) {
+          setTransitionCh(nextChapter);
+          setTimeout(() => {
+            setTransitionCh(null);
+            setG(initState(nextLevel, newTotal));
+          }, 2900);
+        } else {
+          setG(initState(nextLevel, newTotal));
+        }
+      }, [g.level, g.chapter.id, g.totalScore, levelScore]);
+
+      /* RESET */
+      const handleReset = () => {
+        setG(prev => ({
+          ...prev,
+          puzzle:    generatePuzzle(prev.level, prev.chapter),
+          phase:     'playing',
+          hintReady: false,
+          hintIdx:   null,
+          lastTap:   null,
+          moves:     0,
+          startTime: Date.now(),
+        }));
+        misalignRef.current  = [];
+        winLockedRef.current = false;
+        setEm('seeking');
+        setNavMode('game');
+      };
+
+      /* REPLAY CHAPTER from Journey Map */
+      const handleReplayChapter = chapter => {
+        misalignRef.current  = [];
+        winLockedRef.current = false;
+        setNavMode('game');
+        setG(initState(chapter.levels[0], g.totalScore));
+        setEm('seeking');
+      };
+
+      /* DERIVED STATE */
+      const { puzzle, chapter, phase, level, hintReady, hintIdx, lastTap, totalScore } = g;
+      const activePetals = puzzle.petals.filter(p => p.hasArrow);
+      const alignedCount = activePetals.filter(p => p.aligned).length;
+      const totalActive  = activePetals.length;
+      const progressPct  = totalActive > 0 ? (alignedCount / totalActive) * 100 : 0;
+      const isWon        = phase === 'won';
+      const isPaused     = phase === 'paused';
+
+      /* ── RENDER ──────────────────────────────────────────────────────── */
+      return (
+        <div className="dz-app-root">
+
+          {/* Chapter Transition (topmost) */}
+          {transitionCh && <ChapterTransition chapter={transitionCh} />}
+
+          {/* Journey Map */}
+          {navMode === 'journey' && (
+            <JourneyMap
+              currentLevel={level}
+              totalScore={totalScore}
+              onClose={() => {
+                setNavMode('game');
+                setG(prev => ({ ...prev, phase: 'playing' }));
+              }}
+              onReplay={handleReplayChapter}
+            />
+          )}
+
+          {/* Win Card */}
+          {isWon && navMode === 'game' && !transitionCh && (
+            <WinCard
+              score={levelScore}
+              totalScore={totalScore}
+              epigraph={chapter.epigraph}
+              onNext={handleNextLevel}
+            />
+          )}
+
+          {/* Pause Modal */}
+          {isPaused && navMode === 'game' && (
+            <PauseModal
+              chapterName={chapter.name}
+              onContinue={() => setG(prev => ({ ...prev, phase: 'playing' }))}
+              onReset={handleReset}
+              onJourney={() => setNavMode('journey')}
+            />
+          )}
+
+          {/* Game Screen */}
+          <div className="dz-app">
+
+            <header className="dz-topbar">
+              <button className="dz-btn"
+                onClick={() => setG(prev => ({ ...prev, phase: 'paused' }))}
+                aria-label="Pause">
+                ⏸
+              </button>
+
+              <div className="dz-title-area">
+                <h1 className="dz-title">Level {level}</h1>
+                <p className="dz-subtitle">{chapter.name}</p>
+              </div>
+
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '0.6rem', fontWeight: 800, opacity: 0.45, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                  Score
+                </div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: chapter.accentDark }}>
+                  {String(totalScore).padStart(4, '0')}
+                </div>
+              </div>
+            </header>
+
+            <main className="dz-flower-wrapper">
+              <div style={{ position: 'relative', width: 320, height: 320 }}>
+                <DaisyFlower
+                  puzzle={puzzle}
+                  shapeKey={chapter.shapeKey}
+                  petalColor={chapter.petalColor}
+                  accentColor={chapter.accent}
+                  emotionState={emotion}
+                  onTap={handleTap}
+                  onSwipe={handleSwipe}
+                  isWon={isWon}
+                  hintIdx={hintIdx}
+                  lastTap={lastTap}
+                  circleRef={circleRef}
+                />
+                <div
+                  ref={sparkLayerRef}
+                  className="dz-spark-layer"
+                  style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
+                />
+              </div>
+            </main>
+
+            <section className="dz-panel" aria-label="Alignment progress">
+              <div className="dz-panel-head">
+                <span>{chapter.name.toUpperCase()}</span>
+                <span aria-live="polite">{alignedCount}/{totalActive}</span>
+              </div>
+
+              <div className="dz-progress-track" role="progressbar"
+                aria-valuenow={alignedCount} aria-valuemin={0} aria-valuemax={totalActive}>
+                <div className="dz-progress-fill" style={{ width: `${progressPct}%` }} />
+              </div>
+
+              <div className="dz-action-zone">
+                <button className="dz-action-btn" onClick={handleReset} aria-label="Restore puzzle">
+                  ↻ Restore
+                </button>
+                <button
+                  className={`dz-action-btn${hintReady ? ' accent' : ''}${!hintReady ? '' : ''}`}
+                  onClick={() => setNavMode('journey')}
+                  aria-label="View Journey Map"
+                >
+                  {hintReady ? '💡 Hint' : '🗺️ Journey'}
+                </button>
+              </div>
+
+              <p style={{
+                marginTop: 10, fontSize: '0.65rem', fontWeight: 800,
+                opacity: 0.3, textAlign: 'center', letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+              }}>
+                {emotion} · {EMOTION_PROFILES[emotion].breathingPeriod}s
+              </p>
+            </section>
+
+          </div>
+        </div>
+      );
+    }
+
+    /* ── Mount ─────────────────────────────────────────────────────────── */
+    ReactDOM.createRoot(document.getElementById('root')).render(<DaisyApp />);
+  </script>
+</body>
+</html>

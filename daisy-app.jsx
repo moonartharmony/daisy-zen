@@ -1,17 +1,20 @@
 /**
- * daisy-app.jsx — Sprint 1: Game Shell & State Orchestration
+ * daisy-app.jsx — Sprint 1 + Journey Map Edition
  *
- * Wires DaisyFlower to:
- *   • 8-direction puzzle state (N, NE, E, SE, S, SW, W, NW)
- *   • 5-chapter progression with petal shape morphing
- *   • Hemispheric rotation (tap → spinDir → CW or CCW)
- *   • 5-state emotion engine (misalign tracking, 8 s sliding window)
- *   • Hint timer (45 s)
- *   • Neubrutalist HUD: progress bar, Restore + Continue buttons
- *   • Win → auto-advance after 700 ms
+ * Preserves:
+ *   • Organic Bezier SVG petals (daisy-flower.jsx)
+ *   • 5-state emotion engine + --breath-period breathing
+ *   • Hemispheric rotation (tap → spinDir → CW / CCW)
+ *   • 8-direction system, 5-chapter progression
  *
- * This file is intentionally framework-agnostic (no router, no auth).
- * Mount: ReactDOM.createRoot(document.getElementById('root')).render(<DaisyApp />)
+ * Adds (ported from HTML prototype):
+ *   • Win card overlay with animated score counter + epigraph
+ *   • Pause → Journey Map (full-screen chapter progress)
+ *   • Chapter transition screen (watermark daisy + fade)
+ *   • Sparkle confetti burst on win
+ *   • calcScore() — moveBonus + timeBonus formula
+ *   • Bottom navigation (Ana Sayfa · Journey · Profil)
+ *   • Hint system with visual ring on the optimal petal
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -21,21 +24,14 @@ import { DaisyFlower, EMOTION_PROFILES, deriveEmotion } from './daisy-flower.jsx
    SECTION 1 — DIRECTION SYSTEM (8-step)
    ══════════════════════════════════════════════════════════════════════════ */
 
-const DIRS = ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'];
-const DIR_DEG = { n: 0, ne: 45, e: 90, se: 135, s: 180, sw: 225, w: 270, nw: 315 };
+const DIRS   = ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'];
+const DIR_DEG = { n:0, ne:45, e:90, se:135, s:180, sw:225, w:270, nw:315 };
 
-/** One step clockwise */
-const rotateCW  = (d) => DIRS[(DIRS.indexOf(d) + 1) % 8];
+const rotateCW  = d => DIRS[(DIRS.indexOf(d) + 1) % 8];
+const rotateCCW = d => DIRS[(DIRS.indexOf(d) + 7) % 8];
 
-/** One step counter-clockwise */
-const rotateCCW = (d) => DIRS[(DIRS.indexOf(d) + 7) % 8];
-
-/**
- * Hemispheric rotation rule — mirrors spinDir() in types.ts.
- * Petals on the RIGHT (placementAngle ≤ 180°) spin CW.
- * Petals on the LEFT  (placementAngle >  180°) spin CCW.
- */
-const spinDir = (angleDeg) => angleDeg > 180 ? 'ccw' : 'cw';
+/** Hemispheric rule: angle > 180° → CCW (left half), ≤ 180° → CW (right half) */
+const spinDir = angleDeg => angleDeg > 180 ? 'ccw' : 'cw';
 
 /* ══════════════════════════════════════════════════════════════════════════
    SECTION 2 — CHAPTER DEFINITIONS
@@ -43,38 +39,42 @@ const spinDir = (angleDeg) => angleDeg > 180 ? 'ccw' : 'cw';
 
 const CHAPTERS = [
   {
-    id: 'garden',  name: 'The Garden',         epigraph: 'Where arrows first spoke.',
-    levels: [1, 10],  bg: '#B2AC88', accent: '#FFD700', accentDark: '#D4B000',
+    id: 'garden',   name: 'The Garden',   epigraph: 'Where arrows first spoke.',
+    levels: [1, 10],   bg: '#B2AC88', accent: '#FFD700', accentDark: '#D4B000',
     petalColor: '#FFFFFF', shapeKey: 'oval',    dirs: DIRS,
+    icon: '🌸',
   },
   {
-    id: 'forest',  name: 'The Forest',          epigraph: 'Deeper paths await.',
-    levels: [11, 25], bg: '#8FA67A', accent: '#516C45', accentDark: '#3C5233',
+    id: 'forest',   name: 'The Forest',   epigraph: 'Deeper paths, older silence.',
+    levels: [11, 25],  bg: '#8FA67A', accent: '#516C45', accentDark: '#3C5233',
     petalColor: '#F4F9F0', shapeKey: 'leaf',    dirs: ['n','ne','e','se','s','sw','w','nw'],
+    icon: '🌲',
   },
   {
-    id: 'mountain',name: 'The Mountain',        epigraph: 'Stillness above all.',
-    levels: [26, 40], bg: '#A5ADB8', accent: '#708090', accentDark: '#506070',
+    id: 'mountain', name: 'The Mountain', epigraph: 'Stillness is not emptiness.',
+    levels: [26, 40],  bg: '#A5ADB8', accent: '#708090', accentDark: '#506070',
     petalColor: '#F0F2F5', shapeKey: 'diamond', dirs: ['n','e','s','w'],
+    icon: '⛰️',
   },
   {
-    id: 'storm',   name: 'The Storm',           epigraph: 'Find the eye.',
-    levels: [41, 55], bg: '#6B5B4E', accent: '#C06030', accentDark: '#904020',
+    id: 'storm',    name: 'The Storm',    epigraph: 'Find the eye.',
+    levels: [41, 55],  bg: '#6B5B4E', accent: '#C06030', accentDark: '#904020',
     petalColor: '#FAF0EC', shapeKey: 'spike',   dirs: DIRS,
+    icon: '⚡',
   },
   {
-    id: 'void',    name: 'The Void',            epigraph: 'You already know the way.',
-    levels: [56, 99], bg: '#1A1A2E', accent: '#9B5DE5', accentDark: '#7B3DC5',
+    id: 'void',     name: 'The Void',     epigraph: 'You have always known the way.',
+    levels: [56, 99],  bg: '#1A1A2E', accent: '#9B5DE5', accentDark: '#7B3DC5',
     petalColor: '#E8D5FF', shapeKey: 'clover',  dirs: DIRS,
+    icon: '🌑',
   },
 ];
 
-const getChapter = (level) =>
+const getChapter = level =>
   CHAPTERS.find(c => level >= c.levels[0] && level <= c.levels[1]) ?? CHAPTERS[0];
 
 /* ══════════════════════════════════════════════════════════════════════════
-   SECTION 3 — PUZZLE GENERATION
-   Deterministic LCG seeded by level number.
+   SECTION 3 — PUZZLE GENERATION (deterministic LCG seeded by level)
    ══════════════════════════════════════════════════════════════════════════ */
 
 function makeLCG(seed) {
@@ -88,27 +88,20 @@ function makeLCG(seed) {
 function generatePuzzle(level, chapter) {
   const rng = makeLCG(level * 137 + 42);
 
-  // Petal count cycles: 4, 6, 8, 6 (repeating, grows with chapter)
-  const base = [4, 6, 8, 6];
+  const base       = [4, 6, 8, 6];
   const petalCount = base[(level - 1) % 4] + (Math.floor((level - 1) / 4) % 2) * 2;
-  const n = Math.min(petalCount, 12);
+  const n          = Math.min(petalCount, 12);
+  const dirs       = chapter.dirs ?? DIRS;
+  const center     = dirs[Math.floor(rng() * dirs.length)];
 
-  // Center direction chosen from the chapter's allowed dir set
-  const dirs     = chapter.dirs ?? DIRS;
-  const center   = dirs[Math.floor(rng() * dirs.length)];
-
-  // Active petals (carry arrows): roughly 50–75% of total
-  const activeCount  = Math.max(2, Math.floor(n * (0.5 + rng() * 0.25)));
-  const activeSlots  = new Set();
+  const activeCount = Math.max(2, Math.floor(n * (0.5 + rng() * 0.25)));
+  const activeSlots = new Set();
   while (activeSlots.size < activeCount) {
     activeSlots.add(Math.floor(rng() * n));
   }
 
   const petals = Array.from({ length: n }, (_, i) => {
-    if (!activeSlots.has(i)) {
-      return { idx: i, hasArrow: false, dir: center, aligned: true };
-    }
-    // Random starting dir ≠ center (guarantee it's unsolved)
+    if (!activeSlots.has(i)) return { idx: i, hasArrow: false, dir: center, aligned: true };
     let dir;
     do { dir = dirs[Math.floor(rng() * dirs.length)]; } while (dir === center);
     return { idx: i, hasArrow: true, dir, aligned: false };
@@ -118,10 +111,21 @@ function generatePuzzle(level, chapter) {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   SECTION 4 — HAPTIC FEEDBACK (navigator.vibrate; no-op on unsupported)
+   SECTION 4 — SCORE CALCULATION
+   Matches HTML prototype formula: 100 base + move bonus + time bonus
    ══════════════════════════════════════════════════════════════════════════ */
 
-const vib = (p) => {
+function calcScore(moves, arrowCount, elapsedSec) {
+  const moveBonus = Math.max(0, (arrowCount * 3 - moves)) * 12;
+  const timeBonus = elapsedSec < 20 ? 60 : elapsedSec < 45 ? 30 : elapsedSec < 90 ? 10 : 0;
+  return 100 + moveBonus + timeBonus;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SECTION 5 — HAPTIC FEEDBACK
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const vib = p => {
   if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
     try { navigator.vibrate(p); } catch { /* ignore */ }
   }
@@ -135,98 +139,328 @@ const haptic = {
 };
 
 /* ══════════════════════════════════════════════════════════════════════════
-   SECTION 5 — GAME STATE INITIALISER
+   SECTION 6 — GAME STATE INITIALISER
    ══════════════════════════════════════════════════════════════════════════ */
 
 function initState(level, prevTotalScore = 0) {
   const chapter = getChapter(level);
   const puzzle  = generatePuzzle(level, chapter);
   return {
-    level,
-    chapter,
-    puzzle,
-    phase:      'playing',   // 'playing' | 'won' | 'paused'
+    level, chapter, puzzle,
+    phase:      'playing',
     moves:      0,
     totalScore: prevTotalScore,
     hintReady:  false,
     hintIdx:    null,
     startTime:  Date.now(),
-    lastTap:    null,        // { idx, result:'aligned'|'misaligned', ts }
+    lastTap:    null,
   };
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   SECTION 6 — DAISY APP
+   SECTION 7 — SUB-COMPONENTS
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Chapter Transition ─────────────────────────────────────────────────── */
+function ChapterTransition({ chapter }) {
+  const petals = Array.from({ length: 8 }, (_, i) =>
+    <ellipse key={i} cx="100" cy="44" rx="14" ry="30" fill="white"
+      transform={`rotate(${i * 45} 100 100)`} />,
+  );
+
+  return (
+    <div className="dz-chapter-transition" style={{ background: chapter.bg }}>
+      <svg className="dz-chapter-watermark" viewBox="0 0 200 200">
+        {petals}
+        <circle cx="100" cy="100" r="26" fill="white" />
+      </svg>
+      <div className="dz-chapter-name">{chapter.name}</div>
+      <div className="dz-chapter-epigraph">"{chapter.epigraph}"</div>
+    </div>
+  );
+}
+
+/* ── Win Card Overlay ────────────────────────────────────────────────────── */
+function WinCard({ score, totalScore, epigraph, onNext }) {
+  const [displayed, setDisplayed] = useState(0);
+
+  useEffect(() => {
+    let count = 0;
+    const step = Math.max(1, Math.ceil(score / 30));
+    const id = setInterval(() => {
+      count = Math.min(count + step, score);
+      setDisplayed(count);
+      if (count >= score) clearInterval(id);
+    }, 30);
+    return () => clearInterval(id);
+  }, [score]);
+
+  return (
+    <div className="dz-win-overlay">
+      <div className="dz-win-card">
+        <div className="dz-win-score">{String(displayed).padStart(4, '0')}</div>
+        <div className="dz-win-epigraph">"{epigraph}"</div>
+        <div style={{ fontSize: '0.72rem', fontWeight: 800, opacity: 0.45, marginBottom: 20 }}>
+          TOPLAM · {String(totalScore + score).padStart(4, '0')}
+        </div>
+        <button className="dz-btn dz-btn--accent dz-btn--full" onClick={onNext}>
+          Next level →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ── Pause / Journey Modal ───────────────────────────────────────────────── */
+function PauseModal({ chapterName, onContinue, onReset, onJourney }) {
+  return (
+    <div className="dz-pause-overlay">
+      <div className="dz-pause-card">
+        <div className="dz-pause-chapter">{chapterName}</div>
+        <button className="dz-btn dz-btn--accent dz-btn--full" onClick={onContinue}>
+          Devam Et
+        </button>
+        <button className="dz-btn dz-btn--full" onClick={onJourney}>
+          Journey Map
+        </button>
+        <button className="dz-btn dz-btn--full" onClick={onReset}>
+          Baştan Başla
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ── Journey Map ─────────────────────────────────────────────────────────── */
+function JourneyMap({ currentLevel, totalScore, onClose, onReplay }) {
+  return (
+    <div className="dz-journey">
+      {/* Header */}
+      <div className="dz-jm-header">
+        <button className="dz-btn" style={{ minWidth: 46 }} onClick={onClose} aria-label="Back">
+          ←
+        </button>
+        <span className="dz-jm-title">Journey Map</span>
+        <div style={{ width: 46 }} />
+      </div>
+
+      {/* Score strip */}
+      <div style={{
+        padding: '10px 16px 0',
+        textAlign: 'center',
+        fontSize: '0.72rem',
+        fontWeight: 800,
+        opacity: 0.5,
+        letterSpacing: '0.06em',
+      }}>
+        TOTAL SCORE · {String(totalScore).padStart(4, '0')}
+      </div>
+
+      {/* Chapter list */}
+      <div className="dz-jm-list">
+        {CHAPTERS.map((ch, idx) => {
+          const isDone   = currentLevel > ch.levels[1];
+          const isActive = currentLevel >= ch.levels[0] && currentLevel <= ch.levels[1];
+          const isLocked = currentLevel < ch.levels[0];
+          const status   = isDone ? 'done' : isActive ? 'active' : 'locked';
+
+          const total     = ch.levels[1] - ch.levels[0] + 1;
+          const completed = isDone ? total : isActive ? currentLevel - ch.levels[0] : 0;
+          const pct       = isDone ? 100 : isActive ? (completed / total) * 100 : 0;
+
+          return (
+            <div key={ch.id}
+              className={`dz-ch-card dz-ch-card--${status}`}
+            >
+              <div className="dz-ch-card-top">
+                <div className="dz-ch-icon">{ch.icon}</div>
+                <div className="dz-ch-info">
+                  <span className="dz-ch-num">BÖLÜM {idx + 1}</span>
+                  <span className="dz-ch-name">{ch.name}</span>
+                  {isActive && (
+                    <span className="dz-ch-badge">⚡ AKTİF</span>
+                  )}
+                  {isDone && (
+                    <span className="dz-ch-badge">✓ TAMAMLANDI</span>
+                  )}
+                </div>
+                {isLocked && (
+                  <span style={{ fontSize: '1.2rem', opacity: 0.5 }}>🔒</span>
+                )}
+              </div>
+
+              <div className="dz-ch-card-bottom">
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <span className="dz-ch-range">Seviye {ch.levels[0]}–{ch.levels[1]}</span>
+                  {(isActive || isDone) && (
+                    <div className="dz-ch-progress-track">
+                      <div className="dz-ch-progress-fill" style={{ width: `${pct}%` }} />
+                    </div>
+                  )}
+                </div>
+
+                {isDone && (
+                  <button className="dz-ch-btn dz-ch-btn--replay" onClick={() => onReplay(ch)}>
+                    TEKRARLA
+                  </button>
+                )}
+                {isActive && (
+                  <button className="dz-ch-btn dz-ch-btn--continue" onClick={onClose}>
+                    DEVAM ET
+                  </button>
+                )}
+                {isLocked && (
+                  <button className="dz-ch-btn dz-ch-btn--locked" disabled>
+                    KİLİTLİ
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Bottom Nav */}
+      <nav className="dz-bottom-nav">
+        <button className="dz-nav-btn" onClick={onClose}>
+          <div className="dz-nav-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 11L12 4l9 7v9h-6v-5H9v5H3z"/>
+            </svg>
+          </div>
+          <span>Ana Sayfa</span>
+        </button>
+        <button className="dz-nav-btn dz-nav-btn--active">
+          <div className="dz-nav-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2V6z"/>
+              <path d="M9 4v14M15 6v14"/>
+            </svg>
+          </div>
+          <span>Journey</span>
+        </button>
+        <button className="dz-nav-btn">
+          <div className="dz-nav-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M4 21c0-5 3-8 8-8s8 3 8 8"/>
+            </svg>
+          </div>
+          <span>Profil</span>
+        </button>
+      </nav>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SECTION 8 — SPARKLE SYSTEM (DOM injection — zero rAF overhead)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+function triggerSparkles(container) {
+  if (!container) return;
+  container.innerHTML = '';
+  const cx = 160, cy = 160; // SVG 320×320 centre
+
+  for (let k = 0; k < 18; k++) {
+    const angle = (k / 18) * Math.PI * 2 + Math.random() * 0.3;
+    const dist  = 70 + Math.random() * 70;
+    const x     = cx + Math.cos(angle) * dist;
+    const y     = cy + Math.sin(angle) * dist;
+    const size  = 7 + Math.random() * 8;
+    const s     = document.createElement('div');
+    s.className = 'dz-spark';
+    s.style.cssText = [
+      `width:${size}px`, `height:${size}px`,
+      `left:${x - size / 2}px`, `top:${y - size / 2}px`,
+      `animation-delay:${(Math.random() * 0.2).toFixed(3)}s`,
+      `animation-duration:${(0.85 + Math.random() * 0.45).toFixed(3)}s`,
+    ].join(';');
+    container.appendChild(s);
+  }
+
+  setTimeout(() => { if (container.isConnected) container.innerHTML = ''; }, 1600);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SECTION 9 — DAISY APP
    ══════════════════════════════════════════════════════════════════════════ */
 
 export function DaisyApp() {
-  const [g, setG]          = useState(() => initState(1));
-  const [emotion, setEm]   = useState('seeking');
-  const misalignRef        = useRef([]);     // timestamps of recent misaligns (8 s window)
-  const circleRef          = useRef(null);
-  const hintTimerRef       = useRef(null);
-  const winLockedRef       = useRef(false);  // block double-advances
+  const [g, setG]             = useState(() => initState(1));
+  const [emotion, setEm]      = useState('seeking');
+  const [levelScore, setLevelScore] = useState(0);
+  const [navMode, setNavMode] = useState('game'); // 'game' | 'journey'
+  const [transitionCh, setTransitionCh] = useState(null); // chapter for transition screen
 
-  /* ── Apply chapter background to body ─────────────────────────────────── */
+  const misalignRef    = useRef([]);
+  const circleRef      = useRef(null);
+  const hintTimerRef   = useRef(null);
+  const winLockedRef   = useRef(false);
+  const sparkLayerRef  = useRef(null);
+
+  /* ── Apply chapter colours to CSS vars ───────────────────────────────── */
   useEffect(() => {
     document.documentElement.style.setProperty('--accent',      g.chapter.accent);
     document.documentElement.style.setProperty('--accent-dark', g.chapter.accentDark);
     document.body.style.background = g.chapter.bg;
   }, [g.chapter]);
 
-  /* ── 45-second hint timer ─────────────────────────────────────────────── */
+  /* ── 45-second hint timer ────────────────────────────────────────────── */
   useEffect(() => {
     if (g.phase !== 'playing') return;
     clearTimeout(hintTimerRef.current);
-    hintTimerRef.current = setTimeout(() => {
-      setG(prev => ({ ...prev, hintReady: true }));
-    }, 45_000);
+    hintTimerRef.current = setTimeout(
+      () => setG(prev => ({ ...prev, hintReady: true })),
+      45_000,
+    );
     return () => clearTimeout(hintTimerRef.current);
   }, [g.level, g.phase]);
 
-  /* ── Emotion derivation ─────────────────────────────────────────────────
-     Re-derive on every lastTap change and on hintReady toggle.
-     Use a ref-based 8-second sliding window for misalign timestamps so
-     we never re-render just to track time.                                 */
+  /* ── Emotion derivation ──────────────────────────────────────────────── */
   useEffect(() => {
-    const tap = g.lastTap;
-    if (tap?.result === 'misaligned') {
+    if (g.lastTap?.result === 'misaligned') {
       const now = Date.now();
       misalignRef.current = [
-        ...misalignRef.current.filter(t => now - t < 8_000),
-        now,
+        ...misalignRef.current.filter(t => now - t < 8_000), now,
       ];
     }
-
-    const active    = g.puzzle.petals.filter(p => p.hasArrow);
-    const aligned   = active.filter(p => p.aligned).length;
-    const frac      = active.length > 0 ? aligned / active.length : 0;
-    const recents   = misalignRef.current.filter(t => Date.now() - t < 8_000).length;
-
+    const active  = g.puzzle.petals.filter(p => p.hasArrow);
+    const aligned = active.filter(p => p.aligned).length;
+    const frac    = active.length > 0 ? aligned / active.length : 0;
+    const recents = misalignRef.current.filter(t => Date.now() - t < 8_000).length;
     setEm(deriveEmotion(frac, recents, g.hintReady));
-  }, [g.lastTap, g.hintReady, g.phase]);  // eslint-disable-line react-hooks/exhaustive-deps
+  }, [g.lastTap, g.hintReady, g.phase]); // eslint-disable-line
 
-  /* Reset misalign history on level change */
+  /* Reset on level change */
   useEffect(() => {
     misalignRef.current = [];
     setEm('seeking');
     winLockedRef.current = false;
   }, [g.level]);
 
-  /* ── TAP HANDLER ────────────────────────────────────────────────────────
-     Implements hemispheric bidirectional rotation.
-     placementAngle = (360 / n) * idx
-     spinDir(placementAngle) → 'cw' | 'ccw'
-     Aligned when petal.dir === puzzle.center                               */
+  /* ── Win — calculate score + sparkles ───────────────────────────────── */
+  useEffect(() => {
+    if (g.phase !== 'won') return;
+    haptic.win();
+    const elapsedSec = Math.round((Date.now() - g.startTime) / 1000);
+    const arrowCount = g.puzzle.petals.filter(p => p.hasArrow).length;
+    const score      = calcScore(g.moves, arrowCount, elapsedSec);
+    setLevelScore(score);
+    triggerSparkles(sparkLayerRef.current);
+  }, [g.phase]); // eslint-disable-line
+
+  /* ── TAP HANDLER ─────────────────────────────────────────────────────── */
   const handleTap = useCallback((idx, angleDeg) => {
     if (g.phase !== 'playing') return;
-
     let tapResult = 'misaligned';
 
     setG(prev => {
       if (prev.phase !== 'playing') return prev;
-
-      const rotate  = spinDir(angleDeg) === 'ccw' ? rotateCCW : rotateCW;
+      const rotate    = spinDir(angleDeg) === 'ccw' ? rotateCCW : rotateCW;
       const newPetals = prev.puzzle.petals.map(p => {
         if (p.idx !== idx || !p.hasArrow) return p;
         const newDir     = rotate(p.dir);
@@ -234,11 +468,7 @@ export function DaisyApp() {
         if (nowAligned) tapResult = 'aligned';
         return { ...p, dir: newDir, aligned: nowAligned };
       });
-
-      const allAligned = newPetals
-        .filter(p => p.hasArrow)
-        .every(p => p.aligned);
-
+      const allAligned = newPetals.filter(p => p.hasArrow).every(p => p.aligned);
       if (allAligned) tapResult = 'won';
 
       const next = {
@@ -247,171 +477,232 @@ export function DaisyApp() {
         puzzle:  { ...prev.puzzle, petals: newPetals },
         lastTap: { idx, result: tapResult === 'won' ? 'aligned' : tapResult, ts: Date.now() },
       };
-
       if (allAligned && !winLockedRef.current) {
         winLockedRef.current = true;
         next.phase = 'won';
       }
-
       return next;
     });
 
-    // Haptics (fire outside setState — no side-effects inside reducer)
     if (tapResult === 'aligned' || tapResult === 'won') haptic.align();
     else                                                 haptic.misalign();
+  }, [g.phase]); // eslint-disable-line
 
-  }, [g.phase]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  /* ── SWIPE HANDLER — snap to nearest 45° direction ──────────────────── */
+  /* ── SWIPE HANDLER ───────────────────────────────────────────────────── */
   const handleSwipe = useCallback((idx, dx, dy) => {
     if (g.phase !== 'playing') return;
     const angleDeg = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
-    const snap     = Math.round(angleDeg / 45) * 45;
-
-    // Map the swipe angle to the closest Dir
-    const snapDir = DIRS[Math.round(snap / 45) % 8];
+    const snapDir  = DIRS[Math.round(angleDeg / 45) % 8];
 
     setG(prev => {
       if (prev.phase !== 'playing') return prev;
       const newPetals = prev.puzzle.petals.map(p => {
         if (p.idx !== idx || !p.hasArrow) return p;
-        const nowAligned = snapDir === prev.puzzle.center;
-        return { ...p, dir: snapDir, aligned: nowAligned };
+        return { ...p, dir: snapDir, aligned: snapDir === prev.puzzle.center };
       });
       const allAligned = newPetals.filter(p => p.hasArrow).every(p => p.aligned);
+      if (allAligned && !winLockedRef.current) winLockedRef.current = true;
       return {
         ...prev,
         moves:   prev.moves + 1,
         puzzle:  { ...prev.puzzle, petals: newPetals },
-        phase:   allAligned && !winLockedRef.current ? 'won' : prev.phase,
+        phase:   allAligned ? 'won' : prev.phase,
         lastTap: { idx, result: 'aligned', ts: Date.now() },
       };
     });
-  }, [g.phase]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [g.phase]); // eslint-disable-line
 
-  /* ── WIN SEQUENCE — fire haptic, auto-advance after 700 ms ─────────── */
-  useEffect(() => {
-    if (g.phase !== 'won') return;
-    haptic.win();
+  /* ── NEXT LEVEL ─────────────────────────────────────────────────────────
+     Chapter change → show ChapterTransition for 2.9s then load next level.
+     Same chapter → load immediately.                                       */
+  const handleNextLevel = useCallback(() => {
+    const nextLevel   = g.level + 1;
+    const prevChId    = g.chapter.id;
+    const nextChapter = getChapter(nextLevel);
+    const newTotal    = g.totalScore + levelScore;
 
-    const timer = setTimeout(() => {
-      setG(prev => initState(prev.level + 1, prev.totalScore));
-    }, 700);
-
-    return () => clearTimeout(timer);
-  }, [g.phase]);
-
-  /* ── RESET (scramble) — keeps level, re-generates puzzle ─────────────── */
-  const handleReset = () => {
-    setG(prev => {
-      const newPuzzle = generatePuzzle(prev.level, prev.chapter);
-      return { ...prev, puzzle: newPuzzle, phase: 'playing', hintReady: false, hintIdx: null, lastTap: null };
-    });
     misalignRef.current  = [];
     winLockedRef.current = false;
     setEm('seeking');
+
+    if (nextChapter.id !== prevChId) {
+      setTransitionCh(nextChapter);
+      setTimeout(() => {
+        setTransitionCh(null);
+        setG(initState(nextLevel, newTotal));
+      }, 2900);
+    } else {
+      setG(initState(nextLevel, newTotal));
+    }
+  }, [g.level, g.chapter.id, g.totalScore, levelScore]);
+
+  /* ── RESET ───────────────────────────────────────────────────────────── */
+  const handleReset = () => {
+    setG(prev => ({
+      ...prev,
+      puzzle:     generatePuzzle(prev.level, prev.chapter),
+      phase:      'playing',
+      hintReady:  false,
+      hintIdx:    null,
+      lastTap:    null,
+      moves:      0,
+      startTime:  Date.now(),
+    }));
+    misalignRef.current  = [];
+    winLockedRef.current = false;
+    setEm('seeking');
+    setNavMode('game');
   };
 
-  /* ── SKIP (dev / hint-reward shortcut) ───────────────────────────────── */
-  const handleSkip = () => {
-    if (winLockedRef.current) return;
-    winLockedRef.current = true;
-    setG(prev => initState(prev.level + 1, prev.totalScore));
+  /* ── REPLAY CHAPTER from Journey Map ─────────────────────────────────── */
+  const handleReplayChapter = chapter => {
+    misalignRef.current  = [];
+    winLockedRef.current = false;
+    setNavMode('game');
+    setG(initState(chapter.levels[0], g.totalScore));
+    setEm('seeking');
   };
 
-  /* ── DERIVED UI STATE ────────────────────────────────────────────────── */
-  const { puzzle, chapter, phase, level, hintReady, hintIdx, lastTap } = g;
-  const activePetals  = puzzle.petals.filter(p => p.hasArrow);
-  const alignedCount  = activePetals.filter(p => p.aligned).length;
-  const totalActive   = activePetals.length;
-  const progressPct   = totalActive > 0 ? (alignedCount / totalActive) * 100 : 0;
-  const isWon         = phase === 'won';
-  const allAligned    = alignedCount === totalActive;
+  /* ── DERIVED STATE ───────────────────────────────────────────────────── */
+  const { puzzle, chapter, phase, level, hintReady, hintIdx, lastTap, totalScore } = g;
+  const activePetals = puzzle.petals.filter(p => p.hasArrow);
+  const alignedCount = activePetals.filter(p => p.aligned).length;
+  const totalActive  = activePetals.length;
+  const progressPct  = totalActive > 0 ? (alignedCount / totalActive) * 100 : 0;
+  const isWon        = phase === 'won';
+  const isPaused     = phase === 'paused';
 
-  /* ── RENDER ────────────────────────────────────────────────────────────── */
+  /* ══════════════════════════════════════════════════════════════════════
+     RENDER
+     ══════════════════════════════════════════════════════════════════════ */
   return (
-    <div className="dz-app">
+    <div className="dz-app-root">
 
-      {/* ── Top Bar ───────────────────────────────────────────────────── */}
-      <header className="dz-topbar">
-        <button className="dz-btn" onClick={handleReset} aria-label="Restore puzzle">
-          ↻
-        </button>
+      {/* ── Chapter Transition (topmost overlay) ─────────────────────── */}
+      {transitionCh && <ChapterTransition chapter={transitionCh} />}
 
-        <div className="dz-title-area">
-          <h1 className="dz-title">{chapter.name}</h1>
-          <p className="dz-subtitle">Level {level}</p>
-        </div>
-
-        <button className="dz-btn" onClick={handleSkip} aria-label="Skip level">
-          Skip ➔
-        </button>
-      </header>
-
-      {/* ── Flower Canvas ─────────────────────────────────────────────── */}
-      <main className="dz-flower-wrapper">
-        <DaisyFlower
-          puzzle={puzzle}
-          shapeKey={chapter.shapeKey}
-          petalColor={chapter.petalColor}
-          accentColor={chapter.accent}
-          emotionState={emotion}
-          onTap={handleTap}
-          onSwipe={handleSwipe}
-          isWon={isWon}
-          hintIdx={hintIdx}
-          lastTap={lastTap}
-          circleRef={circleRef}
+      {/* ── Journey Map (full screen, z-index 10) ────────────────────── */}
+      {navMode === 'journey' && (
+        <JourneyMap
+          currentLevel={level}
+          totalScore={totalScore}
+          onClose={() => {
+            setNavMode('game');
+            setG(prev => ({ ...prev, phase: 'playing' }));
+          }}
+          onReplay={handleReplayChapter}
         />
-      </main>
+      )}
 
-      {/* ── Control Panel ─────────────────────────────────────────────── */}
-      <section className="dz-panel" aria-label="Alignment progress">
-        <div className="dz-panel-head">
-          <span>PETAL ALIGNMENT</span>
-          <span aria-live="polite">{alignedCount} / {totalActive}</span>
-        </div>
+      {/* ── Win Card Overlay ─────────────────────────────────────────── */}
+      {isWon && navMode === 'game' && !transitionCh && (
+        <WinCard
+          score={levelScore}
+          totalScore={totalScore}
+          epigraph={chapter.epigraph}
+          onNext={handleNextLevel}
+        />
+      )}
 
-        <div className="dz-progress-track" role="progressbar"
-          aria-valuenow={alignedCount} aria-valuemin={0} aria-valuemax={totalActive}>
-          <div
-            className="dz-progress-fill"
-            style={{ width: `${progressPct}%` }}
-          />
-        </div>
+      {/* ── Pause Modal ──────────────────────────────────────────────── */}
+      {isPaused && navMode === 'game' && (
+        <PauseModal
+          chapterName={chapter.name}
+          onContinue={() => setG(prev => ({ ...prev, phase: 'playing' }))}
+          onReset={handleReset}
+          onJourney={() => setNavMode('journey')}
+        />
+      )}
 
-        <div className="dz-action-zone">
+      {/* ── Game Screen ──────────────────────────────────────────────── */}
+      <div className="dz-app">
+
+        {/* Header */}
+        <header className="dz-topbar">
           <button
-            className="dz-action-btn"
-            onClick={handleReset}
-            aria-label="Restore — re-scramble petals"
+            className="dz-btn"
+            onClick={() => {
+              setG(prev => ({ ...prev, phase: 'paused' }));
+            }}
+            aria-label="Pause"
           >
-            Restore
+            ⏸
           </button>
 
-          <button
-            className={`dz-action-btn accent${allAligned ? '' : ' locked'}`}
-            onClick={allAligned ? handleSkip : undefined}
-            aria-disabled={!allAligned}
-            aria-label={allAligned ? 'Continue to next level' : 'Locked — align all petals first'}
-          >
-            {allAligned ? 'Continue →' : 'Locked Focus'}
-          </button>
-        </div>
+          <div className="dz-title-area">
+            <h1 className="dz-title">Level {level}</h1>
+            <p className="dz-subtitle">{chapter.name}</p>
+          </div>
 
-        {/* Emotion state indicator (dev-visible, remove for production) */}
-        <p style={{
-          marginTop: '12px',
-          fontSize: '0.68rem',
-          fontWeight: 800,
-          opacity: 0.35,
-          textAlign: 'center',
-          letterSpacing: '0.06em',
-          textTransform: 'uppercase',
-        }}>
-          {emotion} · {EMOTION_PROFILES[emotion].breathingPeriod}s breath
-        </p>
-      </section>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '0.6rem', fontWeight: 800, opacity: 0.45, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Score</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: chapter.accentDark }}>
+              {String(totalScore).padStart(4, '0')}
+            </div>
+          </div>
+        </header>
+
+        {/* Flower Canvas */}
+        <main className="dz-flower-wrapper">
+          <div style={{ position: 'relative', width: 320, height: 320 }}>
+            <DaisyFlower
+              puzzle={puzzle}
+              shapeKey={chapter.shapeKey}
+              petalColor={chapter.petalColor}
+              accentColor={chapter.accent}
+              emotionState={emotion}
+              onTap={handleTap}
+              onSwipe={handleSwipe}
+              isWon={isWon}
+              hintIdx={hintIdx}
+              lastTap={lastTap}
+              circleRef={circleRef}
+            />
+            {/* Sparkle injection layer */}
+            <div
+              ref={sparkLayerRef}
+              className="dz-spark-layer"
+              style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
+            />
+          </div>
+        </main>
+
+        {/* Control Panel */}
+        <section className="dz-panel" aria-label="Alignment progress">
+          <div className="dz-panel-head">
+            <span>{chapter.name.toUpperCase()}</span>
+            <span aria-live="polite">{alignedCount}/{totalActive}</span>
+          </div>
+
+          <div className="dz-progress-track" role="progressbar"
+            aria-valuenow={alignedCount} aria-valuemin={0} aria-valuemax={totalActive}>
+            <div className="dz-progress-fill" style={{ width: `${progressPct}%` }} />
+          </div>
+
+          <div className="dz-action-zone">
+            <button className="dz-action-btn" onClick={handleReset} aria-label="Restore puzzle">
+              ↻ Restore
+            </button>
+            <button
+              className={`dz-action-btn accent${hintReady ? '' : ' locked'}`}
+              onClick={() => setNavMode('journey')}
+              aria-label="View Journey Map"
+            >
+              {hintReady ? '💡 Hint' : '🗺️ Journey'}
+            </button>
+          </div>
+
+          {/* Emotion micro-indicator */}
+          <p style={{
+            marginTop: 10, fontSize: '0.65rem', fontWeight: 800,
+            opacity: 0.3, textAlign: 'center', letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+          }}>
+            {emotion} · {EMOTION_PROFILES[emotion].breathingPeriod}s
+          </p>
+        </section>
+
+      </div>
     </div>
   );
 }
