@@ -7,10 +7,11 @@ export const Route = createFileRoute('/')({ component: Landing });
 /* ── Dark-mode persistence ─────────────────────────────────────────────── */
 function useDarkMode() {
   const [dark, setDark] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return true;
+    // Always default to light — the game aesthetic is warm/organic.
+    // SSR context returns false so Cloudflare Workers never pre-renders dark.
+    if (typeof window === 'undefined') return false;
     const stored = localStorage.getItem('daisy-theme');
-    if (stored) return stored === 'dark';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return stored === 'dark'; // only dark if user explicitly chose it
   });
 
   useEffect(() => {
@@ -153,16 +154,23 @@ const pressUp = (el: HTMLElement) => {
 function Landing() {
   const navigate = useNavigate();
   const [dark, setDark] = useDarkMode();
+  const [checking, setChecking] = useState(true);
   const [email, setEmail]   = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'sent' | 'error'>('idle');
   const [errMsg, setErrMsg] = useState('');
 
-  /* Redirect if already logged in */
+  /* Auth check — skip landing if already logged in, else reveal page */
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) navigate({ to: '/dashboard' });
+      if (session) {
+        navigate({ to: '/play', replace: true });
+      } else {
+        setChecking(false);
+      }
     });
   }, [navigate]);
+
+  if (checking) return null; // invisible until auth check completes
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -239,30 +247,6 @@ function Landing() {
         {dark ? '☀️' : '🌙'}
       </button>
 
-      {/* ── Skip to game ── */}
-      <button
-        onClick={() => navigate({ to: '/play' })}
-        onPointerDown={e => pressDown(e.currentTarget as HTMLElement)}
-        onPointerUp={e   => pressUp(e.currentTarget   as HTMLElement)}
-        style={{
-          position:            'absolute', top: 20, left: 20,
-          padding:             '7px 13px',
-          border:              '1px solid var(--landing-border)',
-          borderRadius:        8,
-          background:          'var(--landing-surface)',
-          backdropFilter:      'blur(10px)',
-          WebkitBackdropFilter:'blur(10px)',
-          color:               'var(--landing-muted)',
-          fontFamily:          'Quicksand, sans-serif',
-          fontSize:            11, fontWeight: 600,
-          letterSpacing:       '0.08em', textTransform: 'uppercase',
-          cursor:              'pointer',
-          transition:          'transform 100ms ease, opacity 100ms ease',
-        }}
-      >
-        Oyuna gir →
-      </button>
-
       {/* ── Main content ── */}
       <div style={{
         width: '100%', maxWidth: 360,
@@ -294,6 +278,44 @@ function Landing() {
             Okları hizala. Zihni dinginleştir.
           </p>
         </div>
+
+        {/* ── Primary game entry — no auth required ── */}
+        {status !== 'sent' && (
+          <>
+            <button
+              type="button"
+              onClick={() => navigate({ to: '/play' })}
+              onPointerDown={e => pressDown(e.currentTarget as HTMLElement)}
+              onPointerUp={e   => pressUp(e.currentTarget   as HTMLElement)}
+              style={{
+                width:         '100%',
+                padding:       '16px 0',
+                background:    'linear-gradient(160deg, #FFE566 0%, #FFD700 50%, #FFC200 100%)',
+                color:         '#705E00',
+                border:        'none',
+                borderRadius:  14,
+                fontFamily:    'Quicksand, sans-serif',
+                fontSize:      18,
+                fontWeight:    700,
+                cursor:        'pointer',
+                letterSpacing: '-0.01em',
+                boxShadow:     '0 0 32px rgba(255,215,0,0.45), inset 0 1px 0 rgba(255,255,255,0.3)',
+                transition:    'transform 80ms ease, box-shadow 80ms ease',
+              }}
+            >
+              Oyuna Başla →
+            </button>
+
+            {/* Divider */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%' }}>
+              <div style={{ flex: 1, height: 1, background: 'var(--landing-border)' }} />
+              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--landing-muted)' }}>
+                veya ilerlemeyi kaydet
+              </span>
+              <div style={{ flex: 1, height: 1, background: 'var(--landing-border)' }} />
+            </div>
+          </>
+        )}
 
         {/* ── Form / Sent screen ── */}
         {status !== 'sent' ? (

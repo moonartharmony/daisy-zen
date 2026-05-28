@@ -34,8 +34,8 @@ export const Header = ({
     justifyContent: 'space-between',
     alignItems:     'center',
     padding:        '10px 18px',
-    background:     surface,
-    borderBottom:   `2px solid ${ink}`,
+    background:     'transparent',
+    borderBottom:   'none',
     flexShrink:     0,
   }}>
     <button
@@ -174,30 +174,31 @@ export const BottomArea = ({
       </button>
 
       <button
-        onClick={onHint}
-        className="press"
+        onClick={hintReady ? onHint : undefined}
+        className={hintReady ? 'press' : ''}
         style={{
           flex:           1,
           padding:        '12px 0',
-          background:     hintReady ? '#FFF9E0' : surface,
-          color:          hintReady ? yTxt : muted,
-          border:         `2px solid ${ink}`,
+          background:     hintReady ? '#FFF4CC' : '#E8E4DD',
+          color:          hintReady ? yTxt      : '#A09080',
+          border:         `2px solid ${hintReady ? ink : '#C4BDAF'}`,
           borderRadius:   12,
-          boxShadow:      shadowSm,
+          boxShadow:      hintReady ? shadowSm  : 'none',
           ...font(17),
           display:        'flex',
           alignItems:     'center',
           justifyContent: 'center',
           gap:            6,
-          opacity:        hintReady ? 1 : 0.42,
-          transition:     'opacity 400ms, background 400ms',
+          opacity:        hintReady ? 1 : 0.68,
+          cursor:         hintReady ? 'pointer' : 'default',
+          transition:     'all 400ms ease',
         }}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
+          <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/>
           <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"
-            stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          <circle cx="12" cy="17" r="1" fill="currentColor" />
+            stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          <circle cx="12" cy="17" r="1" fill="currentColor"/>
         </svg>
         Hint
       </button>

@@ -30,12 +30,29 @@ function getEmotionStyle() {
 
 /* ── Chapter catalogue ─────────────────────────────────────────────────── */
 const CHAPTERS = [
-  { id: 'garden',   label: 'The Garden',   sub: 'Oklar ilk burada konuştu.',      icon: '🌸', unlocked: true  },
-  { id: 'forest',   label: 'The Forest',   sub: 'Gölgeler içinde hizalanma.',     icon: '🌲', unlocked: true  },
-  { id: 'mountain', label: 'The Mountain', sub: 'Dorukta sessizlik.',              icon: '🏔️', unlocked: false },
-  { id: 'storm',    label: 'The Storm',    sub: 'Kaos içinde denge.',             icon: '⚡', unlocked: false },
-  { id: 'void',     label: 'The Void',     sub: 'Sonsuzlukta çözülme.',           icon: '✦',  unlocked: false },
+  { id: 'garden',   label: 'The Garden',   sub: 'Oklar ilk burada konuştu.',      icon: '🌸', levels: [1,  10] as [number, number] },
+  { id: 'forest',   label: 'The Forest',   sub: 'Gölgeler içinde hizalanma.',     icon: '🌲', levels: [11, 25] as [number, number] },
+  { id: 'mountain', label: 'The Mountain', sub: 'Dorukta sessizlik.',              icon: '🏔️', levels: [26, 40] as [number, number] },
+  { id: 'storm',    label: 'The Storm',    sub: 'Kaos içinde denge.',             icon: '⚡', levels: [41, 55] as [number, number] },
+  { id: 'void',     label: 'The Void',     sub: 'Sonsuzlukta çözülme.',           icon: '✦',  levels: [56, 99] as [number, number] },
 ];
+
+/** Derive chapter access from the player's current level (stored in localStorage). */
+function chapterStatus(ch: { levels: [number, number] }, currentLevel: number) {
+  if (currentLevel > ch.levels[1])  return 'done'   as const;
+  if (currentLevel >= ch.levels[0]) return 'active' as const;
+  return 'locked' as const;
+}
+
+function getCurrentLevel(): number {
+  try {
+    const v = localStorage.getItem('daisy-level');
+    const n = v ? parseInt(v, 10) : 1;
+    return Number.isFinite(n) && n >= 1 ? n : 1;
+  } catch {
+    return 1;
+  }
+}
 
 /* ── Tiny navbar daisy (outline-only, 28 px) ────────────────────────────── */
 function DaisyMini() {
@@ -62,16 +79,18 @@ function DaisyMini() {
 
 /* ── Chapter card ────────────────────────────────────────────────────────── */
 function ChapterCard({
-  chapter, onSelect,
+  chapter, status, onSelect,
 }: {
-  chapter: (typeof CHAPTERS)[number];
+  chapter:  (typeof CHAPTERS)[number];
+  status:   'done' | 'active' | 'locked';
   onSelect: () => void;
 }) {
   const [hovered, setHovered] = useState(false);
+  const accessible = status !== 'locked';
 
   return (
     <button
-      onClick={chapter.unlocked ? onSelect : undefined}
+      onClick={accessible ? onSelect : undefined}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
@@ -80,21 +99,23 @@ function ChapterCard({
         alignItems:    'center',
         gap:           16,
         padding:       '16px 20px',
-        background:    hovered && chapter.unlocked
+        background:    hovered && accessible
           ? 'rgba(255,255,255,0.06)'
           : 'rgba(255,255,255,0.025)',
         backdropFilter:      'blur(12px)',
         WebkitBackdropFilter:'blur(12px)',
-        border:        '1px solid rgba(255,255,255,0.07)',
+        border:        status === 'active'
+          ? '1px solid rgba(255,215,0,0.28)'
+          : '1px solid rgba(255,255,255,0.07)',
         borderRadius:  16,
-        cursor:        chapter.unlocked ? 'pointer' : 'default',
+        cursor:        accessible ? 'pointer' : 'default',
         textAlign:     'left',
         fontFamily:    'Quicksand, sans-serif',
         transition:    'background 150ms ease, box-shadow 150ms ease',
-        boxShadow:     hovered && chapter.unlocked
+        boxShadow:     hovered && accessible
           ? '0 0 28px rgba(255,215,0,0.07)'
           : 'none',
-        opacity:       chapter.unlocked ? 1 : 0.45,
+        opacity:       accessible ? 1 : 0.45,
       }}
     >
       {/* Icon */}
@@ -113,7 +134,7 @@ function ChapterCard({
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
           fontSize:   15, fontWeight: 700,
-          color:      chapter.unlocked ? '#EDE9E0' : 'rgba(255,255,255,0.4)',
+          color:      accessible ? '#EDE9E0' : 'rgba(255,255,255,0.4)',
           marginBottom: 3,
         }}>
           {chapter.label}
@@ -126,14 +147,16 @@ function ChapterCard({
         </div>
       </div>
 
-      {/* State indicator */}
+      {/* State indicator — derived from chapterStatus(), not hardcoded */}
       <div style={{
         fontSize:   11, fontWeight: 700,
-        color:      chapter.unlocked ? 'rgba(255,215,0,0.6)' : 'rgba(255,255,255,0.18)',
+        color:      status === 'done'   ? 'rgba(80,200,120,0.7)'
+                  : status === 'active' ? 'rgba(255,215,0,0.6)'
+                  :                       'rgba(255,255,255,0.18)',
         letterSpacing: '0.04em',
         flexShrink: 0,
       }}>
-        {chapter.unlocked ? '→' : '🔒'}
+        {status === 'done' ? '✓' : status === 'active' ? '→' : '🔒'}
       </div>
     </button>
   );
@@ -141,11 +164,12 @@ function ChapterCard({
 
 /* ── Dashboard ───────────────────────────────────────────────────────────── */
 function Dashboard() {
-  const navigate          = useNavigate();
-  const [user, setUser]   = useState<User | null>(null);
-  const [menu, setMenu]   = useState(false);
-  const menuRef           = useRef<HTMLDivElement>(null);
-  const ring              = getEmotionStyle();
+  const navigate            = useNavigate();
+  const [user, setUser]     = useState<User | null>(null);
+  const [menu, setMenu]     = useState(false);
+  const menuRef             = useRef<HTMLDivElement>(null);
+  const ring                = getEmotionStyle();
+  const currentLevel        = getCurrentLevel();
 
   /* Auth guard */
   useEffect(() => {
@@ -329,6 +353,7 @@ function Dashboard() {
             <ChapterCard
               key={ch.id}
               chapter={ch}
+              status={chapterStatus(ch, currentLevel)}
               onSelect={() => navigate({ to: '/play' })}
             />
           ))}

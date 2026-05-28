@@ -16,17 +16,17 @@ export type PetalShapeKey = 'oval' | 'leaf' | 'diamond' | 'spike' | 'clover';
 
 /* ── Normalized shapes (24 numbers each) ──────────────────────────────── */
 export const PETAL_NUMS: Record<PetalShapeKey, PathNums> = {
-  // THE GARDEN — smooth teardrop oval, soft and welcoming
+  // THE GARDEN — wide pill oval, soft and welcoming (matches mockup)
   oval: [
-     11, -16,  16, -44,  16, -58,   // right side curves outward
-     14, -74,   6, -86,   0, -92,   // approaching the tip
-     -6, -86, -14, -74, -16, -58,   // descending left (mirror)
-    -16, -44, -11, -16,   0,   0,   // return to base
+     22, -10,  30, -38,  28, -56,   // right side curves wide — pill shape
+     26, -74,  14, -90,   0, -94,   // approaching the rounded tip
+    -14, -90, -26, -74, -28, -56,   // descending left (mirror)
+    -30, -38, -22, -10,   0,   0,   // return to base
   ],
 
   // THE FOREST — asymmetric pointed leaf, organic asymmetry
   leaf: [
-     14, -18,  20, -52,  10, -74,   // right side curves wide
+     20, -14,  28, -48,  18, -70,   // right side curves wide — wider apex
       4, -90,  -4, -98,   0, -92,   // tip slightly off-axis
      -8, -84, -16, -60, -14, -44,   // left descent, more angular
     -14, -28,  -8, -10,   0,   0,   // steep return to base

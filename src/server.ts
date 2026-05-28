@@ -69,9 +69,20 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
-      const handler = await getServerEntry();
-      const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      const handler       = await getServerEntry();
+      const response      = await handler.fetch(request, env, ctx);
+      const finalResponse = await normalizeCatastrophicSsrResponse(response);
+
+      // ── Cache strategy ────────────────────────────────────────────────
+      const url      = new URL(request.url);
+      const isStatic = /\.(js|css|woff2?|png|svg|ico|webp)(\?|$)/.test(url.pathname);
+      if (isStatic) {
+        finalResponse.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+      } else {
+        finalResponse.headers.set('Cache-Control', 'no-store, must-revalidate');
+      }
+
+      return finalResponse;
     } catch (error) {
       console.error(error);
       return brandedErrorResponse();
