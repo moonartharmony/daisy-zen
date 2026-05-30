@@ -314,11 +314,15 @@ function Petal({
      in the player's viewport regardless of petal orbital position.       */
   const isCCW = angle > 180;
 
-  /* ── Unique seed per (petal × level) ─────────────────────────────────
-     idx * 1000 + level * 17 ensures distinct organic forms across both
-     all petals within a level AND the same petal slot across levels.      */
-  const seed = idx * 1000 + level * 17;
-  const path = useOrganicPath(shapeKey, asymmetryFactor, seed);
+  /* ── Fixed parametric petal geometry — structurally locked ───────────
+     width=42, length=100 gives a wide soft-capsule shape.
+     The path is computed once per render from constants — it can never
+     drift, skew, or collapse its radius through interaction loops.
+     Replaces the previous dynamic useOrganicPath / LCG morph system.   */
+  const width = 42;
+  const length = 100;
+  const secureOrganicPath = `M 0 0 C ${width / 2} ${-length * 0.2}, ${width} ${-length * 0.6}, 0 ${-length} C ${-width} ${-length * 0.6}, ${-width / 2} ${-length * 0.2}, 0 0 Z`
+    .replace(/\s+/g, ' ').trim();
 
   /* ── Arrow direction relative to orbital rotation ────────────────────
      The outer <g> rotates by `angle`, so the arrow's rotation must be
@@ -440,18 +444,17 @@ function Petal({
           </ellipse>
         )}
 
-        {/* ── Sprint 1 Core: Organic Bezier Petal Body ────────────────────
-             path = seed-based cubic Bezier, morphs smoothly between shapes
-             and between asymmetry levels via useOrganicPath rAF loop.
-             fill references the shared linearGradient whose stop colours
-             are mutated directly by useEmotionalGradient (no re-renders). */}
+        {/* ── Petal Body — stable parametric Bezier ────────────────────
+             d = secureOrganicPath (fixed constants, never drifts).
+             Aligned petals get a thicker stroke as visual feedback.
+             fill references the shared linearGradient.                */}
         <path
-          d={path}
+          d={secureOrganicPath}
           fill={`url(#${gradId})`}
           stroke="var(--ink)"
-          strokeWidth={aligned ? 4 : 1.8}
+          strokeWidth={aligned ? 3.5 : 1.6}
           strokeLinejoin="round"
-          style={{ transition: 'stroke-width 0.2s ease' }}
+          style={{ transition: 'stroke-width 0.18s ease' }}
         />
 
         {/* Directional arrow (active petals only) */}

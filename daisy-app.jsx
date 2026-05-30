@@ -197,7 +197,7 @@ function WinCard({ score, totalScore, epigraph, onNext }) {
 
   return (
     <div className="dz-win-overlay">
-      <div className="dz-win-card">
+      <div className="dz-win-card dz-auth-card">
         <div className="dz-win-score">{String(displayed).padStart(4, '0')}</div>
         <div className="dz-win-epigraph">"{epigraph}"</div>
         <div style={{ fontSize: '0.72rem', fontWeight: 800, opacity: 0.45, marginBottom: 20 }}>
@@ -215,7 +215,7 @@ function WinCard({ score, totalScore, epigraph, onNext }) {
 function PauseModal({ chapterName, onContinue, onReset, onJourney }) {
   return (
     <div className="dz-pause-overlay">
-      <div className="dz-pause-card">
+      <div className="dz-pause-card dz-auth-card">
         <div className="dz-pause-chapter">{chapterName}</div>
         <button className="dz-btn dz-btn--accent dz-btn--full" onClick={onContinue}>
           Devam Et
