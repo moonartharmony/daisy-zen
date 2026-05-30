@@ -155,66 +155,49 @@ function organicNums(base, factor, seed) {
    SECTION 3 — HOOKS
    ══════════════════════════════════════════════════════════════════════════ */
 
-/**
- * Unified organic morph hook.
- * Handles two transition triggers in a single rAF loop:
- *   A) Shape key changes (chapter advance) → 800ms lerp
- *   B) Asymmetry factor changes (emotion shift) → 600ms lerp
- * Always starts from the *current* interpolated position — no snap.
- *
- * seed = idx * 1000 + level * 17 gives each petal a unique organic form
- * that changes meaningfully per level.
- */
+/* DISABLED — useOrganicPath wrote dynamic PETAL_NUMS lerp strings to petal d attributes.
+   Severed to prevent any runtime override of the locked secureOrganicPath geometry.
+   Do not re-enable without also removing the hardcoded d= on the <path> element.
+
 function useOrganicPath(shapeKey, asymmetryFactor, seed) {
   const baseTarget = useMemo(
     () => organicNums(PETAL_NUMS[shapeKey] ?? PETAL_NUMS.oval, asymmetryFactor, seed),
     [shapeKey, asymmetryFactor, seed],
   );
-
   const currentRef    = useRef(baseTarget);
   const rafRef        = useRef(0);
   const prevShapeRef  = useRef(shapeKey);
   const prevFactorRef = useRef(asymmetryFactor);
   const prevSeedRef   = useRef(seed);
-
   const [path, setPath] = useState(() => numsToPath(baseTarget));
-
   useEffect(() => {
     const shapeChanged  = shapeKey        !== prevShapeRef.current;
     const factorChanged = asymmetryFactor !== prevFactorRef.current;
     const seedChanged   = seed            !== prevSeedRef.current;
     if (!shapeChanged && !factorChanged && !seedChanged) return;
-
     prevShapeRef.current  = shapeKey;
     prevFactorRef.current = asymmetryFactor;
     prevSeedRef.current   = seed;
-
     const from = currentRef.current;
     const to   = baseTarget;
     const dur  = shapeChanged ? 800 : 600;
     const t0   = performance.now();
-
     cancelAnimationFrame(rafRef.current);
-
     const tick = (now) => {
       const raw          = Math.min((now - t0) / dur, 1);
       const t            = easeInOut3(raw);
       const interpolated = lerpNums(from, to, t);
       currentRef.current = interpolated;
       setPath(numsToPath(interpolated));
-      if (raw < 1) {
-        rafRef.current = requestAnimationFrame(tick);
-      } else {
-        currentRef.current = to;
-      }
+      if (raw < 1) { rafRef.current = requestAnimationFrame(tick); }
+      else { currentRef.current = to; }
     };
-
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
   }, [shapeKey, asymmetryFactor, seed, baseTarget]);
-
   return path;
 }
+*/
 
 /**
  * Mutate SVG gradient <stop> elements directly — avoids re-rendering
@@ -314,12 +297,9 @@ function Petal({
      in the player's viewport regardless of petal orbital position.       */
   const isCCW = angle > 180;
 
-  /* ── Fixed parametric petal geometry — structurally locked ───────────
-     width=42, length=100 gives a wide soft-capsule shape.
-     The path is computed once per render from constants — it can never
-     drift, skew, or collapse its radius through interaction loops.
-     Replaces the previous dynamic useOrganicPath / LCG morph system.   */
-  const secureOrganicPath = "M 0 0 C 35 -15, 45 -55, 0 -100 C -45 -55, -35 -15, 0 0 Z";
+  /* secureOrganicPath intentionally NOT stored as a variable —
+     the string is inlined directly on the <path d=...> element below
+     so no runtime assignment, prop, or state update can ever reach it. */
 
   /* ── Arrow direction relative to orbital rotation ────────────────────
      The outer <g> rotates by `angle`, so the arrow's rotation must be
@@ -441,17 +421,17 @@ function Petal({
           </ellipse>
         )}
 
-        {/* ── Petal Body — stable parametric Bezier ────────────────────
-             d = secureOrganicPath (fixed constants, never drifts).
-             Aligned petals get a thicker stroke as visual feedback.
-             fill references the shared linearGradient.                */}
+        {/* ── Petal Body — geometry hardcoded as string literal ──────────
+             d is a compile-time constant. No variable, no prop, no hook,
+             no animate tag, no rAF loop can mutate this value at runtime.
+             No <animate attributeName="d"> exists anywhere in this file. */}
         <path
-          d={secureOrganicPath}
+          d="M 0 0 C 35 -15, 45 -55, 0 -100 C -45 -55, -35 -15, 0 0 Z"
+          className="petal-body"
           fill={`url(#${gradId})`}
-          stroke="var(--ink)"
-          strokeWidth={aligned ? 3.5 : 1.6}
+          stroke="#4D4732"
+          strokeWidth="3.5"
           strokeLinejoin="round"
-          style={{ transition: 'stroke-width 0.18s ease' }}
         />
 
         {/* Directional arrow (active petals only) */}
