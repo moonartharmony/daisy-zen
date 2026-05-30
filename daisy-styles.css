@@ -753,65 +753,22 @@ body::after {
 
 /* ══════════════════════════════════════════════════════════════════════════
    STRICT FLAT NEUBRUTALISM ENFORCEMENT
-   Overrides any gradient, transparency, or soft-shadow drift introduced
-   by external tooling. Applied last so specificity always wins.
+   Applied last — specificity always wins over any external tooling.
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* Auth/modal cards — solid surface, hard shadow, no blur */
-.dz-landing-overlay,
-.dz-modal,
-.dz-auth-card,
-.dz-card {
-  background:            var(--surface) !important;
-  backdrop-filter:       none !important;
+.dz-landing-overlay, .dz-modal, .dz-auth-card, .dz-card {
+  background: var(--surface) !important;
+  backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  border:                3px solid var(--ink) !important;
-  box-shadow:            8px 8px 0px 0px var(--ink) !important;
-  border-radius:         var(--radius-md) !important;
-  transition:            none !important;
+  border: 3.5px solid var(--ink) !important;
+  box-shadow: 8px 8px 0px 0px var(--ink) !important;
+  border-radius: 14px !important;
 }
 
-/* Form inputs — matte flat, hard ink border */
-.dz-input,
-input[type="email"],
-input[type="password"] {
-  background:   var(--surface) !important;
-  border:       3px solid var(--ink) !important;
-  border-radius:var(--radius-sm) !important;
-  color:        var(--ink) !important;
-  padding:      12px 16px;
-  box-shadow:   4px 4px 0px 0px var(--ink) !important;
-}
-
-/* Buttons — accent fill, uppercase, hard offset shadow */
-.dz-btn,
-.dz-action-btn,
-button[type="submit"] {
-  background:    var(--accent) !important;
-  color:         var(--ink) !important;
-  border:        3px solid var(--ink) !important;
-  border-radius: var(--radius-md) !important;
-  font-weight:   800 !important;
-  text-transform:uppercase;
-  box-shadow:    4px 4px 0px 0px var(--ink) !important;
-  cursor:        pointer;
-}
-
-/* Button active state — shadow collapses inward = physical press feel */
-.dz-btn:active,
-.dz-action-btn:active,
-button[type="submit"]:active {
-  transform:  translate(4px, 4px) !important;
-  box-shadow: 0px 0px 0px 0px var(--ink) !important;
-}
-
-/* System 1 touch overrides — bypass 300 ms delay, remove all tap chrome */
-html,
-body,
-#root,
-svg {
-  touch-action:                pan-y !important;
-  -webkit-tap-highlight-color: transparent !important;
-  -webkit-user-select:         none !important;
-  user-select:                 none !important;
+.dz-input, input[type="email"], input[type="password"] {
+  background: #FFFFFF !important;
+  border: 3.5px solid var(--ink) !important;
+  border-radius: 8px !important;
+  box-shadow: 4px 4px 0px 0px var(--ink) !important;
+  padding: 12px 16px !important;
 }
