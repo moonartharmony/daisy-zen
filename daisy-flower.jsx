@@ -63,93 +63,17 @@ function emotionTipColor(state, petalColor) {
   }
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   SECTION 2 — BEZIER PATH ENGINE
-   24-number arrays → smooth cubic Bezier petal shapes.
-   All paths share the same command structure so they interpolate cleanly
-   via lerpNums() with no external libraries.
-   Origin (0,0) = petal base (sits at orbit radius from center).
-   Tip at approx y = -90 (SVG upward = negative Y).
-   ══════════════════════════════════════════════════════════════════════════ */
+/* SECTION 2 — BEZIER PATH ENGINE — DISABLED
+   All PETAL_NUMS, numsToPath, lerpNums, easeInOut3, organicNums removed.
+   The petal <path d=...> is now a hardcoded string literal. These functions
+   cannot produce any DOM output and are kept only as historical reference.
 
-const PETAL_NUMS = {
-  // The Garden — smooth teardrop oval, soft and welcoming
-  oval: [
-     11, -16,  16, -44,  16, -58,
-     14, -74,   6, -86,   0, -92,
-     -6, -86, -14, -74, -16, -58,
-    -16, -44, -11, -16,   0,   0,
-  ],
-  // The Forest — pointed organic leaf, asymmetric edge
-  leaf: [
-     14, -18,  20, -52,  10, -74,
-      4, -90,  -4, -98,   0, -92,
-     -8, -84, -16, -60, -14, -44,
-    -14, -28,  -8, -10,   0,   0,
-  ],
-  // The Mountain — angular diamond, tight control points → near-straight
-  diamond: [
-      2,  -2,  13, -34,  13, -36,
-     13, -40,   2, -88,   0, -92,
-     -2, -88, -13, -40, -13, -36,
-    -13, -34,  -2,  -2,   0,   0,
-  ],
-  // The Storm — thin aggressive spike, minimal width
-  spike: [
-      5,  -6,   8, -28,   8, -44,
-      6, -62,   2, -80,   0, -92,
-     -2, -80,  -6, -62,  -8, -44,
-     -8, -28,  -5,  -6,   0,   0,
-  ],
-  // The Void — double-lobed clover, two bulges flanking a narrow waist
-  clover: [
-     18,  -8,  26, -38,  14, -56,
-      2, -70,   0, -74,   0, -88,
-      0, -74,  -2, -70, -14, -56,
-    -26, -38, -18,  -8,   0,   0,
-  ],
-};
-
-/** Convert flat 24-number array → SVG path string (M 0,0 C … Z) */
-function numsToPath(n) {
-  let d = 'M 0,0';
-  for (let i = 0; i < n.length; i += 6) {
-    d += ` C ${n[i]},${n[i + 1]} ${n[i + 2]},${n[i + 3]} ${n[i + 4]},${n[i + 5]}`;
-  }
-  return d + ' Z';
-}
-
-/** Linear interpolation of two equal-length arrays */
-function lerpNums(a, b, t) {
-  return a.map((v, i) => v + (b[i] - v) * t);
-}
-
-/** Cubic ease-in-out */
-function easeInOut3(t) {
-  return t < 0.5
-    ? 4 * t * t * t
-    : 1 - Math.pow(-2 * t + 2, 3) / 2;
-}
-
-/**
- * LCG-based deterministic noise — Knuth multiplicative constants.
- * Produces unique organic asymmetry per (level, petalIndex) pair.
- * factor = 0 → perfect symmetry (harmonized state).
- * factor = 0.15 → anxious maximum perturbation.
- */
-function organicNums(base, factor, seed) {
-  if (factor === 0) return [...base];
-  let s = seed >>> 0;
-  const rand = () => {
-    s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
-    return s / 0xffffffff;
-  };
-  return base.map(v => {
-    const noise = (rand() - 0.5) * 2;   // −1 … +1
-    const mag   = Math.abs(v) || 8;     // scale noise by coordinate magnitude
-    return v + noise * factor * mag;
-  });
-}
+const PETAL_NUMS = { oval:[11,-16,16,-44,16,-58,14,-74,6,-86,0,-92,-6,-86,-14,-74,-16,-58,-16,-44,-11,-16,0,0], ... };
+function numsToPath(n) { ... }
+function lerpNums(a, b, t) { ... }
+function easeInOut3(t) { ... }
+function organicNums(base, factor, seed) { ... }
+*/
 
 /* ══════════════════════════════════════════════════════════════════════════
    SECTION 3 — HOOKS
@@ -277,15 +201,12 @@ const SWIPE_THRESHOLD = 16; // px below which a gesture counts as a tap
  * @param {string}  props.shapeKey        petal shape key ('oval'|'leaf'|…)
  * @param {number}  props.asymmetryFactor 0.0–0.15 organic perturbation depth
  * @param {number}  props.level           current level (seed component)
- * @param {string}  props.gradId          SVG linearGradient element id
  * @param {function} props.onTap          (idx, angle) => void
  * @param {function} props.onSwipe        (idx, dx, dy) => void
  */
 function Petal({
   idx, angle, orbit, hasArrow, dirDeg, aligned,
   isHint, isWon, lastTap,
-  shapeKey, asymmetryFactor, level,
-  gradId,
   onTap, onSwipe,
 }) {
   const innerRef = useRef(null);
@@ -428,7 +349,7 @@ function Petal({
         <path
           d="M 0 0 C 35 -15, 45 -55, 0 -100 C -45 -55, -35 -15, 0 0 Z"
           className="petal-body"
-          fill={`url(#${gradId})`}
+          fill="url(#petal-grad)"
           stroke="#4D4732"
           strokeWidth="3.5"
           strokeLinejoin="round"
@@ -512,19 +433,18 @@ export function DaisyFlower({
   const orbit  = ORBIT_BY_COUNT[n] ?? 83;
   const SZ     = 320;
   const C      = SZ / 2;
-  const gradId = 'dz-petal-grad';
 
   const profile = EMOTION_PROFILES[emotionState] ?? EMOTION_PROFILES.seeking;
 
-  /* ── Sprint 1: Wire --breath-period CSS var to emotion profile ───────── */
+  /* ── Wire --breath-period CSS var to emotion profile ─────────────────── */
   useEffect(() => {
     document.documentElement.style.setProperty(
       '--breath-period', `${profile.breathingPeriod}s`,
     );
   }, [profile.breathingPeriod]);
 
-  /* ── Sprint 1: Mutate gradient stops on emotion change (zero re-renders) */
-  useEmotionalGradient(emotionState, petalColor, gradId);
+  /* ── Mutate gradient stops on emotion change (zero re-renders) ──────── */
+  useEmotionalGradient(emotionState, petalColor, 'petal-grad');
 
   /* Map Dir string → degrees */
   const DIR_DEG = { n: 0, ne: 45, e: 90, se: 135, s: 180, sw: 225, w: 270, nw: 315 };
@@ -539,15 +459,15 @@ export function DaisyFlower({
         overflow="visible"
         style={{ position: 'absolute', inset: 0, touchAction: 'none' }}
       >
-        {/* Shared petal gradient — stops mutated directly by useEmotionalGradient */}
+        {/* Gradient for petal fill — id locked to "petal-grad" (hardcoded) */}
         <defs>
           <linearGradient
-            id={gradId}
+            id="petal-grad"
             x1="0" y1="1" x2="0" y2="0"
             gradientUnits="objectBoundingBox"
           >
             <stop offset="0%"   stopColor={petalColor} />
-            <stop offset="100%" stopColor={emotionTipColor(emotionState, petalColor)} />
+            <stop offset="100%" stopColor={petalColor} />
           </linearGradient>
         </defs>
 
@@ -572,10 +492,6 @@ export function DaisyFlower({
               isHint={p.idx === hintIdx}
               isWon={isWon}
               lastTap={lastTap}
-              shapeKey={shapeKey}
-              asymmetryFactor={profile.asymmetryFactor}
-              level={puzzle.level}
-              gradId={gradId}
               onTap={onTap}
               onSwipe={onSwipe}
             />

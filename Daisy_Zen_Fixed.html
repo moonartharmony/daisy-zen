@@ -787,123 +787,10 @@ body::after {
       }
     }
 
-    /* ── SECTION 2: BEZIER PATH ENGINE ───────────────────────────────── */
-
-    const PETAL_NUMS = {
-      oval: [
-         11, -16,  16, -44,  16, -58,
-         14, -74,   6, -86,   0, -92,
-         -6, -86, -14, -74, -16, -58,
-        -16, -44, -11, -16,   0,   0,
-      ],
-      leaf: [
-         14, -18,  20, -52,  10, -74,
-          4, -90,  -4, -98,   0, -92,
-         -8, -84, -16, -60, -14, -44,
-        -14, -28,  -8, -10,   0,   0,
-      ],
-      diamond: [
-          2,  -2,  13, -34,  13, -36,
-         13, -40,   2, -88,   0, -92,
-         -2, -88, -13, -40, -13, -36,
-        -13, -34,  -2,  -2,   0,   0,
-      ],
-      spike: [
-          5,  -6,   8, -28,   8, -44,
-          6, -62,   2, -80,   0, -92,
-         -2, -80,  -6, -62,  -8, -44,
-         -8, -28,  -5,  -6,   0,   0,
-      ],
-      clover: [
-         18,  -8,  26, -38,  14, -56,
-          2, -70,   0, -74,   0, -88,
-          0, -74,  -2, -70, -14, -56,
-        -26, -38, -18,  -8,   0,   0,
-      ],
-    };
-
-    function numsToPath(n) {
-      let d = 'M 0,0';
-      for (let i = 0; i < n.length; i += 6) {
-        d += ` C ${n[i]},${n[i + 1]} ${n[i + 2]},${n[i + 3]} ${n[i + 4]},${n[i + 5]}`;
-      }
-      return d + ' Z';
-    }
-
-    function lerpNums(a, b, t) {
-      return a.map((v, i) => v + (b[i] - v) * t);
-    }
-
-    function easeInOut3(t) {
-      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-    }
-
-    function organicNums(base, factor, seed) {
-      if (factor === 0) return [...base];
-      let s = seed >>> 0;
-      const rand = () => {
-        s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
-        return s / 0xffffffff;
-      };
-      return base.map(v => {
-        const noise = (rand() - 0.5) * 2;
-        const mag   = Math.abs(v) || 8;
-        return v + noise * factor * mag;
-      });
-    }
-
-    /* ── SECTION 3: HOOKS ─────────────────────────────────────────────── */
-
-    function useOrganicPath(shapeKey, asymmetryFactor, seed) {
-      const baseTarget = useMemo(
-        () => organicNums(PETAL_NUMS[shapeKey] ?? PETAL_NUMS.oval, asymmetryFactor, seed),
-        [shapeKey, asymmetryFactor, seed],
-      );
-
-      const currentRef    = useRef(baseTarget);
-      const rafRef        = useRef(0);
-      const prevShapeRef  = useRef(shapeKey);
-      const prevFactorRef = useRef(asymmetryFactor);
-      const prevSeedRef   = useRef(seed);
-
-      const [path, setPath] = useState(() => numsToPath(baseTarget));
-
-      useEffect(() => {
-        const shapeChanged  = shapeKey        !== prevShapeRef.current;
-        const factorChanged = asymmetryFactor !== prevFactorRef.current;
-        const seedChanged   = seed            !== prevSeedRef.current;
-        if (!shapeChanged && !factorChanged && !seedChanged) return;
-
-        prevShapeRef.current  = shapeKey;
-        prevFactorRef.current = asymmetryFactor;
-        prevSeedRef.current   = seed;
-
-        const from = currentRef.current;
-        const to   = baseTarget;
-        const dur  = shapeChanged ? 800 : 600;
-        const t0   = performance.now();
-
-        cancelAnimationFrame(rafRef.current);
-
-        const tick = (now) => {
-          const raw          = Math.min((now - t0) / dur, 1);
-          const t            = easeInOut3(raw);
-          const interpolated = lerpNums(from, to, t);
-          currentRef.current = interpolated;
-          setPath(numsToPath(interpolated));
-          if (raw < 1) {
-            rafRef.current = requestAnimationFrame(tick);
-          } else {
-            currentRef.current = to;
-          }
-        };
-
-        rafRef.current = requestAnimationFrame(tick);
-        return () => cancelAnimationFrame(rafRef.current);
-      }, [shapeKey, asymmetryFactor, seed, baseTarget]);
-
-      return path;
-    }
+    /* SECTION 2 + 3: BEZIER PATH ENGINE + useOrganicPath — DISABLED
+       Petal <path d=...> is now a hardcoded string literal.
+       These functions are never called and produce zero DOM output.
+    */
 
     function useEmotionalGradient(emotionState, petalColor, gradId) {
       useEffect(() => {
@@ -961,17 +848,14 @@ body::after {
     function Petal({
       idx, angle, orbit, hasArrow, dirDeg, aligned,
       isHint, isWon, lastTap,
-      shapeKey, asymmetryFactor, level,
-      gradId,
       onTap, onSwipe,
     }) {
       const innerRef = useRef(null);
       const startRef = useRef(null);
 
-      const isCCW = angle > 180;
-      const seed  = idx * 1000 + level * 17;
-      const path  = useOrganicPath(shapeKey, asymmetryFactor, seed);
+      const isCCW    = angle > 180;
       const arrowRot = dirDeg - angle;
+      /* path is hardcoded below — useOrganicPath / seed removed */
 
       /* Tap feedback animations */
       useEffect(() => {
@@ -1066,12 +950,12 @@ body::after {
             )}
 
             <path
-              d={path}
-              fill={`url(#${gradId})`}
-              stroke="var(--ink)"
-              strokeWidth={aligned ? 4 : 1.8}
+              d="M 0 0 C 35 -15, 45 -55, 0 -100 C -45 -55, -35 -15, 0 0 Z"
+              className="petal-body"
+              fill="url(#petal-grad)"
+              stroke="#4D4732"
+              strokeWidth="3.5"
               strokeLinejoin="round"
-              style={{ transition: 'stroke-width 0.2s ease' }}
             />
 
             {hasArrow && (
@@ -1128,15 +1012,13 @@ body::after {
       const orbit  = ORBIT_BY_COUNT[n] ?? 83;
       const SZ     = 320;
       const C      = SZ / 2;
-      const gradId = 'dz-petal-grad';
-
       const profile = EMOTION_PROFILES[emotionState] ?? EMOTION_PROFILES.seeking;
 
       useEffect(() => {
         document.documentElement.style.setProperty('--breath-period', `${profile.breathingPeriod}s`);
       }, [profile.breathingPeriod]);
 
-      useEmotionalGradient(emotionState, petalColor, gradId);
+      useEmotionalGradient(emotionState, petalColor, 'petal-grad');
 
       const DIR_DEG = { n: 0, ne: 45, e: 90, se: 135, s: 180, sw: 225, w: 270, nw: 315 };
       const centerDeg = DIR_DEG[puzzle.center] ?? 0;
@@ -1150,9 +1032,9 @@ body::after {
             style={{ position: 'absolute', inset: 0, touchAction: 'none' }}
           >
             <defs>
-              <linearGradient id={gradId} x1="0" y1="1" x2="0" y2="0" gradientUnits="objectBoundingBox">
+              <linearGradient id="petal-grad" x1="0" y1="1" x2="0" y2="0" gradientUnits="objectBoundingBox">
                 <stop offset="0%"   stopColor={petalColor} />
-                <stop offset="100%" stopColor={emotionTipColor(emotionState, petalColor)} />
+                <stop offset="100%" stopColor={petalColor} />
               </linearGradient>
             </defs>
 
@@ -1171,10 +1053,6 @@ body::after {
                   isHint={p.idx === hintIdx}
                   isWon={isWon}
                   lastTap={lastTap}
-                  shapeKey={shapeKey}
-                  asymmetryFactor={profile.asymmetryFactor}
-                  level={puzzle.level}
-                  gradId={gradId}
                   onTap={onTap}
                   onSwipe={onSwipe}
                 />
