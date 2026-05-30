@@ -319,10 +319,7 @@ function Petal({
      The path is computed once per render from constants — it can never
      drift, skew, or collapse its radius through interaction loops.
      Replaces the previous dynamic useOrganicPath / LCG morph system.   */
-  const width = 42;
-  const length = 100;
-  const secureOrganicPath = `M 0 0 C ${width / 2} ${-length * 0.2}, ${width} ${-length * 0.6}, 0 ${-length} C ${-width} ${-length * 0.6}, ${-width / 2} ${-length * 0.2}, 0 0 Z`
-    .replace(/\s+/g, ' ').trim();
+  const secureOrganicPath = "M 0 0 C 35 -15, 45 -55, 0 -100 C -45 -55, -35 -15, 0 0 Z";
 
   /* ── Arrow direction relative to orbital rotation ────────────────────
      The outer <g> rotates by `angle`, so the arrow's rotation must be
