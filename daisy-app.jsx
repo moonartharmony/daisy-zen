@@ -391,7 +391,7 @@ function triggerSparkles(container) {
 
 export function DaisyApp() {
   const [g, setG]             = useState(() => initState(1));
-  const [emotion, setEm]      = useState('seeking');
+  const [emotion, setEm]      = useState('calm');
   const [levelScore, setLevelScore] = useState(0);
   const [navMode, setNavMode] = useState('game'); // 'game' | 'journey'
   const [transitionCh, setTransitionCh] = useState(null); // chapter for transition screen
@@ -438,7 +438,7 @@ export function DaisyApp() {
   /* Reset on level change */
   useEffect(() => {
     misalignRef.current = [];
-    setEm('seeking');
+    setEm('calm');
     winLockedRef.current = false;
   }, [g.level]);
 
@@ -523,7 +523,7 @@ export function DaisyApp() {
 
     misalignRef.current  = [];
     winLockedRef.current = false;
-    setEm('seeking');
+    setEm('calm');
 
     if (nextChapter.id !== prevChId) {
       setTransitionCh(nextChapter);
@@ -550,7 +550,7 @@ export function DaisyApp() {
     }));
     misalignRef.current  = [];
     winLockedRef.current = false;
-    setEm('seeking');
+    setEm('calm');
     setNavMode('game');
   };
 
@@ -560,7 +560,7 @@ export function DaisyApp() {
     winLockedRef.current = false;
     setNavMode('game');
     setG(initState(chapter.levels[0], g.totalScore));
-    setEm('seeking');
+    setEm('calm');
   };
 
   /* ── DERIVED STATE ───────────────────────────────────────────────────── */
@@ -644,19 +644,12 @@ export function DaisyApp() {
 
         {/* Flower Canvas */}
         <main className="dz-flower-wrapper">
-          <div style={{ position: 'relative', width: 320, height: 320 }}>
+          <div style={{ position: 'relative', width: 400, height: 440 }}>
             <DaisyFlower
               puzzle={puzzle}
-              shapeKey={chapter.shapeKey}
-              petalColor={chapter.petalColor}
-              accentColor={chapter.accent}
-              emotionState={emotion}
-              onTap={handleTap}
-              onSwipe={handleSwipe}
               isWon={isWon}
-              hintIdx={hintIdx}
-              lastTap={lastTap}
-              circleRef={circleRef}
+              onTap={handleTap}
+              hintPetalIdx={hintIdx}
             />
             {/* Sparkle injection layer */}
             <div
