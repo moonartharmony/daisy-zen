@@ -6,13 +6,17 @@ export type Chapter = {
   epigraph: string;
   levelStart: number;
   levelEnd: number;
-  /** Page background canvas — peach for all in Daisy Zen v2. */
+  /** Canvas background — biome-specific (peach / mint / cream-pink). */
   bgColor: string;
   /** Daisy petal base colour. */
   petalColor: string;
+  /** Alternating petal accent (every other petal). */
+  petalAlt?: string;
   /** Accent for chapter card on the Journey Map. */
   tileColor: string;
   accentColor: string;
+  /** Color used when stability collapses (alert state). */
+  alertColor: string;
   /** Engine difficulty profile (see EmotionFieldEngine.setDifficulty). */
   difficulty: { windStrength: number; decayMult: number };
 };
@@ -26,8 +30,10 @@ export const CHAPTERS: Chapter[] = [
     levelEnd: 5,
     bgColor: "#FFDCC0",
     petalColor: "#FFFFFF",
+    petalAlt: "#FFD700",
     tileColor: "#FFFFFF",
     accentColor: "#A8D5A2",
+    alertColor: "#FF6B6B",
     difficulty: { windStrength: 0.02, decayMult: 1.4 },
   },
   {
@@ -36,34 +42,38 @@ export const CHAPTERS: Chapter[] = [
     epigraph: "Deeper paths, older silence.",
     levelStart: 6,
     levelEnd: 15,
-    bgColor: "#FFDCC0",
+    bgColor: "#E2F0D9",
     petalColor: "#FFFFFF",
     tileColor: "#FFD700",
     accentColor: "#3E5C38",
+    alertColor: "#FF6B6B",
     difficulty: { windStrength: 0.08, decayMult: 1 },
   },
   {
     id: "mountain",
-    name: "The Mountain",
-    epigraph: "Stillness is not emptiness.",
+    name: "Sakura Garden",
+    epigraph: "Petals fall, the path remains.",
     levelStart: 16,
-    levelEnd: 30,
-    bgColor: "#FFDCC0",
+    levelEnd: 25,
+    bgColor: "#FFE8EE",
     petalColor: "#FFFFFF",
-    tileColor: "#E6D9C4",
-    accentColor: "#708090",
+    petalAlt: "#F8C8DC",
+    tileColor: "#FBD5E0",
+    accentColor: "#F15BB5",
+    alertColor: "#F15BB5",
     difficulty: { windStrength: 0.18, decayMult: 0.6 },
   },
   {
     id: "storm",
     name: "The Storm",
     epigraph: "Find the eye.",
-    levelStart: 31,
+    levelStart: 26,
     levelEnd: 50,
-    bgColor: "#FFDCC0",
+    bgColor: "#D9DDE6",
     petalColor: "#FFFFFF",
     tileColor: "#E6D9C4",
-    accentColor: "#8B6F5E",
+    accentColor: "#4A5A7A",
+    alertColor: "#FF6B6B",
     difficulty: { windStrength: 0.22, decayMult: 0.5 },
   },
   {
@@ -72,10 +82,11 @@ export const CHAPTERS: Chapter[] = [
     epigraph: "You have always known the way.",
     levelStart: 51,
     levelEnd: 9999,
-    bgColor: "#FFDCC0",
+    bgColor: "#1B1B22",
     petalColor: "#FFFFFF",
-    tileColor: "#E6D9C4",
-    accentColor: "#2C2C3E",
+    tileColor: "#2C2C3E",
+    accentColor: "#9B8CFF",
+    alertColor: "#FF6B6B",
     difficulty: { windStrength: 0.25, decayMult: 0.4 },
   },
 ];
@@ -90,3 +101,4 @@ export function getChapter(level: number): Chapter {
 export function getChapterById(id: ChapterId): Chapter {
   return CHAPTERS.find((c) => c.id === id) ?? CHAPTERS[0];
 }
+
