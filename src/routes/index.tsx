@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Pause, RotateCcw, ArrowRight, Lightbulb } from "lucide-react";
+import { z } from "zod";
+import { Pause, RotateCcw, ArrowRight, Lightbulb, Map } from "lucide-react";
 import { Daisy, type PetalAnim } from "@/components/Daisy";
 import {
   DIRECTIONS,
@@ -17,10 +18,18 @@ import {
   useEmotionEngine,
   petalAccentFromEmotion,
 } from "@/engine/useEmotionEngine";
+import { useProgress } from "@/lib/progress";
+
+const searchSchema = z.object({
+  chapter: z.enum(["garden", "forest", "mountain"]).optional(),
+  level: z.coerce.number().int().positive().optional(),
+});
 
 export const Route = createFileRoute("/")({
+  validateSearch: (s: Record<string, unknown>) => searchSchema.parse(s),
   component: Game,
 });
+
 
 // Rotation step: 90° (4 cardinal directions only).
 function rotateCW(dir: Direction): Direction {
