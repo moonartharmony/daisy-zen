@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
-import { Pause, RotateCcw, ArrowRight, Lightbulb, Map } from "lucide-react";
+import { Pause, RotateCcw, ArrowRight, Lightbulb, Map, Star } from "lucide-react";
 import { Daisy, type PetalAnim } from "@/components/Daisy";
 import {
   DIRECTIONS,
@@ -13,6 +13,7 @@ import {
 import { getChapter } from "@/lib/chapters";
 import { ChapterTransition } from "@/components/ChapterTransition";
 import { TutorialCoach } from "@/components/TutorialCoach";
+import { BottomNav } from "@/components/BottomNav";
 import { haptic } from "@/lib/haptic";
 import {
   useEmotionEngine,
