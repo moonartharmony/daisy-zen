@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Pause, RotateCcw, ArrowRight, Lightbulb } from "lucide-react";
+import { z } from "zod";
+import { Pause, RotateCcw, ArrowRight, Lightbulb, Map } from "lucide-react";
 import { Daisy, type PetalAnim } from "@/components/Daisy";
 import {
   DIRECTIONS,
@@ -17,10 +18,18 @@ import {
   useEmotionEngine,
   petalAccentFromEmotion,
 } from "@/engine/useEmotionEngine";
+import { useProgress } from "@/lib/progress";
+
+const searchSchema = z.object({
+  chapter: z.enum(["garden", "forest", "mountain"]).optional(),
+  level: z.coerce.number().int().positive().optional(),
+});
 
 export const Route = createFileRoute("/")({
+  validateSearch: (s: Record<string, unknown>) => searchSchema.parse(s),
   component: Game,
 });
+
 
 // Rotation step: 90° (4 cardinal directions only).
 function rotateCW(dir: Direction): Direction {
@@ -39,7 +48,11 @@ const MOVE_BUDGET_MULT = 3;
 const HINT_DELAY_MS = 45000;
 
 function Game() {
-  const [level, setLevel] = useState(1);
+  // Inbound chapter / level from the Journey Map (?chapter=forest&level=8).
+  const search = Route.useSearch();
+  const { unlockLevel } = useProgress();
+
+  const [level, setLevel] = useState<number>(search.level ?? 1);
   const [score, setScore] = useState(0);
   const [paused, setPaused] = useState(false);
   const [won, setWon] = useState(false);
@@ -54,6 +67,14 @@ function Game() {
 
   // --- Engine: owns all per-frame motion. ---
   const { engine, snapshot } = useEmotionEngine();
+
+  // Sync the deep-linked level if the search param changes underfoot
+  // (e.g., user re-enters from the Journey Map).
+  useEffect(() => {
+    if (search.level && search.level !== level) setLevel(search.level);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.level]);
+
 
   // Puzzle truth — direction each petal currently points.
   // Engine receives the corresponding target rotation, never the raw state.
@@ -113,11 +134,14 @@ function Game() {
       setTransitionChapterId(chapter.id);
       haptic.chapter();
     }
+    // Apply per-chapter difficulty profile to the simulation.
+    engine.setDifficulty(chapter.difficulty);
     return () => {
       if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [puzzle]);
+
 
   const arrowedIndices = puzzle.petals
     .map((p, i) => (p.hasArrow ? i : -1))
@@ -213,7 +237,9 @@ function Game() {
       };
       setTimeout(() => requestAnimationFrame(tick), 400);
       setScore((s) => s + earned);
+      unlockLevel(level + 1);
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [petalDirs]);
 
@@ -283,13 +309,19 @@ function Game() {
         >
           <Pause className="size-5" strokeWidth={2.5} />
         </button>
-        <div className="neo rounded-xl bg-white px-4 py-2 text-body-lg">
+        <div className="text-headline" style={{ color: "var(--ink)" }}>
           Level {level}
         </div>
-        <div className="neo rounded-xl bg-primary px-4 py-2 text-body-lg text-[color:var(--primary-foreground)]">
-          {score}
-        </div>
+        <Link
+          to="/journey"
+          aria-label="Journey Map"
+          title={`Score: ${score}`}
+          className="neo neo-press rounded-xl bg-white p-2.5 grid place-items-center"
+        >
+          <Map className="size-5" strokeWidth={2.5} />
+        </Link>
       </header>
+
 
       <section className="flex-1 flex items-center justify-center w-full">
         <Daisy
@@ -305,14 +337,15 @@ function Game() {
       </section>
 
       <footer className="w-full max-w-md flex flex-col gap-3">
-        <div className="flex items-center gap-3">
-          <span className="text-label" style={{ color: "rgba(255,255,255,0.85)" }}>
+        <div className="neo-lg rounded-2xl bg-white px-4 py-3 flex items-center justify-between gap-3">
+          <span className="text-label" style={{ color: "var(--ink)" }}>
             {chapter.name}
           </span>
-          <span className="text-label ml-auto" style={{ color: "rgba(255,255,255,0.85)" }}>
+          <span className="text-label" style={{ color: "var(--ink)" }}>
             {matchedCount}/{totalArrowed}
           </span>
         </div>
+
         <div className="neo rounded-xl bg-white h-5 overflow-hidden p-0.5">
           <div
             className="h-full bg-primary transition-[width] duration-300 ease-out"
@@ -323,7 +356,7 @@ function Game() {
             }}
           />
         </div>
-        <div className="text-label -mt-1" style={{ color: "rgba(255,255,255,0.7)" }}>
+        <div className="text-label -mt-1" style={{ color: "var(--ink)", opacity: 0.7 }}>
           Moves {moves} · Budget {moveBudget}
         </div>
         <div className="flex items-center gap-3">
