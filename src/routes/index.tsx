@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
-import { Pause, RotateCcw, ArrowRight, Lightbulb, Map } from "lucide-react";
+import { Pause, RotateCcw, ArrowRight, Lightbulb, Map, Star } from "lucide-react";
 import { Daisy, type PetalAnim } from "@/components/Daisy";
 import {
   DIRECTIONS,
@@ -13,6 +13,7 @@ import {
 import { getChapter } from "@/lib/chapters";
 import { ChapterTransition } from "@/components/ChapterTransition";
 import { TutorialCoach } from "@/components/TutorialCoach";
+import { BottomNav } from "@/components/BottomNav";
 import { haptic } from "@/lib/haptic";
 import {
   useEmotionEngine,
@@ -50,7 +51,7 @@ const HINT_DELAY_MS = 45000;
 function Game() {
   // Inbound chapter / level from the Journey Map (?chapter=forest&level=8).
   const search = Route.useSearch();
-  const { unlockLevel } = useProgress();
+  const { unlockLevel, addXp } = useProgress();
 
   const [level, setLevel] = useState<number>(search.level ?? 1);
   const [score, setScore] = useState(0);
@@ -221,8 +222,12 @@ function Game() {
       const earned = remaining * 10 + timeBonus;
       setWon(true);
       haptic.win();
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        navigator.vibrate?.(50);
+      }
       setCenterGlow(true);
       engine.injectImpulse("win");
+      engine.surgeOpenness(0.25, 900);
       if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
       setHintAvailable(false);
       setTimeout(() => setBursting(true), 250);
@@ -237,6 +242,7 @@ function Game() {
       };
       setTimeout(() => requestAnimationFrame(tick), 400);
       setScore((s) => s + earned);
+      addXp(earned);
       unlockLevel(level + 1);
     }
 
@@ -289,16 +295,31 @@ function Game() {
 
   const totalArrowed = arrowedIndices.length;
 
-  // Petal accent shifts with the emotional field (alert red ↔ chapter ↔ gold).
-  const livePetalColor = petalAccentFromEmotion(
+  // Petal accent shifts with the emotional field (alert ↔ chapter ↔ gold).
+  // Sakura chapter uses pink as its alert color instead of red.
+  const livePetalBase = petalAccentFromEmotion(
     snapshot.globalEmotion.stability,
     snapshot.globalEmotion.valence,
     chapter.petalColor,
+    chapter.alertColor,
   );
+  const liveAltColor = chapter.petalAlt
+    ? petalAccentFromEmotion(
+        snapshot.globalEmotion.stability,
+        snapshot.globalEmotion.valence,
+        chapter.petalAlt,
+        chapter.alertColor,
+      )
+    : undefined;
+  // Build per-petal palette: alternate base / alt when chapter defines one.
+  const petalPalette = liveAltColor
+    ? puzzle.petals.map((_, i) => (i % 2 === 0 ? livePetalBase : liveAltColor))
+    : undefined;
+  const idleSpin = moves === 0 && !won;
 
   return (
     <main
-      className="chapter-bg min-h-[100dvh] w-full flex flex-col items-center px-4 py-5 gap-6"
+      className="chapter-bg min-h-[100dvh] w-full flex flex-col items-center px-4 py-5 pb-28 gap-6"
       style={{ backgroundColor: chapter.bgColor }}
     >
       <header className="w-full max-w-md flex items-center justify-between gap-3">
@@ -332,7 +353,9 @@ function Game() {
           bursting={bursting}
           centerPulsing={centerPulsing}
           centerGlow={centerGlow}
-          petalColor={livePetalColor}
+          petalColor={livePetalBase}
+          petalColors={petalPalette}
+          idleSpin={idleSpin}
         />
       </section>
 
@@ -396,12 +419,24 @@ function Game() {
           className="fixed inset-0 z-40 flex items-center justify-center px-6"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
-          <div className="neo rounded-3xl bg-white w-full max-w-sm p-8 flex flex-col items-center gap-5 animate-pop-in text-center">
+          <div className="neo-lg rounded-3xl bg-white w-full max-w-sm p-8 flex flex-col items-center gap-5 animate-pop-in text-center">
+            <div className="flex items-center gap-2" aria-label="Three stars">
+              {[0, 1, 2].map((i) => (
+                <Star
+                  key={i}
+                  className="size-10"
+                  fill="#FFD700"
+                  stroke="#1F1F1F"
+                  strokeWidth={2.5}
+                  style={{ animation: `pop-in 320ms ${i * 120}ms both` }}
+                />
+              ))}
+            </div>
             <h2 className="text-display text-[color:var(--ink)]">
               Level Complete!
             </h2>
             <div className="text-body-lg text-[color:var(--ink)]">
-              +{displayedScore} points
+              +{displayedScore} XP
             </div>
             <button
               onClick={handleNext}
@@ -441,6 +476,8 @@ function Game() {
           </div>
         </div>
       )}
+
+      <BottomNav />
     </main>
   );
 }

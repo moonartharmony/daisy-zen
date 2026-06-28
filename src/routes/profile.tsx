@@ -18,11 +18,11 @@ export const Route = createFileRoute("/profile")({
 });
 
 function Profile() {
-  const { highestUnlocked } = useProgress();
+  const { highestUnlocked, xp } = useProgress();
   const chapter = getChapter(highestUnlocked);
   const totalLevels = CHAPTERS[CHAPTERS.length - 2]?.levelEnd ?? 50;
   const focus = Math.min(100, Math.round((highestUnlocked / totalLevels) * 100));
-  const totalXP = highestUnlocked * 155; // simple deterministic stat
+  const totalXP = xp;
   const dailyStreak = 12;
 
   return (

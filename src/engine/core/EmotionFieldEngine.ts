@@ -185,6 +185,23 @@ export class EmotionFieldEngine {
     }
   }
 
+  /**
+   * Brief openness surge across all petals — used to celebrate a level win.
+   * Targets snap to 1, then ease back to their natural target on the next tap.
+   */
+  surgeOpenness(amount = 0.25, ms = 900) {
+    const restore: { p: PetalState; original: number }[] = [];
+    for (const p of this.petals) {
+      restore.push({ p, original: p.targetOpenness });
+      p.targetOpenness = clamp(p.targetOpenness + amount, 0, 1.25);
+    }
+    setTimeout(() => {
+      for (const { p, original } of restore) {
+        p.targetOpenness = original;
+      }
+    }, ms);
+  }
+
   // ---------- Internal simulation ----------
 
   private tick(dt: number) {

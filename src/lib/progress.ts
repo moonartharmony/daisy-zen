@@ -2,20 +2,29 @@ import { useEffect, useState } from "react";
 import { CHAPTERS, type Chapter, type ChapterId } from "./chapters";
 
 const KEY = "daisy-zen-progress-v1";
-// Default seeded so the demo Journey Map matches the reference layout:
-// Garden completed, Forest active around level 8.
+const XP_KEY = "daisy-zen-xp-v1";
 const DEFAULT_LEVEL = 8;
+const DEFAULT_XP = 1240;
 
-function read(): number {
+function readLevel(): number {
   if (typeof window === "undefined") return DEFAULT_LEVEL;
   const raw = window.localStorage.getItem(KEY);
   const n = raw ? parseInt(raw, 10) : NaN;
   return Number.isFinite(n) && n > 0 ? n : DEFAULT_LEVEL;
 }
-
-function write(level: number) {
+function writeLevel(level: number) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(KEY, String(level));
+}
+function readXp(): number {
+  if (typeof window === "undefined") return DEFAULT_XP;
+  const raw = window.localStorage.getItem(XP_KEY);
+  const n = raw ? parseInt(raw, 10) : NaN;
+  return Number.isFinite(n) && n >= 0 ? n : DEFAULT_XP;
+}
+function writeXp(xp: number) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(XP_KEY, String(xp));
 }
 
 export type ChapterStatus = "completed" | "active" | "locked";
@@ -38,38 +47,47 @@ export function chapterProgress(chapter: Chapter, highestUnlocked: number) {
 /**
  * useProgress
  * -----------
- * Tracks the user's furthest-unlocked level in localStorage.
- * Hydration-safe: starts at the default and re-reads on mount so SSR
- * markup stays stable.
+ * Tracks highest-unlocked level + accumulated XP in localStorage.
  */
 export function useProgress() {
   const [highestUnlocked, setHighestUnlocked] = useState<number>(DEFAULT_LEVEL);
+  const [xp, setXp] = useState<number>(DEFAULT_XP);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    setHighestUnlocked(read());
+    setHighestUnlocked(readLevel());
+    setXp(readXp());
     setHydrated(true);
   }, []);
 
   const unlockLevel = (level: number) => {
     setHighestUnlocked((prev) => {
       const next = Math.max(prev, level);
-      write(next);
+      writeLevel(next);
+      return next;
+    });
+  };
+
+  const addXp = (delta: number) => {
+    setXp((prev) => {
+      const next = Math.max(0, prev + delta);
+      writeXp(next);
       return next;
     });
   };
 
   const reset = () => {
-    write(DEFAULT_LEVEL);
+    writeLevel(DEFAULT_LEVEL);
+    writeXp(DEFAULT_XP);
     setHighestUnlocked(DEFAULT_LEVEL);
+    setXp(DEFAULT_XP);
   };
 
-  return { highestUnlocked, hydrated, unlockLevel, reset };
+  return { highestUnlocked, xp, hydrated, unlockLevel, addXp, reset };
 }
 
 export function startingLevelForChapter(id: ChapterId, highestUnlocked: number) {
   const chapter = CHAPTERS.find((c) => c.id === id) ?? CHAPTERS[0];
-  // If user is mid-chapter, drop them where they left off; else first level.
   if (
     highestUnlocked >= chapter.levelStart &&
     highestUnlocked <= chapter.levelEnd

@@ -12,6 +12,8 @@ type Props = {
   centerPulsing?: boolean;
   centerGlow?: boolean;
   petalColor?: string;
+  petalColors?: string[];
+  idleSpin?: boolean;
 };
 
 const SIZE = 320;
@@ -51,6 +53,8 @@ export function Daisy({
   centerPulsing,
   centerGlow,
   petalColor = "#FFFFFF",
+  petalColors,
+  idleSpin = false,
 }: Props) {
   const { petalCount, centerDir } = puzzle;
   const step = 360 / petalCount;
@@ -62,6 +66,8 @@ export function Daisy({
 
   const breath = snapshot.breathWave;
   const containerScale = 1 + breath * 0.01;
+  // Slow hypnotic idle spin on the center arrow (18°/sec → ~20s rotation).
+  const idleRot = idleSpin ? (snapshot.time * 18) % 360 : 0;
 
   return (
     <div
@@ -123,7 +129,7 @@ export function Daisy({
                   cy={0}
                   rx={PETAL_RX}
                   ry={ry}
-                  fill={petalColor}
+                  fill={petalColors?.[i] ?? petalColor}
                   stroke="#4d4732"
                   strokeWidth={2}
                 />
@@ -160,10 +166,10 @@ export function Daisy({
               stroke="#4d4732"
               strokeWidth={2}
             />
-            <g transform={`rotate(${centerDeg})`}>
+            <g transform={`rotate(${centerDeg + idleRot})`}>
               <foreignObject x={-20} y={-20} width={40} height={40}>
                 <div style={{ width: 40, height: 40 }}>
-                  <ArrowSvg size={40} color="#ffffff" />
+                  <ArrowSvg size={40} color="#1F1F1F" />
                 </div>
               </foreignObject>
             </g>
