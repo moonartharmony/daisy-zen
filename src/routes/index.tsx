@@ -317,10 +317,11 @@ function Game() {
     : undefined;
   const idleSpin = moves === 0 && !won;
 
+  const ink = chapter.inkColor;
   return (
     <main
       className="chapter-bg min-h-[100dvh] w-full flex flex-col items-center px-4 py-5 pb-28 gap-6"
-      style={{ backgroundColor: chapter.bgColor }}
+      style={{ backgroundColor: chapter.bgColor, color: ink }}
     >
       <header className="w-full max-w-md flex items-center justify-between gap-3">
         <button
@@ -328,10 +329,10 @@ function Game() {
           onClick={() => setPaused(true)}
           className="neo neo-press rounded-xl bg-white p-2.5"
         >
-          <Pause className="size-5" strokeWidth={2.5} />
+          <Pause className="size-5" strokeWidth={2.5} style={{ color: "#1F1F1F" }} />
         </button>
-        <div className="text-headline" style={{ color: "var(--ink)" }}>
-          Level {level}
+        <div className="text-headline" style={{ color: ink }}>
+          Level {String(level).padStart(2, "0")}
         </div>
         <Link
           to="/journey"
@@ -339,10 +340,21 @@ function Game() {
           title={`Score: ${score}`}
           className="neo neo-press rounded-xl bg-white p-2.5 grid place-items-center"
         >
-          <Map className="size-5" strokeWidth={2.5} />
+          <Map className="size-5" strokeWidth={2.5} style={{ color: "#1F1F1F" }} />
         </Link>
       </header>
 
+      <div className="w-full max-w-md flex flex-col items-center gap-0.5 -mt-2">
+        <span
+          className="text-[12px] font-extrabold tracking-[0.22em]"
+          style={{ color: ink, opacity: 0.85 }}
+        >
+          {chapter.bolum}
+        </span>
+        <span className="text-headline" style={{ color: ink }}>
+          {chapter.name}
+        </span>
+      </div>
 
       <section className="flex-1 flex items-center justify-center w-full">
         <Daisy
@@ -356,6 +368,7 @@ function Game() {
           petalColor={livePetalBase}
           petalColors={petalPalette}
           idleSpin={idleSpin}
+          shape={chapter.petalShape}
         />
       </section>
 
