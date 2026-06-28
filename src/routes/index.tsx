@@ -48,7 +48,11 @@ const MOVE_BUDGET_MULT = 3;
 const HINT_DELAY_MS = 45000;
 
 function Game() {
-  const [level, setLevel] = useState(1);
+  // Inbound chapter / level from the Journey Map (?chapter=forest&level=8).
+  const search = Route.useSearch();
+  const { unlockLevel } = useProgress();
+
+  const [level, setLevel] = useState<number>(search.level ?? 1);
   const [score, setScore] = useState(0);
   const [paused, setPaused] = useState(false);
   const [won, setWon] = useState(false);
@@ -63,6 +67,14 @@ function Game() {
 
   // --- Engine: owns all per-frame motion. ---
   const { engine, snapshot } = useEmotionEngine();
+
+  // Sync the deep-linked level if the search param changes underfoot
+  // (e.g., user re-enters from the Journey Map).
+  useEffect(() => {
+    if (search.level && search.level !== level) setLevel(search.level);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.level]);
+
 
   // Puzzle truth — direction each petal currently points.
   // Engine receives the corresponding target rotation, never the raw state.
