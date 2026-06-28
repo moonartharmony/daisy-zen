@@ -12,6 +12,8 @@ type Props = {
   centerPulsing?: boolean;
   centerGlow?: boolean;
   petalColor?: string;
+  petalColors?: string[];
+  idleSpin?: boolean;
 };
 
 const SIZE = 320;
