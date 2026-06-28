@@ -59,6 +59,8 @@ export class EmotionFieldEngine {
   // Per-chapter difficulty knobs — see setDifficulty().
   private windStrength = 0.08;
   private decayMult = 1;
+  /** Angular tolerance window in degrees — drives spring tightness. */
+  private tolerance = 5;
 
 
   // Mutable petal store — we mutate in place between ticks and only
