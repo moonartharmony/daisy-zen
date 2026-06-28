@@ -476,6 +476,8 @@ function Game() {
           </div>
         </div>
       )}
+
+      <BottomNav />
     </main>
   );
 }
