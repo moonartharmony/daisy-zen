@@ -319,7 +319,7 @@ function Game() {
 
   return (
     <main
-      className="chapter-bg min-h-[100dvh] w-full flex flex-col items-center px-4 py-5 gap-6"
+      className="chapter-bg min-h-[100dvh] w-full flex flex-col items-center px-4 py-5 pb-28 gap-6"
       style={{ backgroundColor: chapter.bgColor }}
     >
       <header className="w-full max-w-md flex items-center justify-between gap-3">
