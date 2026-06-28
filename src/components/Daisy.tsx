@@ -129,7 +129,7 @@ export function Daisy({
                   cy={0}
                   rx={PETAL_RX}
                   ry={ry}
-                  fill={petalColor}
+                  fill={petalColors?.[i] ?? petalColor}
                   stroke="#4d4732"
                   strokeWidth={2}
                 />
