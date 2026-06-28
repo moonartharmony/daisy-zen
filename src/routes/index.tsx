@@ -22,7 +22,7 @@ import {
 import { useProgress } from "@/lib/progress";
 
 const searchSchema = z.object({
-  chapter: z.enum(["garden", "forest", "mountain"]).optional(),
+  chapter: z.enum(["daisy", "forest", "mountain", "sakura"]).optional(),
   level: z.coerce.number().int().positive().optional(),
 });
 
