@@ -27,7 +27,7 @@ export type Chapter = {
   /** Color used when stability collapses (alert state). */
   alertColor: string;
   /** Engine difficulty profile (see EmotionFieldEngine.setDifficulty). */
-  difficulty: { windStrength: number; decayMult: number };
+  difficulty: { windStrength: number; decayMult: number; tolerance: number };
 };
 
 export const CHAPTERS: Chapter[] = [
