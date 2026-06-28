@@ -4,6 +4,7 @@ import { Pause, RotateCcw, ArrowRight, Lightbulb } from "lucide-react";
 import { Daisy, type PetalAnim } from "@/components/Daisy";
 import {
   DIRECTIONS,
+  DIR_DEG,
   TOTAL_LEVELS,
   getPuzzle,
   type Direction,
@@ -12,6 +13,10 @@ import { getChapter } from "@/lib/chapters";
 import { ChapterTransition } from "@/components/ChapterTransition";
 import { TutorialCoach } from "@/components/TutorialCoach";
 import { haptic } from "@/lib/haptic";
+import {
+  useEmotionEngine,
+  petalAccentFromEmotion,
+} from "@/engine/useEmotionEngine";
 
 export const Route = createFileRoute("/")({
   component: Game,
@@ -47,6 +52,11 @@ function Game() {
   const puzzle = useMemo(() => getPuzzle(level), [level]);
   const chapter = useMemo(() => getChapter(level), [level]);
 
+  // --- Engine: owns all per-frame motion. ---
+  const { engine, snapshot } = useEmotionEngine();
+
+  // Puzzle truth — direction each petal currently points.
+  // Engine receives the corresponding target rotation, never the raw state.
   const [petalDirs, setPetalDirs] = useState<(Direction | null)[]>(
     () => puzzle.petals.map((p) => p.startDir),
   );
@@ -72,7 +82,8 @@ function Game() {
     hintTimerRef.current = setTimeout(() => setHintAvailable(true), HINT_DELAY_MS);
   };
 
-  // Reset state on level change
+  // Reset state on level change. Engine is reset and seeded with the new
+  // puzzle's targets so petals don't fly across the screen.
   useEffect(() => {
     setPetalDirs(puzzle.petals.map((p) => p.startDir));
     setPetalAnims(puzzle.petals.map(() => null));
@@ -84,6 +95,18 @@ function Game() {
     setCenterPulsing(false);
     startedAtRef.current = Date.now();
     startHintTimer();
+
+    // Seed engine with the level's starting rotations (no spring fly-in).
+    const targets = Array.from({ length: 8 }, (_, i) => {
+      const p = puzzle.petals[i];
+      const dir = p?.startDir ?? null;
+      return {
+        rotationDeg: dir ? DIR_DEG[dir] : 0,
+        hasArrow: !!p?.hasArrow,
+      };
+    });
+    engine.resetPetals(targets);
+    engine.injectImpulse("reset");
 
     if (chapter.id !== lastChapterIdRef.current) {
       lastChapterIdRef.current = chapter.id;
@@ -139,22 +162,24 @@ function Game() {
     });
     setMoves((m) => m + 1);
 
-    // Reset hint timer on every interaction
+    // Push the new desired rotation into the engine — the spring takes it from there.
+    engine.setPetalTarget(i, DIR_DEG[next], 1);
+    engine.injectImpulse("tap", i);
+
     startHintTimer();
 
     if (willAlign) {
-      // Snap into place — satisfying "click"
       haptic.align();
       setHasAligned(true);
       setPetalAnim(i, "aligned", 320);
       setCenterPulsing(true);
       setTimeout(() => setCenterPulsing(false), 260);
+      engine.injectImpulse("align", i);
     } else if (wasAligned && !willAlign) {
-      // Was correct, now broke it
       haptic.misalign();
       setPetalAnim(i, "error", 220);
+      engine.injectImpulse("misalign", i);
     } else {
-      // Plain tap
       haptic.tap();
       setPetalAnim(i, "pressed", 80);
     }
@@ -173,6 +198,7 @@ function Game() {
       setWon(true);
       haptic.win();
       setCenterGlow(true);
+      engine.injectImpulse("win");
       if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
       setHintAvailable(false);
       setTimeout(() => setBursting(true), 250);
@@ -201,6 +227,16 @@ function Game() {
     setWon(false);
     startedAtRef.current = Date.now();
     startHintTimer();
+    const targets = Array.from({ length: 8 }, (_, i) => {
+      const p = puzzle.petals[i];
+      const dir = p?.startDir ?? null;
+      return {
+        rotationDeg: dir ? DIR_DEG[dir] : 0,
+        hasArrow: !!p?.hasArrow,
+      };
+    });
+    engine.resetPetals(targets);
+    engine.injectImpulse("reset");
   };
 
   const handleNext = () => {
@@ -208,7 +244,6 @@ function Game() {
   };
 
   const handleHint = () => {
-    // Find the arrowed petal needing fewest CW rotations to align (and not 0)
     let bestIdx = -1;
     let bestSteps = 9;
     for (const i of arrowedIndices) {
@@ -227,6 +262,13 @@ function Game() {
   };
 
   const totalArrowed = arrowedIndices.length;
+
+  // Petal accent shifts with the emotional field (alert red ↔ chapter ↔ gold).
+  const livePetalColor = petalAccentFromEmotion(
+    snapshot.globalEmotion.stability,
+    snapshot.globalEmotion.valence,
+    chapter.petalColor,
+  );
 
   return (
     <main
@@ -252,13 +294,13 @@ function Game() {
       <section className="flex-1 flex items-center justify-center w-full">
         <Daisy
           puzzle={puzzle}
-          petalDirs={petalDirs}
+          snapshot={snapshot}
           petalAnims={petalAnims}
           onTapPetal={handleTap}
           bursting={bursting}
           centerPulsing={centerPulsing}
           centerGlow={centerGlow}
-          petalColor={chapter.petalColor}
+          petalColor={livePetalColor}
         />
       </section>
 
