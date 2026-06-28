@@ -43,41 +43,45 @@
 :root {
   --radius: 0.75rem;
 
-  /* Daisy Arrow palette */
-  --sage: #B2AC88;
-  --ink: #4d4732;          /* outline + secondary text */
+  /* Daisy Zen palette — Neubrutalist peach canvas */
+  --peach: #FFDCC0;
+  --ink: #1F1F1F;           /* outline + text */
+  --ink-soft: #4d4732;
   --petal: #FFFFFF;
-  --primary: #FFD700;       /* center + CTA */
-  --primary-foreground: #705e00;
-  --foreground: #1b1c1c;
-  --background: #B2AC88;
+  --primary: #FFD700;       /* center + active CTA */
+  --primary-foreground: #1F1F1F;
+  --forest-green: #3E5C38;  /* TEKRARLA CTA */
+  --sand: #E6D9C4;          /* locked chapter card */
+  --foreground: #1F1F1F;
+  --background: #FFDCC0;
 
   --card: #FFFFFF;
-  --card-foreground: #1b1c1c;
+  --card-foreground: #1F1F1F;
   --popover: #FFFFFF;
-  --popover-foreground: #1b1c1c;
+  --popover-foreground: #1F1F1F;
   --secondary: #FFFFFF;
-  --secondary-foreground: #1b1c1c;
-  --muted: #d8d3b5;
+  --secondary-foreground: #1F1F1F;
+  --muted: #E6D9C4;
   --muted-foreground: #4d4732;
   --accent: #FFD700;
-  --accent-foreground: #705e00;
-  --destructive: oklch(0.577 0.245 27.325);
+  --accent-foreground: #1F1F1F;
+  --destructive: #E04A4A;
   --destructive-foreground: #ffffff;
-  --border: #4d4732;
-  --input: #4d4732;
-  --ring: #705d00;
+  --border: #1F1F1F;
+  --input: #1F1F1F;
+  --ring: #1F1F1F;
 
-  /* Flat offset shadow */
-  --shadow-neo: 4px 4px 0px 0px rgba(77, 71, 50, 1);
-  --shadow-neo-sm: 2px 2px 0px 0px rgba(77, 71, 50, 1);
+  /* Flat offset shadow — heavy Neubrutalist drop */
+  --shadow-neo: 5px 5px 0px 0px #1F1F1F;
+  --shadow-neo-sm: 3px 3px 0px 0px #1F1F1F;
+  --shadow-neo-lg: 6px 6px 0px 0px #1F1F1F;
 }
 
 .dark {
-  /* Daisy Arrow has one mode — keep tokens identical to light. */
-  --background: #B2AC88;
-  --foreground: #1b1c1c;
+  --background: #FFDCC0;
+  --foreground: #1F1F1F;
 }
+
 
 @layer base {
   * {
@@ -100,18 +104,23 @@
 
 @layer utilities {
   .neo {
-    border: 2px solid var(--ink);
+    border: 3.5px solid var(--ink);
     box-shadow: var(--shadow-neo);
     transition: transform 80ms ease, box-shadow 80ms ease;
   }
   .neo-press:active {
-    transform: translate(2px, 2px);
+    transform: translate(3px, 3px);
     box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
   }
   .neo-sm {
-    border: 2px solid var(--ink);
+    border: 3px solid var(--ink);
     box-shadow: var(--shadow-neo-sm);
   }
+  .neo-lg {
+    border: 4px solid var(--ink);
+    box-shadow: var(--shadow-neo-lg);
+  }
+
   .text-display {
     font-size: 40px;
     font-weight: 700;
