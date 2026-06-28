@@ -4,36 +4,32 @@ import type { PetalShape, CenterShape, Chapter } from './types';
    Origin at (0,0) = petal base. Path goes upward (negative Y).
    Param `s` scales the shape uniformly (pass 1 for full size). */
 export const PETAL_PATHS: Record<PetalShape, (s: number) => string> = {
-  /* THE GARDEN — wide, generously rounded oval */
+  /* THE GARDEN — classic rounded oval */
   oval: s =>
-    `M 0,0 C ${22*s},-${14*s} ${30*s},-${58*s} ${4*s},-${94*s}` +
-    ` C -${30*s},-${58*s} -${22*s},-${14*s} 0,0 Z`,
+    `M 0,0 C ${10*s},-${18*s} ${17*s},-${54*s} 0,-${92*s}` +
+    ` C -${17*s},-${54*s} -${10*s},-${18*s} 0,0 Z`,
 
-  /* THE FOREST — softer, rounder leaf */
+  /* THE FOREST — pointed asymmetric leaf */
   leaf: s =>
-    `M 0,0 C ${22*s},-${22*s} ${26*s},-${60*s} ${10*s},-${94*s}` +
-    ` C ${2*s},-${110*s} -${14*s},-${94*s} -${20*s},-${66*s}` +
-    ` C -${26*s},-${40*s} -${16*s},-${18*s} 0,0 Z`,
+    `M 0,0 C ${13*s},-${22*s} ${17*s},-${58*s} ${8*s},-${92*s}` +
+    ` C ${1*s},-${108*s} -${11*s},-${92*s} -${14*s},-${64*s}` +
+    ` C -${18*s},-${38*s} -${9*s},-${18*s} 0,0 Z`,
 
-  /* THE MOUNTAIN — rounded diamond / kite (soft corners) */
+  /* THE MOUNTAIN — angular diamond / kite */
   diamond: s =>
-    `M 0,0 C ${22*s},-${18*s} ${24*s},-${50*s} ${14*s},-${72*s}` +
-    ` C ${8*s},-${88*s} ${4*s},-${94*s} 0,-${94*s}` +
-    ` C -${4*s},-${94*s} -${8*s},-${88*s} -${14*s},-${72*s}` +
-    ` C -${24*s},-${50*s} -${22*s},-${18*s} 0,0 Z`,
+    `M 0,0 L ${13*s},-${36*s} L 0,-${92*s} L -${13*s},-${36*s} Z`,
 
-  /* THE STORM — rounded spike (fuller body) */
+  /* THE STORM — thin spike */
   spike: s =>
-    `M 0,0 C ${16*s},-${14*s} ${20*s},-${50*s} ${10*s},-${82*s}` +
-    ` C ${6*s},-${94*s} -${6*s},-${94*s} -${10*s},-${82*s}` +
-    ` C -${20*s},-${50*s} -${16*s},-${14*s} 0,0 Z`,
+    `M 0,0 L ${6*s},-${30*s} L ${2.5*s},-${92*s}` +
+    ` L -${2.5*s},-${92*s} L -${6*s},-${30*s} Z`,
 
-  /* THE VOID — fuller double-lobed clover */
+  /* THE VOID — double-lobed clover */
   clover: s =>
-    `M 0,0 C -${24*s},-${10*s} -${30*s},-${40*s} -${16*s},-${54*s}` +
-    ` C -${2*s},-${66*s} -${2*s},-${72*s} 0,-${90*s}` +
-    ` C ${2*s},-${72*s} ${2*s},-${66*s} ${16*s},-${54*s}` +
-    ` C ${30*s},-${40*s} ${24*s},-${10*s} 0,0 Z`,
+    `M 0,0 C -${20*s},-${9*s} -${27*s},-${38*s} -${12*s},-${52*s}` +
+    ` C ${3*s},-${66*s} ${3*s},-${68*s} 0,-${86*s}` +
+    ` C -${3*s},-${68*s} -${3*s},-${66*s} ${12*s},-${52*s}` +
+    ` C ${27*s},-${38*s} ${20*s},-${9*s} 0,0 Z`,
 };
 
 /* ── ARROW ───────────────────────────────────────────────── */

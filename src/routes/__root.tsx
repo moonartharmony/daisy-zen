@@ -95,7 +95,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
   }),
   shellComponent: RootShell,
-
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
@@ -103,22 +102,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    /* suppressHydrationWarning: the no-FOUC inline script mutates data-theme
-       on <html> before React hydrates. React sees a mismatch between the SSR
-       output (no attribute) and the client DOM (attribute set by script).
-       suppressHydrationWarning tells React to accept the live DOM value and
-       move on — the attribute is intentional and correct.                    */
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <head>
         <HeadContent />
       </head>
       <body>
-        {/* No-FOUC dark mode: apply stored theme before first paint */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){var t=localStorage.getItem('daisy-theme');if(t==='dark'||(t==null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();`,
-          }}
-        />
         {children}
         <Scripts />
         <script

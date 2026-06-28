@@ -44,39 +44,8 @@
   --spring:     cubic-bezier(0.34,1.56,0.64,1);
   --soft:       cubic-bezier(0.25,0.46,0.45,0.94);
 
-  /* ── Sprint 1: emotional engine CSS vars (updated by useEmotionState) ── */
-  --breath-period:   5s;   /* calming default; range 2.5s (anxious) → 9s (harmonized) */
-  --bg-pulse-speed:  1.2s; /* chapter bg transition speed */
-
-  /* chapter background — set by JS on /play */
+  /* chapter background — set by JS */
   --chapter-bg: #B2AC88;
-
-  /* ── Landing page tokens (light mode default) ── */
-  --landing-bg:      #F0EDE8;
-  --landing-surface: rgba(255, 255, 255, 0.65);
-  --landing-text:    #1B1C1C;
-  --landing-muted:   #7E775F;
-  --landing-border:  rgba(0, 0, 0, 0.08);
-  --landing-petal:   #FFD700;
-}
-
-/* ── DARK MODE ───────────────────────────────────────────────────────────
-   Applied via `data-theme="dark"` on <html> — toggled by useDarkMode hook.
-   Game chapter backgrounds already handle their own dark atmosphere;
-   these tokens only affect the landing shell and surface elements.         */
-[data-theme="dark"] {
-  --landing-bg:      #0B0C10;
-  --landing-surface: rgba(255, 255, 255, 0.035);
-  --landing-text:    #EDE9E0;
-  --landing-muted:   rgba(255, 255, 255, 0.42);
-  --landing-border:  rgba(255, 255, 255, 0.08);
-  --landing-petal:   #FFD700;
-
-  /* Ink stays dark-warm — legible on both light and dark surfaces */
-  --ink:    #4D4732;
-  --yellow: #C9A800;
-  --surface:#252320;
-  --text:   #EDE9E0;
 }
 
 /* ── RESET ───────────────────────────────────────────────── */
@@ -170,156 +139,15 @@ body::after {
   to   { opacity: 1; }
 }
 
-/* ── System 1 keyframes: misalign shake ─────────────────────
-   SVG <g> elements need translate (not CSS left/right) for the
-   shake, AND transform-box: fill-box so the origin is the
-   group's own bounding box center, not the SVG viewport (0,0). */
-@keyframes anim-shake-svg-kf {
-  0%,100% { translate: 0px 0px; }
-  20%     { translate: -6px 0px; }
-  40%     { translate:  5px 0px; }
-  60%     { translate: -4px 0px; }
-  80%     { translate:  3px 0px; }
-}
-
-/* ── System 2 keyframes: center breathing (pacing cue) ──────
-   A slow, barely-perceptible glow pulse on the center circle.
-   Frequency: ~3.8 s — matches calm resting breath rate.       */
-@keyframes center-breathe-kf {
-  0%,100% { box-shadow: 4px 4px 0 0 rgba(77,71,50,1),
-                        0 0  0px rgba(255,215,0,0); }
-  50%     { box-shadow: 4px 4px 0 0 rgba(77,71,50,1),
-                        0 0 16px rgba(255,215,0,.28); }
-}
-
-/* ── System 2 keyframes: aligned-petal persistent glow ─────
-   Once a petal locks in, its path gets a subtle gold tint.     */
-@keyframes petal-locked-kf {
-  from { filter: brightness(1.6) saturate(1.8); }
-  to   { filter: brightness(1)   saturate(1);   }
-}
-
-/* ── System 1: spring press ─────────────────────────────────────────────────
-   Applied to every petal <g> via className="petal-group".
-
-   WHY this doesn't break the polar coordinate system
-   ─────────────────────────────────────────────────
-   The SVG `transform` attribute (rotate(angle) translate(0,-orbit)) is the
-   polar positioning layer. It lives in the SVG attribute rendering pipeline.
-   CSS `scale` (used by .petal-pressed) is composited AFTER the SVG transform
-   in a separate CSS stacking context. They never share state.
-
-   The CSS transform-origin determines where `scale` is anchored:
-     • Existing inline style  → transformOrigin: '0 0'
-       (0,0) in the group's local post-SVG-transform space = petal center ✓
-     • transform-box: fill-box; transform-origin: center (on .petal-group)
-       fill-box center of a symmetric oval at (0,0) = (0,0) ✓  SAME POINT.
-   Both resolve identically. The inline style (specificity 1000) wins the
-   cascade over the class (specificity 10) for transform-origin, but
-   transform-box: fill-box (not set inline) is added by the class freely.
-   Belt-and-suspenders: both declarations say the same thing.
-
-   Two-phase interaction
-   ─────────────────────
-   Class add    → transition 80ms  spring → scale 1.0 → 0.88  (compression)
-   Class remove → transition 300ms spring → scale 0.88 → 1.0  (overshoot + settle)
-
-   This replaces anim-bounce on the <g>: CSS animation + transition on the
-   same property causes the animation to win. By removing anim-bounce from
-   handlePointerDown we eliminate the conflict and let the transition own
-   the press feel entirely.                                                   */
-.petal-group {
-  transform-box:    fill-box;   /* anchors percentage/keyword origins to bbox */
-  scale:            1;
-  /* spring-back fires when .petal-pressed is removed */
-  transition:       scale 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  will-change:      scale;       /* compositor hint — no layout recalc on scale */
-}
-
-/* Added on pointerdown, removed after 80 ms */
-.petal-pressed {
-  scale:      0.88;
-  transition: scale 80ms cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
 /* ── ANIMATION CLASSES ───────────────────────────────────── */
-/* DaisyCanvas (game/DaisyCanvas.tsx) */
-.anim-bounce  { animation: anim-bounce-kf     160ms var(--spring); }
-.anim-align   { animation: anim-align-kf      380ms ease-out forwards; }
-
-/* System 1: misalign shake — SVG <g> version */
-.anim-shake {
-  transform-box:    fill-box;
-  transform-origin: center;
-  animation: anim-shake-svg-kf 240ms ease-out;
-}
-
-.anim-cpulse  { animation: anim-cpulse-kf    260ms ease-out; }
-.anim-cwin    { animation: anim-cwin-kf      850ms ease-in-out forwards; }
-.anim-hglow   { animation: anim-hglow-kf     750ms ease-in-out 3; }
-.anim-chfade  { animation: anim-chfade-kf   2900ms ease-in-out forwards; }
-.anim-score   { animation: anim-score-kf     500ms var(--spring) 300ms both; }
-.anim-spin    { animation: anim-spin-kf       12s  linear       infinite; }
-.anim-slideup { animation: anim-slideup-kf   340ms var(--spring) both; }
-.anim-fadein  { animation: anim-fadein-kf    400ms ease both; }
-
-/* System 2: center breathing — speed driven by Sprint 1 --breath-period.
-   useEmotionState writes the var to :root; CSS picks it up immediately.
-   Range: 2.5 s (anxious, fast) → 9 s (harmonized, pacing a slow breath). */
-.center-breathe {
-  animation: center-breathe-kf var(--breath-period, 3.8s) ease-in-out infinite;
-}
-
-/* ── DAISY COMPONENT (components/Daisy.tsx) PetalAnim classes ──────────────
-   SVG elements default transform-origin to the SVG VIEWPORT origin (0,0),
-   not the element's own center. Without transform-box:fill-box every CSS
-   scale/translate animates from the wrong point → visual drift.
-   Rule: every animated SVG element gets fill-box + center.              */
-
-/* petal-inner <g> and petal-body <ellipse> */
-.petal-inner,
-.petal-body {
-  transform-box:    fill-box;
-  transform-origin: center;
-}
-
-.petal-tapped .petal-body  { animation: anim-bounce-kf 160ms var(--spring); }
-.petal-aligned .petal-body { animation: anim-align-kf  380ms ease-out forwards; }
-.petal-error               { animation: anim-shake-kf  220ms ease-out; }
-
-@keyframes petal-hint-kf {
-  0%,100% { filter: drop-shadow(0 0 0px rgba(255,215,0,0)); }
-  50%     { filter: drop-shadow(0 0 6px rgba(255,215,0,.85)); }
-}
-.petal-hint { animation: petal-hint-kf 700ms ease-in-out 3; }
-
-/* center-pulse / center-glow — <g transform="translate(160 160)"> */
-.center-pulse,
-.center-glow {
-  transform-box:    fill-box;
-  transform-origin: center;
-}
-.center-pulse { animation: anim-cpulse-kf 260ms ease-out; }
-
-@keyframes center-glow-kf {
-  0%,100% { filter: drop-shadow(0 0 0px rgba(255,215,0,0)); }
-  50%     { filter: drop-shadow(0 0 10px rgba(255,215,0,.8)); }
-}
-.center-glow  { animation: center-glow-kf 900ms ease-in-out infinite; }
-
-/* animate-petal-burst — petal <g> flies toward --tx/--ty on win
-   The <g> already has SVG transform positioning it at rest; CSS translate
-   is a separate layer that adds ON TOP of the SVG transform, so zero is
-   the resting position and (--tx,--ty) is the displacement delta.
-   We use a burst multiplier of ×0.35 so petals fly ~34px outward,
-   avoiding viewport overflow while still reading as an explosion.     */
-@keyframes petal-burst-kf {
-  0%   { translate: 0 0;                                    opacity: 1; scale: 1;    }
-  55%  { translate: calc(var(--tx)*0.35) calc(var(--ty)*0.35); opacity: .8; scale: 1.1; }
-  100% { translate: calc(var(--tx)*0.35) calc(var(--ty)*0.35); opacity: 0; scale: 1;    }
-}
-.animate-petal-burst {
-  transform-box:    fill-box;
-  transform-origin: center;
-  animation: petal-burst-kf 620ms var(--soft) forwards;
-}
+.anim-bounce  { animation: anim-bounce-kf  160ms var(--spring); }
+.anim-align   { animation: anim-align-kf   380ms ease-out forwards; }
+.anim-shake   { animation: anim-shake-kf   220ms ease-out; }
+.anim-cpulse  { animation: anim-cpulse-kf  260ms ease-out; }
+.anim-cwin    { animation: anim-cwin-kf    850ms ease-in-out forwards; }
+.anim-hglow   { animation: anim-hglow-kf   750ms ease-in-out 3; }
+.anim-chfade  { animation: anim-chfade-kf 2900ms ease-in-out forwards; }
+.anim-score   { animation: anim-score-kf   500ms var(--spring) 300ms both; }
+.anim-spin    { animation: anim-spin-kf     12s  linear       infinite; }
+.anim-slideup { animation: anim-slideup-kf  340ms var(--spring) both; }
+.anim-fadein  { animation: anim-fadein-kf   400ms ease both; }
