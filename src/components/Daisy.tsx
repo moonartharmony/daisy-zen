@@ -167,7 +167,7 @@ export function Daisy({
           return (
             <g
               key={i}
-              transform={`translate(${CENTER} ${CENTER}) rotate(${angle}) translate(0 ${-PETAL_DIST})`}
+              transform={`translate(${CENTER} ${CENTER}) rotate(${angle}) translate(0 ${-livePetalDist})`}
               onPointerDown={(e) => {
                 e.preventDefault();
                 if (!bursting && spec.hasArrow) onTapPetal(i);
