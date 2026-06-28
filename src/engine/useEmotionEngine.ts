@@ -44,10 +44,11 @@ export function petalAccentFromEmotion(
   stability: number,
   valence: number,
   base: string,
+  alertColor: string = "#FF6B6B",
 ): string {
-  if (stability < 0.4) {
-    // blend toward alert red as stability collapses
-    return mixHex(base, "#FF6B6B", (0.4 - stability) / 0.4);
+  if (stability < 0.5) {
+    // blend toward alert color as stability collapses (pink in Sakura zone, red elsewhere)
+    return mixHex(base, alertColor, (0.5 - stability) / 0.5);
   }
   if (stability > 0.7 && valence > 0.3) {
     const t = Math.min(1, (stability - 0.7) / 0.3) * 0.6;
