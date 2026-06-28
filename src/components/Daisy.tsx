@@ -140,9 +140,12 @@ export function Daisy({
           const petal = snapshot.petals[i];
           const arrowRot = petal?.currentRotation ?? 0;
           const openness = petal?.openness ?? 1;
+          // Common-region breathing: the gap between core and petals pulses
+          // by a sub-pixel amount, tying the gestalt together (≈ ±1.2px).
+          const livePetalDist = PETAL_DIST + breath * 1.2;
           const rad = (angle - 90) * (Math.PI / 180);
-          const tx = Math.cos(rad) * PETAL_DIST;
-          const ty = Math.sin(rad) * PETAL_DIST;
+          const tx = Math.cos(rad) * livePetalDist;
+          const ty = Math.sin(rad) * livePetalDist;
           const anim = petalAnims[i];
 
           const animClass =
