@@ -37,7 +37,7 @@
   --color-petal: var(--petal);
   --color-ink: var(--ink);
   --color-sage: var(--sage);
-  --font-sans: 'Quicksand', system-ui, sans-serif;
+  --font-sans: 'Space Grotesk', 'Quicksand', system-ui, sans-serif;
 }
 
 :root {
