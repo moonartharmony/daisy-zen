@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { Sprout, TreePine, Mountain, Star, Lock, Zap } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
@@ -255,5 +255,4 @@ function CTAButton({
   );
 }
 
-// Silence the noisy unused-import warning when nothing renders Link directly.
-void Link;
+
