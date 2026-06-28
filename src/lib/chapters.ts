@@ -1,17 +1,26 @@
-export type ChapterId = "garden" | "forest" | "mountain" | "storm" | "void";
+export type ChapterId = "daisy" | "forest" | "mountain" | "sakura";
+
+export type PetalShape = "pill" | "leaf" | "halfcircle" | "teardrop";
 
 export type Chapter = {
   id: ChapterId;
+  /** Display name ("The Daisy", "The Forest", ...). */
   name: string;
+  /** Chapter index label ("BÖLÜM 1"). */
+  bolum: string;
   epigraph: string;
   levelStart: number;
   levelEnd: number;
-  /** Canvas background — biome-specific (peach / mint / cream-pink). */
+  /** Canvas background — biome-specific. */
   bgColor: string;
+  /** Foreground ink colour used over `bgColor` (dark biomes flip to white). */
+  inkColor: string;
   /** Daisy petal base colour. */
   petalColor: string;
   /** Alternating petal accent (every other petal). */
   petalAlt?: string;
+  /** Petal SVG geometry family for this biome. */
+  petalShape: PetalShape;
   /** Accent for chapter card on the Journey Map. */
   tileColor: string;
   accentColor: string;
@@ -23,82 +32,84 @@ export type Chapter = {
 
 export const CHAPTERS: Chapter[] = [
   {
-    id: "garden",
-    name: "The Garden",
+    id: "daisy",
+    name: "The Daisy",
+    bolum: "BÖLÜM 1",
     epigraph: "Where arrows first spoke.",
     levelStart: 1,
     levelEnd: 5,
-    bgColor: "#FFDCC0",
+    bgColor: "#F7E5A9",
+    inkColor: "#1F1F1F",
     petalColor: "#FFFFFF",
-    petalAlt: "#FFD700",
+    petalShape: "pill",
     tileColor: "#FFFFFF",
-    accentColor: "#A8D5A2",
+    accentColor: "#3E5C38",
     alertColor: "#FF6B6B",
     difficulty: { windStrength: 0.02, decayMult: 1.4 },
   },
   {
     id: "forest",
     name: "The Forest",
+    bolum: "BÖLÜM 2",
     epigraph: "Deeper paths, older silence.",
     levelStart: 6,
-    levelEnd: 15,
-    bgColor: "#E2F0D9",
+    levelEnd: 17,
+    bgColor: "#3F4E38",
+    inkColor: "#FFFFFF",
     petalColor: "#FFFFFF",
+    petalShape: "leaf",
     tileColor: "#FFD700",
-    accentColor: "#3E5C38",
+    accentColor: "#A8D5A2",
     alertColor: "#FF6B6B",
     difficulty: { windStrength: 0.08, decayMult: 1 },
   },
   {
     id: "mountain",
-    name: "Sakura Garden",
-    epigraph: "Petals fall, the path remains.",
-    levelStart: 16,
-    levelEnd: 25,
-    bgColor: "#FFE8EE",
+    name: "The Mountain",
+    bolum: "BÖLÜM 3",
+    epigraph: "Climb the wind.",
+    levelStart: 18,
+    levelEnd: 24,
+    bgColor: "#6E7E8C",
+    inkColor: "#FFFFFF",
     petalColor: "#FFFFFF",
-    petalAlt: "#F8C8DC",
-    tileColor: "#FBD5E0",
-    accentColor: "#F15BB5",
-    alertColor: "#F15BB5",
+    petalShape: "halfcircle",
+    tileColor: "#E8DFCB",
+    accentColor: "#4A5A7A",
+    alertColor: "#FF6B6B",
     difficulty: { windStrength: 0.18, decayMult: 0.6 },
   },
   {
-    id: "storm",
-    name: "The Storm",
-    epigraph: "Find the eye.",
-    levelStart: 26,
+    id: "sakura",
+    name: "The Sakura",
+    bolum: "BÖLÜM 4",
+    epigraph: "Petals fall, the path remains.",
+    levelStart: 30,
     levelEnd: 50,
-    bgColor: "#D9DDE6",
+    bgColor: "#FCD0A1",
+    inkColor: "#1F1F1F",
     petalColor: "#FFFFFF",
-    tileColor: "#E6D9C4",
-    accentColor: "#4A5A7A",
-    alertColor: "#FF6B6B",
+    petalShape: "teardrop",
+    tileColor: "#FBD5E0",
+    accentColor: "#F15BB5",
+    alertColor: "#F15BB5",
     difficulty: { windStrength: 0.22, decayMult: 0.5 },
-  },
-  {
-    id: "void",
-    name: "The Void",
-    epigraph: "You have always known the way.",
-    levelStart: 51,
-    levelEnd: 9999,
-    bgColor: "#1B1B22",
-    petalColor: "#FFFFFF",
-    tileColor: "#2C2C3E",
-    accentColor: "#9B8CFF",
-    alertColor: "#FF6B6B",
-    difficulty: { windStrength: 0.25, decayMult: 0.4 },
   },
 ];
 
 export function getChapter(level: number): Chapter {
-  return (
-    CHAPTERS.find((c) => level >= c.levelStart && level <= c.levelEnd) ??
-    CHAPTERS[CHAPTERS.length - 1]
+  // Find first matching chapter; if user is between chapters (e.g. level 25-29)
+  // fall back to the previous chapter so the world keeps rendering coherently.
+  const exact = CHAPTERS.find(
+    (c) => level >= c.levelStart && level <= c.levelEnd,
   );
+  if (exact) return exact;
+  const previous = [...CHAPTERS]
+    .reverse()
+    .find((c) => level >= c.levelStart);
+  return previous ?? CHAPTERS[0];
 }
 
 export function getChapterById(id: ChapterId): Chapter {
   return CHAPTERS.find((c) => c.id === id) ?? CHAPTERS[0];
 }
-
