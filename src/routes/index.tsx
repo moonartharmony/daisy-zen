@@ -62,6 +62,8 @@ function Game() {
   const [hasAligned, setHasAligned] = useState(false);
   const [displayedScore, setDisplayedScore] = useState(0);
   const startedAtRef = useRef<number>(Date.now());
+  const lastCanvasTapRef = useRef<number>(0);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const puzzle = useMemo(() => getPuzzle(level), [level]);
   const chapter = useMemo(() => getChapter(level), [level]);
@@ -356,7 +358,45 @@ function Game() {
         </span>
       </div>
 
-      <section className="flex-1 flex items-center justify-center w-full">
+      <section
+        className="flex-1 flex items-center justify-center w-full"
+        onPointerDown={(e) => {
+          // Invisible reset gesture: double-tap or long-press anywhere on
+          // the flower canvas (but not the petals themselves, which stop
+          // propagation via their own pointer handlers indirectly — we
+          // simply skip when the win overlay is up).
+          if (won || paused) return;
+          const now = performance.now();
+          const last = lastCanvasTapRef.current;
+          lastCanvasTapRef.current = now;
+          // Double-tap window: 320ms
+          if (last && now - last < 320) {
+            handleReset();
+            if (longPressTimerRef.current) {
+              clearTimeout(longPressTimerRef.current);
+              longPressTimerRef.current = null;
+            }
+            return;
+          }
+          // Long-press: 600ms hold
+          if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+          longPressTimerRef.current = setTimeout(() => {
+            handleReset();
+          }, 600);
+          const cancel = () => {
+            if (longPressTimerRef.current) {
+              clearTimeout(longPressTimerRef.current);
+              longPressTimerRef.current = null;
+            }
+            window.removeEventListener("pointerup", cancel);
+            window.removeEventListener("pointercancel", cancel);
+            window.removeEventListener("pointermove", cancel);
+          };
+          window.addEventListener("pointerup", cancel);
+          window.addEventListener("pointercancel", cancel);
+          window.addEventListener("pointermove", cancel);
+        }}
+      >
         <Daisy
           puzzle={puzzle}
           snapshot={snapshot}

@@ -25,8 +25,7 @@ const PETAL_COUNT = 8;
 const DIFFUSION_K = 0.12;
 const DECAY_K_BASE = 0.03;
 
-
-// Spring tuning for petal rotation (critically-damped-ish)
+// Spring tuning for petal rotation (slightly underdamped → organic settle).
 const ROT_STIFFNESS = 140;
 const ROT_DAMPING = 18;
 
@@ -60,6 +59,8 @@ export class EmotionFieldEngine {
   // Per-chapter difficulty knobs — see setDifficulty().
   private windStrength = 0.08;
   private decayMult = 1;
+  /** Angular tolerance window in degrees — drives spring tightness. */
+  private tolerance = 5;
 
 
   // Mutable petal store — we mutate in place between ticks and only
@@ -148,14 +149,27 @@ export class EmotionFieldEngine {
    * Tune per-chapter field behaviour.
    *  - windStrength: amplitude of background field noise (0..0.25)
    *  - decayMult:   how aggressively the field bleeds back to zero
+   *  - tolerance:   angular snap window in degrees (smaller → demands deeper focus)
    */
-  setDifficulty(opts: { windStrength?: number; decayMult?: number }) {
+  setDifficulty(opts: {
+    windStrength?: number;
+    decayMult?: number;
+    tolerance?: number;
+  }) {
     if (opts.windStrength !== undefined) {
       this.windStrength = clamp(opts.windStrength, 0, 0.25);
     }
     if (opts.decayMult !== undefined) {
       this.decayMult = clamp(opts.decayMult, 0.25, 4);
     }
+    if (opts.tolerance !== undefined) {
+      this.tolerance = clamp(opts.tolerance, 1, 15);
+    }
+  }
+
+  /** Current angular tolerance in degrees — flows out to UI snap checks. */
+  getTolerance(): number {
+    return this.tolerance;
   }
 
   /** Set the target rotation (degrees, 0=north) for a petal. */
@@ -252,7 +266,9 @@ export class EmotionFieldEngine {
     );
 
     // 4) Integrate petals (spring toward target rotation + jitter from field).
-    const jitterAmp = (1 - this.emotion.stability) * 6; // deg
+    // Jitter amplitude is gated by the chapter's angular tolerance so harder
+    // biomes settle inside their tighter snap window (Mountain/Sakura).
+    const jitterAmp = (1 - this.emotion.stability) * (this.tolerance * 1.1);
     for (let i = 0; i < PETAL_COUNT; i++) {
       const p = this.petals[i];
       const target =

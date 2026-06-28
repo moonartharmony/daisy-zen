@@ -27,7 +27,7 @@ export type Chapter = {
   /** Color used when stability collapses (alert state). */
   alertColor: string;
   /** Engine difficulty profile (see EmotionFieldEngine.setDifficulty). */
-  difficulty: { windStrength: number; decayMult: number };
+  difficulty: { windStrength: number; decayMult: number; tolerance: number };
 };
 
 export const CHAPTERS: Chapter[] = [
@@ -45,7 +45,7 @@ export const CHAPTERS: Chapter[] = [
     tileColor: "#FFFFFF",
     accentColor: "#3E5C38",
     alertColor: "#FF6B6B",
-    difficulty: { windStrength: 0.02, decayMult: 1.4 },
+    difficulty: { windStrength: 0.02, decayMult: 1.4, tolerance: 5 },
   },
   {
     id: "forest",
@@ -61,7 +61,7 @@ export const CHAPTERS: Chapter[] = [
     tileColor: "#FFD700",
     accentColor: "#A8D5A2",
     alertColor: "#FF6B6B",
-    difficulty: { windStrength: 0.08, decayMult: 1 },
+    difficulty: { windStrength: 0.08, decayMult: 1, tolerance: 5 },
   },
   {
     id: "mountain",
@@ -77,7 +77,7 @@ export const CHAPTERS: Chapter[] = [
     tileColor: "#E8DFCB",
     accentColor: "#4A5A7A",
     alertColor: "#FF6B6B",
-    difficulty: { windStrength: 0.18, decayMult: 0.6 },
+    difficulty: { windStrength: 0.18, decayMult: 0.6, tolerance: 2.5 },
   },
   {
     id: "sakura",
@@ -93,7 +93,7 @@ export const CHAPTERS: Chapter[] = [
     tileColor: "#FBD5E0",
     accentColor: "#F15BB5",
     alertColor: "#F15BB5",
-    difficulty: { windStrength: 0.22, decayMult: 0.5 },
+    difficulty: { windStrength: 0.22, decayMult: 0.5, tolerance: 2.5 },
   },
 ];
 
