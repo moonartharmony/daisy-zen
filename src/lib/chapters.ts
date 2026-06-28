@@ -45,7 +45,7 @@ export const CHAPTERS: Chapter[] = [
     tileColor: "#FFFFFF",
     accentColor: "#3E5C38",
     alertColor: "#FF6B6B",
-    difficulty: { windStrength: 0.02, decayMult: 1.4 },
+    difficulty: { windStrength: 0.02, decayMult: 1.4, tolerance: 5 },
   },
   {
     id: "forest",
