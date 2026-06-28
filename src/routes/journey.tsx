@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
-import { Sprout, TreePine, Mountain, Star, Lock, Zap } from "lucide-react";
+import { Flower2, TreePine, Mountain, Cherry, Star, Lock, Zap } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { BottomNav } from "@/components/BottomNav";
 import { CHAPTERS, type Chapter, type ChapterId } from "@/lib/chapters";
@@ -13,7 +13,7 @@ import {
 } from "@/lib/progress";
 
 const search = z
-  .object({ chapter: z.enum(["garden", "forest", "mountain"]).optional() })
+  .object({ chapter: z.enum(["daisy", "forest", "mountain", "sakura"]).optional() })
   .parse;
 
 export const Route = createFileRoute("/journey")({
@@ -29,20 +29,16 @@ export const Route = createFileRoute("/journey")({
   component: JourneyMap,
 });
 
-const ICONS: Record<ChapterId, typeof Sprout> = {
-  garden: Sprout,
+const ICONS: Record<ChapterId, typeof Flower2> = {
+  daisy: Flower2,
   forest: TreePine,
   mountain: Mountain,
-  storm: Mountain,
-  void: Mountain,
+  sakura: Cherry,
 };
 
 function JourneyMap() {
   const { highestUnlocked } = useProgress();
   const navigate = useNavigate();
-
-  // Show the first three chapters on the map (matches reference design).
-  const visible = CHAPTERS.slice(0, 3);
 
   const play = (id: ChapterId) => {
     const level = startingLevelForChapter(id, highestUnlocked);
@@ -54,7 +50,7 @@ function JourneyMap() {
       <ScreenHeader title="Journey Map" backTo="/" />
 
       <section className="w-full max-w-md mx-auto flex flex-col gap-5 mt-2">
-        {visible.map((chapter, i) => {
+        {CHAPTERS.map((chapter, i) => {
           const status = chapterStatus(chapter, highestUnlocked);
           return (
             <ChapterCard
@@ -92,8 +88,19 @@ function ChapterCard({
   const isActive = status === "active";
   const isLocked = status === "locked";
 
-  // Card surface + ink contrast varies by status (white / yellow / sand).
-  const cardBg = isActive ? "var(--primary)" : isLocked ? "var(--sand)" : "#FFFFFF";
+  // Locked cards use a chapter-themed pastel surface (sand for mountain,
+  // dusty pink for sakura) so the map already hints at the biome.
+  const lockedTint: Record<ChapterId, string> = {
+    daisy: "#FFFFFF",
+    forest: "#FFFFFF",
+    mountain: "#EFE6D2",
+    sakura: "#FBD9C3",
+  };
+  const cardBg = isActive
+    ? "var(--primary)"
+    : isLocked
+      ? lockedTint[chapter.id]
+      : "#FFFFFF";
   const inkSoft = isLocked ? "rgba(31,31,31,0.55)" : "var(--ink)";
 
   return (
@@ -101,11 +108,10 @@ function ChapterCard({
       className="neo-lg rounded-2xl p-4 flex flex-col gap-3"
       style={{
         backgroundColor: cardBg,
-        opacity: isLocked ? 0.85 : 1,
+        opacity: isLocked ? 0.92 : 1,
       }}
     >
       <div className="flex items-start gap-3">
-        {/* Icon tile */}
         <div
           className="neo-sm rounded-xl size-14 grid place-items-center shrink-0"
           style={{
@@ -135,16 +141,12 @@ function ChapterCard({
           </h2>
         </div>
 
-        {/* Status badge */}
         <StatusBadge status={status} />
       </div>
 
       <div className="flex items-center justify-between gap-3 pt-1">
         <div className="flex flex-col gap-2 flex-1 min-w-0">
-          <div
-            className="text-[14px] font-bold"
-            style={{ color: inkSoft }}
-          >
+          <div className="text-[14px] font-bold" style={{ color: inkSoft }}>
             Seviye {chapter.levelStart}-{chapter.levelEnd}
           </div>
           {isActive && (
@@ -196,10 +198,7 @@ function StatusBadge({ status }: { status: ChapterStatus }) {
     );
   }
   return (
-    <div
-      className="rounded-lg p-1.5"
-      style={{ color: "rgba(31,31,31,0.55)" }}
-    >
+    <div className="rounded-lg p-1.5" style={{ color: "rgba(31,31,31,0.55)" }}>
       <Lock className="size-5" strokeWidth={2.5} />
     </div>
   );
@@ -217,10 +216,7 @@ function CTAButton({
       <button
         onClick={onClick}
         className="neo neo-press rounded-xl px-5 py-2.5 text-[13px] font-extrabold tracking-wider"
-        style={{
-          backgroundColor: "var(--forest-green)",
-          color: "#FFFFFF",
-        }}
+        style={{ backgroundColor: "var(--forest-green)", color: "#FFFFFF" }}
       >
         TEKRARLA
       </button>
@@ -231,10 +227,7 @@ function CTAButton({
       <button
         onClick={onClick}
         className="neo neo-press rounded-xl px-5 py-2.5 text-[13px] font-extrabold tracking-wider"
-        style={{
-          backgroundColor: "var(--ink)",
-          color: "#FFFFFF",
-        }}
+        style={{ backgroundColor: "var(--ink)", color: "#FFFFFF" }}
       >
         DEVAM ET
       </button>
@@ -254,5 +247,3 @@ function CTAButton({
     </button>
   );
 }
-
-

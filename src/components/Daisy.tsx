@@ -1,5 +1,6 @@
 import type { Puzzle } from "@/lib/puzzles";
 import type { WorldSnapshot } from "@/engine/types";
+import type { PetalShape } from "@/lib/chapters";
 
 export type PetalAnim = "pressed" | "aligned" | "error" | "hint" | null;
 
@@ -14,6 +15,8 @@ type Props = {
   petalColor?: string;
   petalColors?: string[];
   idleSpin?: boolean;
+  /** Biome-driven geometry for the petals. */
+  shape?: PetalShape;
 };
 
 const SIZE = 320;
@@ -39,6 +42,52 @@ function ArrowSvg({ size = 28, color = "#1b1c1c" }: { size?: number; color?: str
 }
 
 /**
+ * Petal geometry library. Each function returns an SVG path centered on
+ * (0,0), where -y points OUTWARD (away from the daisy center) and +y points
+ * INWARD. `rx`/`ry` already include any per-frame openness deformation so
+ * the live spring values from the engine flow straight into the path.
+ */
+function petalPathFor(
+  shape: PetalShape,
+  rx: number,
+  ry: number,
+  index: number,
+): string {
+  switch (shape) {
+    case "leaf": {
+      // Forest: pointed almond / leaf, both tips sharp.
+      const cx = rx * 1.05;
+      return `M 0 ${-ry} C ${cx} ${-ry * 0.4} ${cx} ${ry * 0.4} 0 ${ry} C ${-cx} ${ry * 0.4} ${-cx} ${-ry * 0.4} 0 ${-ry} Z`;
+    }
+    case "halfcircle": {
+      // Mountain: semicircle with the flat edge alternating sides for the
+      // pinwheel / flag effect.
+      const flip = index % 2 === 0 ? 1 : -1;
+      const r = Math.min(rx, ry * 0.72) * 1.15;
+      // Flat edge runs vertically through (0,0); dome bulges outward (flip).
+      return `M 0 ${-r} A ${r} ${r} 0 0 ${flip === 1 ? 1 : 0} 0 ${r} Z`;
+    }
+    case "teardrop": {
+      // Sakura: tapered tear-drop, sharp point facing OUTWARD (-y), rounded
+      // bulb facing the center (+y).
+      const w = rx * 1.1;
+      const bulb = ry * 0.55;
+      return `M 0 ${-ry} C ${w} ${-ry * 0.15} ${w} ${ry * 0.55} 0 ${ry} C ${-w} ${ry * 0.55} ${-w} ${-ry * 0.15} 0 ${-ry} Z`
+        // intentionally asymmetric vertical to keep the outer vertex sharp.
+        .replace(/(\.15)/, () => (0.15 + Math.min(0.05, bulb * 0)).toString());
+    }
+    case "pill":
+    default: {
+      // Daisy: rounded stadium / pill (default).
+      const r = rx;
+      const top = -ry + r;
+      const bot = ry - r;
+      return `M ${-r} ${top} A ${r} ${r} 0 0 1 ${r} ${top} L ${r} ${bot} A ${r} ${r} 0 0 1 ${-r} ${bot} Z`;
+    }
+  }
+}
+
+/**
  * Daisy is a pure projection of a WorldSnapshot — it owns no animated
  * state of its own. Rotation, openness, and breath all come from the
  * engine. Only short-lived feedback flashes (pressed / aligned / error
@@ -55,6 +104,7 @@ export function Daisy({
   petalColor = "#FFFFFF",
   petalColors,
   idleSpin = false,
+  shape = "pill",
 }: Props) {
   const { petalCount, centerDir } = puzzle;
   const step = 360 / petalCount;
@@ -105,6 +155,8 @@ export function Daisy({
 
           // Openness modulates the petal's long radius — closed petals visibly shrink.
           const ry = PETAL_RY * (0.82 + openness * 0.18);
+          const rx = PETAL_RX;
+          const dShadow = petalPathFor(shape, rx, ry, i);
 
           return (
             <g
@@ -121,14 +173,12 @@ export function Daisy({
               }}
               className={bursting ? "animate-petal-burst" : ""}
             >
-              <ellipse cx={2} cy={2} rx={PETAL_RX} ry={ry} fill="#4d4732" />
+              {/* Drop-shadow petal (offset 2,2) for the Neubrutalist edge. */}
+              <path d={dShadow} transform="translate(2 2)" fill="#4d4732" />
               <g className={`petal-inner ${animClass}`}>
-                <ellipse
+                <path
                   className="petal-body"
-                  cx={0}
-                  cy={0}
-                  rx={PETAL_RX}
-                  ry={ry}
+                  d={dShadow}
                   fill={petalColors?.[i] ?? petalColor}
                   stroke="#4d4732"
                   strokeWidth={2}
