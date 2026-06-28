@@ -25,8 +25,7 @@ const PETAL_COUNT = 8;
 const DIFFUSION_K = 0.12;
 const DECAY_K_BASE = 0.03;
 
-
-// Spring tuning for petal rotation (critically-damped-ish)
+// Spring tuning for petal rotation (slightly underdamped → organic settle).
 const ROT_STIFFNESS = 140;
 const ROT_DAMPING = 18;
 
