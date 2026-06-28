@@ -222,8 +222,12 @@ function Game() {
       const earned = remaining * 10 + timeBonus;
       setWon(true);
       haptic.win();
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        navigator.vibrate?.(50);
+      }
       setCenterGlow(true);
       engine.injectImpulse("win");
+      engine.surgeOpenness(0.25, 900);
       if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
       setHintAvailable(false);
       setTimeout(() => setBursting(true), 250);
@@ -238,6 +242,7 @@ function Game() {
       };
       setTimeout(() => requestAnimationFrame(tick), 400);
       setScore((s) => s + earned);
+      addXp(earned);
       unlockLevel(level + 1);
     }
 
