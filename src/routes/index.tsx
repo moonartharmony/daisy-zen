@@ -134,11 +134,14 @@ function Game() {
       setTransitionChapterId(chapter.id);
       haptic.chapter();
     }
+    // Apply per-chapter difficulty profile to the simulation.
+    engine.setDifficulty(chapter.difficulty);
     return () => {
       if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [puzzle]);
+
 
   const arrowedIndices = puzzle.petals
     .map((p, i) => (p.hasArrow ? i : -1))
@@ -234,7 +237,9 @@ function Game() {
       };
       setTimeout(() => requestAnimationFrame(tick), 400);
       setScore((s) => s + earned);
+      unlockLevel(level + 1);
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [petalDirs]);
 
