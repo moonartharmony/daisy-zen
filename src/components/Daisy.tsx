@@ -66,6 +66,8 @@ export function Daisy({
 
   const breath = snapshot.breathWave;
   const containerScale = 1 + breath * 0.01;
+  // Slow hypnotic idle spin on the center arrow (18°/sec → ~20s rotation).
+  const idleRot = idleSpin ? (snapshot.time * 18) % 360 : 0;
 
   return (
     <div
