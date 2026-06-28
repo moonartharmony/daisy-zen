@@ -61,12 +61,14 @@ function petalPathFor(
       return `M 0 ${-ry} C ${w} ${-ry * 0.55} ${w * 0.85} ${ry * 0.2} 0 ${ry} C ${-w * 0.85} ${ry * 0.2} ${-w} ${-ry * 0.55} 0 ${-ry} Z`;
     }
     case "halfcircle": {
-      // Mountain: semicircle with the flat edge alternating sides for the
-      // pinwheel / flag effect.
-      const flip = index % 2 === 0 ? 1 : -1;
-      const r = Math.min(rx, ry * 0.72) * 1.15;
-      // Flat edge runs vertically through (0,0); dome bulges outward (flip).
-      return `M 0 ${-r} A ${r} ${r} 0 0 ${flip === 1 ? 1 : 0} 0 ${r} Z`;
+      // Mountain: clean 180° semi-dome. Flat chord faces INWARD (+y toward
+      // the yellow core); smooth arc sweeps OUTWARD (-y). All 8 petals share
+      // the same orientation so the radial rotation produces the precise
+      // propeller / wind-turbine silhouette in 03 - The Mountain_2.png.
+      void index;
+      const r = Math.min(rx * 1.35, ry * 0.95);
+      const chordY = ry * 0.18; // pull the flat chord slightly inward for premium balance
+      return `M ${-r} ${chordY} A ${r} ${r} 0 0 1 ${r} ${chordY} Z`;
     }
     case "teardrop": {
       // Sakura: tapered tear-drop, sharp point facing OUTWARD (-y), rounded
