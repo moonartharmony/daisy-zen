@@ -309,13 +309,19 @@ function Game() {
         >
           <Pause className="size-5" strokeWidth={2.5} />
         </button>
-        <div className="neo rounded-xl bg-white px-4 py-2 text-body-lg">
+        <div className="text-headline" style={{ color: "var(--ink)" }}>
           Level {level}
         </div>
-        <div className="neo rounded-xl bg-primary px-4 py-2 text-body-lg text-[color:var(--primary-foreground)]">
-          {score}
-        </div>
+        <Link
+          to="/journey"
+          aria-label="Journey Map"
+          title={`Score: ${score}`}
+          className="neo neo-press rounded-xl bg-white p-2.5 grid place-items-center"
+        >
+          <Map className="size-5" strokeWidth={2.5} />
+        </Link>
       </header>
+
 
       <section className="flex-1 flex items-center justify-center w-full">
         <Daisy
@@ -331,14 +337,15 @@ function Game() {
       </section>
 
       <footer className="w-full max-w-md flex flex-col gap-3">
-        <div className="flex items-center gap-3">
-          <span className="text-label" style={{ color: "rgba(255,255,255,0.85)" }}>
+        <div className="neo-lg rounded-2xl bg-white px-4 py-3 flex items-center justify-between gap-3">
+          <span className="text-label" style={{ color: "var(--ink)" }}>
             {chapter.name}
           </span>
-          <span className="text-label ml-auto" style={{ color: "rgba(255,255,255,0.85)" }}>
+          <span className="text-label" style={{ color: "var(--ink)" }}>
             {matchedCount}/{totalArrowed}
           </span>
         </div>
+
         <div className="neo rounded-xl bg-white h-5 overflow-hidden p-0.5">
           <div
             className="h-full bg-primary transition-[width] duration-300 ease-out"
