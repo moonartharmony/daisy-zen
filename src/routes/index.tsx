@@ -419,12 +419,24 @@ function Game() {
           className="fixed inset-0 z-40 flex items-center justify-center px-6"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
-          <div className="neo rounded-3xl bg-white w-full max-w-sm p-8 flex flex-col items-center gap-5 animate-pop-in text-center">
+          <div className="neo-lg rounded-3xl bg-white w-full max-w-sm p-8 flex flex-col items-center gap-5 animate-pop-in text-center">
+            <div className="flex items-center gap-2" aria-label="Three stars">
+              {[0, 1, 2].map((i) => (
+                <Star
+                  key={i}
+                  className="size-10"
+                  fill="#FFD700"
+                  stroke="#1F1F1F"
+                  strokeWidth={2.5}
+                  style={{ animation: `pop-in 320ms ${i * 120}ms both` }}
+                />
+              ))}
+            </div>
             <h2 className="text-display text-[color:var(--ink)]">
               Level Complete!
             </h2>
             <div className="text-body-lg text-[color:var(--ink)]">
-              +{displayedScore} points
+              +{displayedScore} XP
             </div>
             <button
               onClick={handleNext}
