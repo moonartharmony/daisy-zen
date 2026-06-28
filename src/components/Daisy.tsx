@@ -1,10 +1,11 @@
-import { DIR_DEG, type Direction, type Puzzle } from "@/lib/puzzles";
+import type { Puzzle } from "@/lib/puzzles";
+import type { WorldSnapshot } from "@/engine/types";
 
 export type PetalAnim = "pressed" | "aligned" | "error" | "hint" | null;
 
 type Props = {
   puzzle: Puzzle;
-  petalDirs: (Direction | null)[];
+  snapshot: WorldSnapshot;
   petalAnims: PetalAnim[];
   onTapPetal: (index: number) => void;
   bursting?: boolean;
@@ -35,9 +36,15 @@ function ArrowSvg({ size = 28, color = "#1b1c1c" }: { size?: number; color?: str
   );
 }
 
+/**
+ * Daisy is a pure projection of a WorldSnapshot — it owns no animated
+ * state of its own. Rotation, openness, and breath all come from the
+ * engine. Only short-lived feedback flashes (pressed / aligned / error
+ * / hint) ride on CSS classes layered on top.
+ */
 export function Daisy({
   puzzle,
-  petalDirs,
+  snapshot,
   petalAnims,
   onTapPetal,
   bursting,
@@ -47,17 +54,33 @@ export function Daisy({
 }: Props) {
   const { petalCount, centerDir } = puzzle;
   const step = 360 / petalCount;
+  // Center arrow direction comes from puzzle (absolute compass).
+  const centerDeg = ({
+    north: 0, northeast: 45, east: 90, southeast: 135,
+    south: 180, southwest: 225, west: 270, northwest: 315,
+  } as const)[centerDir];
+
+  const breath = snapshot.breathWave;
+  const containerScale = 1 + breath * 0.01;
 
   return (
     <div
       className="relative mx-auto select-none"
-      style={{ width: SIZE, height: SIZE, maxWidth: "90vw", aspectRatio: "1 / 1" }}
+      style={{
+        width: SIZE,
+        height: SIZE,
+        maxWidth: "90vw",
+        aspectRatio: "1 / 1",
+        transform: `scale(${containerScale})`,
+        transition: "transform 80ms linear",
+      }}
     >
       <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="absolute inset-0 h-full w-full">
         {puzzle.petals.map((spec, i) => {
           const angle = i * step;
-          const dir = petalDirs[i];
-          const arrowRot = dir ? DIR_DEG[dir] : 0;
+          const petal = snapshot.petals[i];
+          const arrowRot = petal?.currentRotation ?? 0;
+          const openness = petal?.openness ?? 1;
           const rad = (angle - 90) * (Math.PI / 180);
           const tx = Math.cos(rad) * PETAL_DIST;
           const ty = Math.sin(rad) * PETAL_DIST;
@@ -74,6 +97,9 @@ export function Daisy({
                     ? "petal-hint"
                     : "";
 
+          // Openness modulates the petal's long radius — closed petals visibly shrink.
+          const ry = PETAL_RY * (0.82 + openness * 0.18);
+
           return (
             <g
               key={i}
@@ -89,14 +115,14 @@ export function Daisy({
               }}
               className={bursting ? "animate-petal-burst" : ""}
             >
-              <ellipse cx={2} cy={2} rx={PETAL_RX} ry={PETAL_RY} fill="#4d4732" />
+              <ellipse cx={2} cy={2} rx={PETAL_RX} ry={ry} fill="#4d4732" />
               <g className={`petal-inner ${animClass}`}>
                 <ellipse
                   className="petal-body"
                   cx={0}
                   cy={0}
                   rx={PETAL_RX}
-                  ry={PETAL_RY}
+                  ry={ry}
                   fill={petalColor}
                   stroke="#4d4732"
                   strokeWidth={2}
@@ -122,6 +148,11 @@ export function Daisy({
             className={
               centerGlow ? "center-glow" : centerPulsing ? "center-pulse" : ""
             }
+            style={{
+              transformBox: "fill-box",
+              transformOrigin: "center",
+              transform: `scale(${1 + breath * 0.02})`,
+            }}
           >
             <circle
               r={CENTER_R}
@@ -129,7 +160,7 @@ export function Daisy({
               stroke="#4d4732"
               strokeWidth={2}
             />
-            <g transform={`rotate(${DIR_DEG[centerDir]})`}>
+            <g transform={`rotate(${centerDeg})`}>
               <foreignObject x={-20} y={-20} width={40} height={40}>
                 <div style={{ width: 40, height: 40 }}>
                   <ArrowSvg size={40} color="#ffffff" />
