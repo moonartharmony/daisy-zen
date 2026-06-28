@@ -23,8 +23,8 @@ const PETAL_COUNT = 8;
 
 // Field formula tuning
 const DIFFUSION_K = 0.12;
-const DECAY_K = 0.03;
-const WIND_BASE = 0.0025;
+const DECAY_K_BASE = 0.03;
+
 
 // Spring tuning for petal rotation (critically-damped-ish)
 const ROT_STIFFNESS = 140;
