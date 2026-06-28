@@ -55,9 +55,10 @@ function petalPathFor(
 ): string {
   switch (shape) {
     case "leaf": {
-      // Forest: pointed almond / leaf, both tips sharp.
-      const cx = rx * 1.05;
-      return `M 0 ${-ry} C ${cx} ${-ry * 0.4} ${cx} ${ry * 0.4} 0 ${ry} C ${-cx} ${ry * 0.4} ${-cx} ${-ry * 0.4} 0 ${-ry} Z`;
+      // Forest: rounded teardrop with bulb OUTWARD (-y) and softly tapered
+      // toward the center (+y), giving the dense layered daisy silhouette.
+      const w = rx * 1.15;
+      return `M 0 ${-ry} C ${w} ${-ry * 0.55} ${w * 0.85} ${ry * 0.2} 0 ${ry} C ${-w * 0.85} ${ry * 0.2} ${-w} ${-ry * 0.55} 0 ${-ry} Z`;
     }
     case "halfcircle": {
       // Mountain: semicircle with the flat edge alternating sides for the
