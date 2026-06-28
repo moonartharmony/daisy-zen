@@ -149,14 +149,27 @@ export class EmotionFieldEngine {
    * Tune per-chapter field behaviour.
    *  - windStrength: amplitude of background field noise (0..0.25)
    *  - decayMult:   how aggressively the field bleeds back to zero
+   *  - tolerance:   angular snap window in degrees (smaller → demands deeper focus)
    */
-  setDifficulty(opts: { windStrength?: number; decayMult?: number }) {
+  setDifficulty(opts: {
+    windStrength?: number;
+    decayMult?: number;
+    tolerance?: number;
+  }) {
     if (opts.windStrength !== undefined) {
       this.windStrength = clamp(opts.windStrength, 0, 0.25);
     }
     if (opts.decayMult !== undefined) {
       this.decayMult = clamp(opts.decayMult, 0.25, 4);
     }
+    if (opts.tolerance !== undefined) {
+      this.tolerance = clamp(opts.tolerance, 1, 15);
+    }
+  }
+
+  /** Current angular tolerance in degrees — flows out to UI snap checks. */
+  getTolerance(): number {
+    return this.tolerance;
   }
 
   /** Set the target rotation (degrees, 0=north) for a petal. */
