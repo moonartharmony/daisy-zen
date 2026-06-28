@@ -57,6 +57,10 @@ export class EmotionFieldEngine {
     arousal: 0.2,
     stability: 0.6,
   };
+  // Per-chapter difficulty knobs — see setDifficulty().
+  private windStrength = 0.08;
+  private decayMult = 1;
+
 
   // Mutable petal store — we mutate in place between ticks and only
   // freeze a snapshot view for React consumers.
@@ -140,8 +144,23 @@ export class EmotionFieldEngine {
     this.impulseQueue.push({ kind, petalIndex });
   }
 
+  /**
+   * Tune per-chapter field behaviour.
+   *  - windStrength: amplitude of background field noise (0..0.25)
+   *  - decayMult:   how aggressively the field bleeds back to zero
+   */
+  setDifficulty(opts: { windStrength?: number; decayMult?: number }) {
+    if (opts.windStrength !== undefined) {
+      this.windStrength = clamp(opts.windStrength, 0, 0.25);
+    }
+    if (opts.decayMult !== undefined) {
+      this.decayMult = clamp(opts.decayMult, 0.25, 4);
+    }
+  }
+
   /** Set the target rotation (degrees, 0=north) for a petal. */
   setPetalTarget(petalIndex: number, rotationDeg: number, openness = 1) {
+
     if (petalIndex < 0 || petalIndex >= PETAL_COUNT) return;
     this.targetRotations[petalIndex] = rotationDeg;
     this.petals[petalIndex].targetOpenness = clamp(openness, 0, 1);
@@ -188,11 +207,12 @@ export class EmotionFieldEngine {
       this.fieldIntensity +
         impulseEnergy +
         diffusion * DIFFUSION_K -
-        decay * DECAY_K +
+        decay * DECAY_K_BASE * this.decayMult +
         wind,
       0,
       1,
     );
+
 
     // 3) Emotion drifts back toward a calm baseline; arousal couples to field.
     const calmPull = 0.015;
@@ -281,11 +301,13 @@ export class EmotionFieldEngine {
 
   private windNoise(): number {
     // Deterministic-ish low-frequency noise driven by time + arousal.
+    // Amplitude scales with the per-chapter windStrength.
     const speed = 0.8 + this.emotion.arousal * 2.4;
     const a = Math.sin(this.time * speed) * 0.5;
     const b = Math.sin(this.time * speed * 1.73 + 1.3) * 0.5;
-    return (a + b) * WIND_BASE * (0.5 + this.emotion.arousal);
+    return (a + b) * this.windStrength * 0.05 * (0.5 + this.emotion.arousal);
   }
+
 
   private buildSnapshot(): WorldSnapshot {
     // Breath: sine wave whose speed depends on arousal.
