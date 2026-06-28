@@ -166,10 +166,10 @@ export function Daisy({
               stroke="#4d4732"
               strokeWidth={2}
             />
-            <g transform={`rotate(${centerDeg})`}>
+            <g transform={`rotate(${centerDeg + idleRot})`}>
               <foreignObject x={-20} y={-20} width={40} height={40}>
                 <div style={{ width: 40, height: 40 }}>
-                  <ArrowSvg size={40} color="#ffffff" />
+                  <ArrowSvg size={40} color="#1F1F1F" />
                 </div>
               </foreignObject>
             </g>
