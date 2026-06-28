@@ -295,12 +295,27 @@ function Game() {
 
   const totalArrowed = arrowedIndices.length;
 
-  // Petal accent shifts with the emotional field (alert red ↔ chapter ↔ gold).
-  const livePetalColor = petalAccentFromEmotion(
+  // Petal accent shifts with the emotional field (alert ↔ chapter ↔ gold).
+  // Sakura chapter uses pink as its alert color instead of red.
+  const livePetalBase = petalAccentFromEmotion(
     snapshot.globalEmotion.stability,
     snapshot.globalEmotion.valence,
     chapter.petalColor,
+    chapter.alertColor,
   );
+  const liveAltColor = chapter.petalAlt
+    ? petalAccentFromEmotion(
+        snapshot.globalEmotion.stability,
+        snapshot.globalEmotion.valence,
+        chapter.petalAlt,
+        chapter.alertColor,
+      )
+    : undefined;
+  // Build per-petal palette: alternate base / alt when chapter defines one.
+  const petalPalette = liveAltColor
+    ? puzzle.petals.map((_, i) => (i % 2 === 0 ? livePetalBase : liveAltColor))
+    : undefined;
+  const idleSpin = moves === 0 && !won;
 
   return (
     <main
