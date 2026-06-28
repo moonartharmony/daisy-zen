@@ -62,6 +62,8 @@ function Game() {
   const [hasAligned, setHasAligned] = useState(false);
   const [displayedScore, setDisplayedScore] = useState(0);
   const startedAtRef = useRef<number>(Date.now());
+  const lastCanvasTapRef = useRef<number>(0);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const puzzle = useMemo(() => getPuzzle(level), [level]);
   const chapter = useMemo(() => getChapter(level), [level]);
