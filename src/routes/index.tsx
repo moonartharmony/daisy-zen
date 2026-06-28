@@ -353,7 +353,9 @@ function Game() {
           bursting={bursting}
           centerPulsing={centerPulsing}
           centerGlow={centerGlow}
-          petalColor={livePetalColor}
+          petalColor={livePetalBase}
+          petalColors={petalPalette}
+          idleSpin={idleSpin}
         />
       </section>
 
