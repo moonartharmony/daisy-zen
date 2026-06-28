@@ -266,7 +266,9 @@ export class EmotionFieldEngine {
     );
 
     // 4) Integrate petals (spring toward target rotation + jitter from field).
-    const jitterAmp = (1 - this.emotion.stability) * 6; // deg
+    // Jitter amplitude is gated by the chapter's angular tolerance so harder
+    // biomes settle inside their tighter snap window (Mountain/Sakura).
+    const jitterAmp = (1 - this.emotion.stability) * (this.tolerance * 1.1);
     for (let i = 0; i < PETAL_COUNT; i++) {
       const p = this.petals[i];
       const target =
