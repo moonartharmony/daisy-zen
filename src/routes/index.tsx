@@ -356,7 +356,7 @@ function Game() {
             }}
           />
         </div>
-        <div className="text-label -mt-1" style={{ color: "rgba(255,255,255,0.7)" }}>
+        <div className="text-label -mt-1" style={{ color: "var(--ink)", opacity: 0.7 }}>
           Moves {moves} · Budget {moveBudget}
         </div>
         <div className="flex items-center gap-3">
