@@ -71,10 +71,16 @@
   --input: #1F1F1F;
   --ring: #1F1F1F;
 
-  /* Flat offset shadow — heavy Neubrutalist drop */
-  --shadow-neo: 5px 5px 0px 0px #1F1F1F;
+  /* Flat offset shadows — Neubrutalist drop (DAISY_DESIGN_SYSTEM) */
+  --shadow-neo: 4px 4px 0px 0px #1F1F1F;
   --shadow-neo-sm: 3px 3px 0px 0px #1F1F1F;
   --shadow-neo-lg: 6px 6px 0px 0px #1F1F1F;
+  --shadow-neo-sunken: inset 3px 3px 0px rgba(0,0,0,0.2);
+
+  /* Motion tokens */
+  --ease-snap: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --dur-snap: 120ms;
+  --dur-flow: 300ms;
 }
 
 .dark {
