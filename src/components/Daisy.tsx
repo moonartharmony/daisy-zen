@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { DIR_DEG, type Direction, type Puzzle } from "@/lib/puzzles";
 
 export type PetalAnim = "pressed" | "aligned" | "error" | "hint" | null;
@@ -8,23 +7,11 @@ type Props = {
   petalDirs: (Direction | null)[];
   petalAnims: PetalAnim[];
   onTapPetal: (index: number) => void;
-  onSwipePetal: (index: number, dir: Direction) => void;
   bursting?: boolean;
   centerPulsing?: boolean;
   centerGlow?: boolean;
   petalColor?: string;
 };
-
-const SWIPE_THRESHOLD = 18; // px — below this counts as a tap
-
-function angleToCardinal(dx: number, dy: number): Direction {
-  // Screen coords: +x right (east), +y down (south).
-  const a = (Math.atan2(dy, dx) * 180) / Math.PI; // -180..180
-  if (a >= -45 && a < 45) return "east";
-  if (a >= 45 && a < 135) return "south";
-  if (a >= -135 && a < -45) return "north";
-  return "west";
-}
 
 const SIZE = 320;
 const CENTER = SIZE / 2;
@@ -53,7 +40,6 @@ export function Daisy({
   petalDirs,
   petalAnims,
   onTapPetal,
-  onSwipePetal,
   bursting,
   centerPulsing,
   centerGlow,
@@ -61,9 +47,6 @@ export function Daisy({
 }: Props) {
   const { petalCount, centerDir } = puzzle;
   const step = 360 / petalCount;
-  const startRef = useRef<Map<number, { x: number; y: number; idx: number }>>(
-    new Map(),
-  );
 
   return (
     <div
@@ -96,30 +79,8 @@ export function Daisy({
               key={i}
               transform={`translate(${CENTER} ${CENTER}) rotate(${angle}) translate(0 ${-PETAL_DIST})`}
               onPointerDown={(e) => {
-                if (bursting || !spec.hasArrow) return;
                 e.preventDefault();
-                (e.target as Element).setPointerCapture?.(e.pointerId);
-                startRef.current.set(e.pointerId, {
-                  x: e.clientX,
-                  y: e.clientY,
-                  idx: i,
-                });
-              }}
-              onPointerUp={(e) => {
-                if (bursting || !spec.hasArrow) return;
-                const start = startRef.current.get(e.pointerId);
-                startRef.current.delete(e.pointerId);
-                if (!start || start.idx !== i) return;
-                const dx = e.clientX - start.x;
-                const dy = e.clientY - start.y;
-                if (Math.hypot(dx, dy) < SWIPE_THRESHOLD) {
-                  onTapPetal(i);
-                } else {
-                  onSwipePetal(i, angleToCardinal(dx, dy));
-                }
-              }}
-              onPointerCancel={(e) => {
-                startRef.current.delete(e.pointerId);
+                if (!bursting && spec.hasArrow) onTapPetal(i);
               }}
               style={{
                 cursor: spec.hasArrow ? "pointer" : "default",

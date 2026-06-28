@@ -1,153 +1,224 @@
-/* ── Self-hosted Quicksand (variable font, no external requests) ─────────────
-   Served from node_modules via Vite — bundled into the app, works offline,
-   safe in Android WebView / TWA with no network policy restrictions.        */
-@font-face {
-  font-family: 'Quicksand';
-  font-style:  normal;
-  font-display: swap;
-  font-weight: 300 700;
-  src: url('@fontsource-variable/quicksand/files/quicksand-latin-wght-normal.woff2')
-       format('woff2-variations'),
-       url('@fontsource-variable/quicksand/files/quicksand-latin-ext-wght-normal.woff2')
-       format('woff2-variations');
-  unicode-range: U+0000-00FF, U+0100-02BA, U+02BD-02FF,
-                 U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
-                 U+0304, U+0308, U+0329, U+2000-206F, U+20AC,
-                 U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap');
 
-@import "tailwindcss";
+@custom-variant dark (&:is(.dark *));
 
-/* ── TAILWIND COMPAT tokens for __root.tsx error/404 pages ── */
+/*
+ * Daisy Arrow — Soft Neubrutalism design system.
+ * Single source of truth for colors, shadows, fonts.
+ */
+
 @theme inline {
-  --color-background:        #FBF9F8;
-  --color-foreground:        #1B1C1C;
-  --color-muted-foreground:  #7E775F;
-  --color-primary:           #FFD700;
-  --color-primary-foreground:#705E00;
-  --color-input:             #4D4732;
-  --color-accent:            #FFD700;
-  --color-border:            #4D4732;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-petal: var(--petal);
+  --color-ink: var(--ink);
+  --color-sage: var(--sage);
+  --font-sans: 'Quicksand', system-ui, sans-serif;
 }
 
-/* ── DESIGN TOKENS ───────────────────────────────────────── */
 :root {
-  --ink:        #4D4732;
-  --ink-light:  #7E775F;
-  --yellow:     #FFD700;
-  --yellow-txt: #705E00;
-  --surface:    #FFFFFF;
-  --text:       #1B1C1C;
+  --radius: 0.75rem;
 
-  --shadow-md:  4px 4px 0px 0px rgba(77,71,50,1);
-  --shadow-sm:  2px 2px 0px 0px rgba(77,71,50,1);
-  --spring:     cubic-bezier(0.34,1.56,0.64,1);
-  --soft:       cubic-bezier(0.25,0.46,0.45,0.94);
+  /* Daisy Arrow palette */
+  --sage: #B2AC88;
+  --ink: #4d4732;          /* outline + secondary text */
+  --petal: #FFFFFF;
+  --primary: #FFD700;       /* center + CTA */
+  --primary-foreground: #705e00;
+  --foreground: #1b1c1c;
+  --background: #B2AC88;
 
-  /* chapter background — set by JS */
-  --chapter-bg: #B2AC88;
-}
+  --card: #FFFFFF;
+  --card-foreground: #1b1c1c;
+  --popover: #FFFFFF;
+  --popover-foreground: #1b1c1c;
+  --secondary: #FFFFFF;
+  --secondary-foreground: #1b1c1c;
+  --muted: #d8d3b5;
+  --muted-foreground: #4d4732;
+  --accent: #FFD700;
+  --accent-foreground: #705e00;
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: #ffffff;
+  --border: #4d4732;
+  --input: #4d4732;
+  --ring: #705d00;
 
-/* ── RESET ───────────────────────────────────────────────── */
-*, *::before, *::after {
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-html, body, #root { height: 100%; margin: 0; padding: 0; }
-body {
-  font-family: 'Quicksand', sans-serif;
-  background: var(--chapter-bg);
-  transition: background 1.4s ease-in-out;
-  overflow: hidden;
-}
-
-/* ── GRAIN TEXTURE ───────────────────────────────────────── */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9999;
-  opacity: 0.045;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 300px 300px;
+  /* Flat offset shadow */
+  --shadow-neo: 4px 4px 0px 0px rgba(77, 71, 50, 1);
+  --shadow-neo-sm: 2px 2px 0px 0px rgba(77, 71, 50, 1);
 }
 
-/* ── NEUBRUTALISM PRESS ──────────────────────────────────── */
-.press {
-  transition: transform 70ms ease, box-shadow 70ms ease;
-  cursor: pointer;
-  user-select: none;
-  -webkit-user-select: none;
-}
-.press:active {
-  transform: translate(2px,2px) !important;
-  box-shadow: none !important;
+.dark {
+  /* Daisy Arrow has one mode — keep tokens identical to light. */
+  --background: #B2AC88;
+  --foreground: #1b1c1c;
 }
 
-/* ── KEYFRAMES ───────────────────────────────────────────── */
-@keyframes anim-bounce-kf {
-  0%   { scale: 1;    }
-  45%  { scale: 0.84; }
-  100% { scale: 1;    }
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html, body, #root {
+    height: 100%;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-weight: 600;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+  }
 }
-@keyframes anim-align-kf {
-  0%   { filter: brightness(2.2) saturate(2.5); }
-  100% { filter: brightness(1)   saturate(1);   }
+
+@layer utilities {
+  .neo {
+    border: 2px solid var(--ink);
+    box-shadow: var(--shadow-neo);
+    transition: transform 80ms ease, box-shadow 80ms ease;
+  }
+  .neo-press:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+  }
+  .neo-sm {
+    border: 2px solid var(--ink);
+    box-shadow: var(--shadow-neo-sm);
+  }
+  .text-display {
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .text-headline {
+    font-size: 24px;
+    font-weight: 700;
+  }
+  .text-body-lg {
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .text-label {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
 }
-@keyframes anim-shake-kf {
-  0%,100% { translate: 0 0;    }
-  25%     { translate: -5px 0; }
-  75%     { translate:  5px 0; }
+
+@keyframes petal-burst {
+  0%   { transform: translate(var(--tx, 0), var(--ty, 0)) scale(1); opacity: 1; }
+  100% { transform: translate(calc(var(--tx, 0) * 2.2), calc(var(--ty, 0) * 2.2)) scale(0.6); opacity: 0; }
 }
-@keyframes anim-cpulse-kf {
-  0%,100% { scale: 1;    }
-  50%     { scale: 1.13; }
+.animate-petal-burst {
+  animation: petal-burst 700ms cubic-bezier(.2,.8,.2,1) forwards;
 }
-@keyframes anim-cwin-kf {
-  0%   { scale: 1;    box-shadow: var(--shadow-md); }
-  40%  { scale: 1.28; box-shadow: 0 0 48px rgba(255,215,0,.75); }
-  100% { scale: 1;    box-shadow: var(--shadow-md); }
+
+@keyframes pop-in {
+  0%   { transform: scale(0.7); opacity: 0; }
+  100% { transform: scale(1);   opacity: 1; }
 }
-@keyframes anim-hglow-kf {
-  0%,100% { box-shadow: var(--shadow-sm); }
-  50%     { box-shadow: 0 0 0 7px rgba(255,215,0,.5), var(--shadow-sm); }
+.animate-pop-in {
+  animation: pop-in 280ms cubic-bezier(.2,.9,.3,1.2) forwards;
 }
-@keyframes anim-chfade-kf {
+
+/* Per-petal interaction states.
+   Inner <g> wraps the petal body; transform-box:fill-box keeps origin local. */
+.petal-inner {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.petal-pressed {
+  transform: scale(0.88);
+}
+.petal-aligned .petal-body {
+  animation: align-flash 320ms ease-out forwards;
+}
+@keyframes align-flash {
+  0%   { fill: #a8e6a3; stroke: #4CAF50; }
+  60%  { fill: #d4f5d4; stroke: #4CAF50; }
+  100% { fill: #FFFFFF; stroke: #4d4732; }
+}
+.petal-error {
+  animation: error-shake 220ms ease-out;
+}
+@keyframes error-shake {
+  0%   { transform: translateX(0); }
+  25%  { transform: translateX(-4px); }
+  75%  { transform: translateX(4px); }
+  100% { transform: translateX(0); }
+}
+.petal-hint {
+  animation: hint-pulse 700ms ease-in-out 3;
+}
+@keyframes hint-pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.06); }
+}
+
+/* Center circle states */
+.center-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: center-pulse 250ms ease-out;
+}
+@keyframes center-pulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+.center-glow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: center-glow 800ms ease-in-out forwards;
+  filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.65));
+}
+@keyframes center-glow {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.2); }
+  100% { transform: scale(1.05); }
+}
+
+/* Chapter transition overlay */
+.animate-chapter-fade {
+  animation: chapter-fade 2500ms ease-in-out forwards;
+}
+@keyframes chapter-fade {
   0%   { opacity: 0; }
-  14%  { opacity: 1; }
-  80%  { opacity: 1; }
-  100% { opacity: 0; }
-}
-@keyframes anim-score-kf {
-  from { scale: 0.4; opacity: 0; }
-  to   { scale: 1;   opacity: 1; }
-}
-@keyframes anim-spin-kf {
-  from { transform: rotate(0deg);   }
-  to   { transform: rotate(360deg); }
-}
-@keyframes anim-slideup-kf {
-  from { transform: translateY(130%); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
-}
-@keyframes anim-fadein-kf {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  18%  { opacity: 1; }
+  78%  { opacity: 1; }
+  100% { opacity: 0; pointer-events: none; }
 }
 
-/* ── ANIMATION CLASSES ───────────────────────────────────── */
-.anim-bounce  { animation: anim-bounce-kf  160ms var(--spring); }
-.anim-align   { animation: anim-align-kf   380ms ease-out forwards; }
-.anim-shake   { animation: anim-shake-kf   220ms ease-out; }
-.anim-cpulse  { animation: anim-cpulse-kf  260ms ease-out; }
-.anim-cwin    { animation: anim-cwin-kf    850ms ease-in-out forwards; }
-.anim-hglow   { animation: anim-hglow-kf   750ms ease-in-out 3; }
-.anim-chfade  { animation: anim-chfade-kf 2900ms ease-in-out forwards; }
-.anim-score   { animation: anim-score-kf   500ms var(--spring) 300ms both; }
-.anim-spin    { animation: anim-spin-kf     12s  linear       infinite; }
-.anim-slideup { animation: anim-slideup-kf  340ms var(--spring) both; }
-.anim-fadein  { animation: anim-fadein-kf   400ms ease both; }
+/* Smooth chapter background transition on body/main */
+.chapter-bg {
+  transition: background-color 800ms ease;
+}
