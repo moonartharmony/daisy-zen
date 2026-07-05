@@ -327,31 +327,10 @@ function Game() {
 
   const totalArrowed = arrowedIndices.length;
 
-  // Petal accent shifts with the emotional field (alert ↔ chapter ↔ gold).
-  // On first appearance — before any move or win — keep petals stark white.
-  const isFirstAppearance = moves === 0 && !won && !hasAligned;
-  const livePetalBase = isFirstAppearance
-    ? "#FFFFFF"
-    : petalAccentFromEmotion(
-        snapshot.globalEmotion.stability,
-        snapshot.globalEmotion.valence,
-        chapter.petalColor,
-        chapter.alertColor,
-      );
-  const liveAltColor = isFirstAppearance
-    ? undefined
-    : chapter.petalAlt
-      ? petalAccentFromEmotion(
-          snapshot.globalEmotion.stability,
-          snapshot.globalEmotion.valence,
-          chapter.petalAlt,
-          chapter.alertColor,
-        )
-      : undefined;
-  // Build per-petal palette: alternate base / alt when chapter defines one.
-  const petalPalette = liveAltColor
-    ? puzzle.petals.map((_, i) => (i % 2 === 0 ? livePetalBase : liveAltColor))
-    : undefined;
+  // Strict white-only interaction rule: petals & arrows are always pure white.
+  // Contrast comes solely from the heavy black stroke against the chapter bg.
+  const livePetalBase = "#FFFFFF";
+  const petalPalette: string[] | undefined = undefined;
 
   const idleSpin = false;
 
