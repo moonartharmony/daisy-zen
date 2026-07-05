@@ -25,9 +25,13 @@ const PETAL_COUNT = 8;
 const DIFFUSION_K = 0.12;
 const DECAY_K_BASE = 0.03;
 
-// Spring tuning for petal rotation (slightly underdamped → organic settle).
-const ROT_STIFFNESS = 140;
-const ROT_DAMPING = 18;
+// Spring tuning for petal rotation. Critically damped baseline for
+// zero overshoot; magnetic damping ramps up near the target so motion
+// feels heavier the closer the petal gets to alignment.
+const ROT_STIFFNESS = 120;
+const ROT_DAMPING = 26;
+const ROT_DAMPING_MAX = 60; // magnetic friction ceiling near target
+const ROT_FREEZE_DEG = 0.6;  // absolute delta below which motion dead-stops
 
 // Openness lerp factor per tick
 const OPEN_LERP = 0.12;
