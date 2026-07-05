@@ -97,9 +97,10 @@ function ChapterCard({
   // dusty pink for sakura) so the map already hints at the biome.
   const lockedTint: Record<ChapterId, string> = {
     daisy: "#FFFFFF",
-    forest: "#FFFFFF",
+    lavender: "#EDE2F7",
     mountain: "#EFE6D2",
     sakura: "#FBD9C3",
+    lotus: "#DCEFE8",
   };
   const cardBg = isActive
     ? "var(--primary)"
