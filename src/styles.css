@@ -156,92 +156,81 @@
   }
 }
 
+/* Petal burst retained as a soft fade — no particle spray, no scaling flare. */
 @keyframes petal-burst {
-  0%   { transform: translate(var(--tx, 0), var(--ty, 0)) scale(1); opacity: 1; }
-  100% { transform: translate(calc(var(--tx, 0) * 2.2), calc(var(--ty, 0) * 2.2)) scale(0.6); opacity: 0; }
+  0%   { opacity: 1; }
+  100% { opacity: 0.92; }
 }
 .animate-petal-burst {
-  animation: petal-burst 700ms cubic-bezier(.2,.8,.2,1) forwards;
+  animation: petal-burst 400ms var(--ease-quiet) forwards;
 }
 
+/* Global entry — pure opacity fade with a 4px vertical settle. */
 @keyframes pop-in {
-  0%   { transform: scale(0.7); opacity: 0; }
-  100% { transform: scale(1);   opacity: 1; }
+  0%   { opacity: 0; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 .animate-pop-in {
-  animation: pop-in 280ms cubic-bezier(.2,.9,.3,1.2) forwards;
+  animation: pop-in 260ms var(--ease-quiet) forwards;
 }
 
-/* Per-petal interaction states.
-   Inner <g> wraps the petal body; transform-box:fill-box keeps origin local. */
+/* Per-petal interaction states — feedback is motion REDUCTION, not addition. */
 .petal-inner {
   transform-box: fill-box;
   transform-origin: center;
-  transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: opacity 200ms var(--ease-quiet);
 }
-.petal-pressed {
-  transform: scale(0.88);
+.petal-pressed .petal-body {
+  transition: opacity 120ms var(--ease-quiet);
+  opacity: 0.82;
 }
+/* Aligned = the settle-and-freeze moment. No color pop, no scale.
+   Stroke deepens quietly and the fill lifts to full white after the freeze. */
 .petal-aligned .petal-body {
-  animation: align-flash 320ms ease-out forwards;
+  animation: align-settle 420ms var(--ease-quiet) forwards;
 }
-@keyframes align-flash {
-  0%   { fill: #a8e6a3; stroke: #4CAF50; }
-  60%  { fill: #d4f5d4; stroke: #4CAF50; }
-  100% { fill: #FFFFFF; stroke: #4d4732; }
+@keyframes align-settle {
+  0%   { opacity: 0.88; }
+  40%  { opacity: 0.88; }   /* micro-freeze window */
+  100% { opacity: 1; }
 }
+/* Misalign = a single 2px lateral nudge, then still. */
 .petal-error {
-  animation: error-shake 220ms ease-out;
+  animation: error-nudge 200ms var(--ease-quiet);
 }
-@keyframes error-shake {
+@keyframes error-nudge {
   0%   { transform: translateX(0); }
-  25%  { transform: translateX(-4px); }
-  75%  { transform: translateX(4px); }
+  50%  { transform: translateX(-2px); }
   100% { transform: translateX(0); }
 }
-.petal-hint {
-  animation: hint-pulse 700ms ease-in-out 3;
+/* Hint = quiet opacity breathe, no scale. */
+.petal-hint .petal-body {
+  animation: hint-breathe 900ms var(--ease-quiet) 2;
 }
-@keyframes hint-pulse {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.06); }
+@keyframes hint-breathe {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.7; }
 }
 
-/* Center circle states */
-.center-pulse {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: center-pulse 250ms ease-out;
-}
-@keyframes center-pulse {
-  0%   { transform: scale(1); }
-  50%  { transform: scale(1.12); }
-  100% { transform: scale(1); }
-}
+/* Center circle: STATIC anchor. Any legacy pulse/glow becomes a no-op. */
+.center-pulse,
 .center-glow {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: center-glow 800ms ease-in-out forwards;
-  filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.65));
-}
-@keyframes center-glow {
-  0%   { transform: scale(1); }
-  30%  { transform: scale(1.2); }
-  100% { transform: scale(1.05); }
+  transform: none;
+  filter: none;
+  animation: none;
 }
 
-/* Chapter transition overlay */
+/* Chapter transition overlay — pure opacity fade. */
 .animate-chapter-fade {
-  animation: chapter-fade 2500ms ease-in-out forwards;
+  animation: chapter-fade 2200ms var(--ease-quiet) forwards;
 }
 @keyframes chapter-fade {
   0%   { opacity: 0; }
-  18%  { opacity: 1; }
-  78%  { opacity: 1; }
+  20%  { opacity: 1; }
+  80%  { opacity: 1; }
   100% { opacity: 0; pointer-events: none; }
 }
 
-/* Smooth chapter background transition on body/main */
 .chapter-bg {
-  transition: background-color 800ms ease;
+  transition: background-color 900ms var(--ease-quiet);
 }
