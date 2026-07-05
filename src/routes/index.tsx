@@ -250,12 +250,10 @@ function Game() {
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         navigator.vibrate?.(50);
       }
-      setCenterGlow(true);
       engine.injectImpulse("win");
-      engine.surgeOpenness(0.25, 900);
+      engine.surgeOpenness(0.15, 700);
       if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
       setHintAvailable(false);
-      setTimeout(() => setBursting(true), 250);
       const target = earned;
       setDisplayedScore(0);
       const startTs = performance.now();
