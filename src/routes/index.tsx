@@ -221,17 +221,15 @@ function Game() {
     if (willAlign) {
       haptic.align();
       setHasAligned(true);
-      setPetalAnim(i, "aligned", 320);
-      setCenterPulsing(true);
-      setTimeout(() => setCenterPulsing(false), 260);
+      setPetalAnim(i, "aligned", 420);
       engine.injectImpulse("align", i);
     } else if (wasAligned && !willAlign) {
       haptic.misalign();
-      setPetalAnim(i, "error", 220);
+      setPetalAnim(i, "error", 200);
       engine.injectImpulse("misalign", i);
     } else {
       haptic.tap();
-      setPetalAnim(i, "pressed", 80);
+      setPetalAnim(i, "pressed", 120);
     }
   };
 
