@@ -107,6 +107,14 @@ function Game() {
   );
   const lastChapterIdRef = useRef<string>(chapter.id);
 
+  // Chapter intro (poetic vignette) — shown once per biome.
+  const [introChapterId, setIntroChapterId] = useState<string | null>(null);
+  // Scroll modal — populated on win when level % 5 === 0 within a chapter.
+  const [pendingScroll, setPendingScroll] = useState<{
+    chapterId: string;
+    index: number;
+  } | null>(null);
+
   // Hint state
   const [hintAvailable, setHintAvailable] = useState(false);
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
