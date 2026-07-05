@@ -12,6 +12,8 @@ import {
 } from "@/lib/puzzles";
 import { getChapter } from "@/lib/chapters";
 import { ChapterTransition } from "@/components/ChapterTransition";
+import { ChapterIntro } from "@/components/ChapterIntro";
+import { ZenScroll } from "@/components/ZenScroll";
 import { TutorialCoach } from "@/components/TutorialCoach";
 import { BottomNav } from "@/components/BottomNav";
 import { haptic } from "@/lib/haptic";
@@ -19,7 +21,7 @@ import {
   useEmotionEngine,
   petalAccentFromEmotion,
 } from "@/engine/useEmotionEngine";
-import { useProgress } from "@/lib/progress";
+import { useProgress, scrollIdForLevel } from "@/lib/progress";
 
 const searchSchema = z.object({
   chapter: z
