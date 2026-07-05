@@ -55,7 +55,14 @@ const HINT_DELAY_MS = 45000;
 function Game() {
   // Inbound chapter / level from the Journey Map (?chapter=forest&level=8).
   const search = Route.useSearch();
-  const { unlockLevel, addXp } = useProgress();
+  const {
+    unlockLevel,
+    addXp,
+    collectScroll,
+    hasScroll,
+    isChapterSeen,
+    markChapterSeen,
+  } = useProgress();
 
   const [level, setLevel] = useState<number>(search.level ?? 1);
   const [score, setScore] = useState(0);
