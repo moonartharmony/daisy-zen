@@ -221,17 +221,15 @@ function Game() {
     if (willAlign) {
       haptic.align();
       setHasAligned(true);
-      setPetalAnim(i, "aligned", 320);
-      setCenterPulsing(true);
-      setTimeout(() => setCenterPulsing(false), 260);
+      setPetalAnim(i, "aligned", 420);
       engine.injectImpulse("align", i);
     } else if (wasAligned && !willAlign) {
       haptic.misalign();
-      setPetalAnim(i, "error", 220);
+      setPetalAnim(i, "error", 200);
       engine.injectImpulse("misalign", i);
     } else {
       haptic.tap();
-      setPetalAnim(i, "pressed", 80);
+      setPetalAnim(i, "pressed", 120);
     }
   };
 
@@ -250,12 +248,10 @@ function Game() {
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         navigator.vibrate?.(50);
       }
-      setCenterGlow(true);
       engine.injectImpulse("win");
-      engine.surgeOpenness(0.25, 900);
+      engine.surgeOpenness(0.15, 700);
       if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
       setHintAvailable(false);
-      setTimeout(() => setBursting(true), 250);
       const target = earned;
       setDisplayedScore(0);
       const startTs = performance.now();
@@ -357,7 +353,7 @@ function Game() {
     ? puzzle.petals.map((_, i) => (i % 2 === 0 ? livePetalBase : liveAltColor))
     : undefined;
 
-  const idleSpin = moves === 0 && !won;
+  const idleSpin = false;
 
   const ink = chapter.inkColor;
   return (
@@ -541,7 +537,7 @@ function Game() {
                   fill="#FFD700"
                   stroke="#1F1F1F"
                   strokeWidth={2.5}
-                  style={{ animation: `pop-in 320ms ${i * 120}ms both` }}
+                  style={{ animation: `pop-in 340ms ${i * 90}ms both` }}
                 />
               ))}
             </div>

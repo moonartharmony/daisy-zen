@@ -25,9 +25,13 @@ const PETAL_COUNT = 8;
 const DIFFUSION_K = 0.12;
 const DECAY_K_BASE = 0.03;
 
-// Spring tuning for petal rotation (slightly underdamped → organic settle).
-const ROT_STIFFNESS = 140;
-const ROT_DAMPING = 18;
+// Spring tuning for petal rotation. Critically damped baseline for
+// zero overshoot; magnetic damping ramps up near the target so motion
+// feels heavier the closer the petal gets to alignment.
+const ROT_STIFFNESS = 120;
+const ROT_DAMPING = 26;
+const ROT_DAMPING_MAX = 60; // magnetic friction ceiling near target
+const ROT_FREEZE_DEG = 0.6;  // absolute delta below which motion dead-stops
 
 // Openness lerp factor per tick
 const OPEN_LERP = 0.12;
@@ -277,13 +281,24 @@ export class EmotionFieldEngine {
           ? Math.sin(this.time * 9 + i * 1.7) * jitterAmp
           : 0);
       const delta = shortestAngleDelta(p.currentRotation, target);
-      const accel = ROT_STIFFNESS * delta - ROT_DAMPING * p.angularVelocity;
+      const absDelta = Math.abs(delta);
+      // Magnetic friction: damping ramps up as the petal enters its snap
+      // window, so motion feels heavier and slower near the target.
+      const proximity = 1 - Math.min(1, absDelta / (this.tolerance * 4));
+      const damping = ROT_DAMPING + (ROT_DAMPING_MAX - ROT_DAMPING) * proximity;
+      const accel = ROT_STIFFNESS * delta - damping * p.angularVelocity;
       p.angularVelocity += accel * dt;
-      // soft clamp to keep things sane on huge deltas
-      if (p.angularVelocity > 1200) p.angularVelocity = 1200;
-      if (p.angularVelocity < -1200) p.angularVelocity = -1200;
-      p.currentRotation = (p.currentRotation + p.angularVelocity * dt) % 360;
-      if (p.currentRotation < 0) p.currentRotation += 360;
+      // Settle & freeze: when we're inside the freeze window AND slow,
+      // dead-stop the petal. This is the non-visual cognitive reward.
+      if (absDelta < ROT_FREEZE_DEG && Math.abs(p.angularVelocity) < 8) {
+        p.currentRotation = target;
+        p.angularVelocity = 0;
+      } else {
+        if (p.angularVelocity > 1200) p.angularVelocity = 1200;
+        if (p.angularVelocity < -1200) p.angularVelocity = -1200;
+        p.currentRotation = (p.currentRotation + p.angularVelocity * dt) % 360;
+        if (p.currentRotation < 0) p.currentRotation += 360;
+      }
 
       // Openness follows target via simple lerp; breath modulates slightly.
       p.openness = lerp(p.openness, p.targetOpenness, OPEN_LERP);
