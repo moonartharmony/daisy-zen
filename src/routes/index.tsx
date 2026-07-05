@@ -269,6 +269,17 @@ function Game() {
       setScore((s) => s + earned);
       addXp(earned);
       unlockLevel(level + 1);
+      // Scroll milestone — every 5th level within a chapter grants a scroll.
+      const milestone = scrollIdForLevel(level);
+      if (milestone && !hasScroll(milestone.chapterId, milestone.scrollIndex)) {
+        setTimeout(() => {
+          collectScroll(milestone.chapterId, milestone.scrollIndex);
+          setPendingScroll({
+            chapterId: milestone.chapterId,
+            index: milestone.scrollIndex,
+          });
+        }, 900);
+      }
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
