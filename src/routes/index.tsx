@@ -537,7 +537,7 @@ function Game() {
                   fill="#FFD700"
                   stroke="#1F1F1F"
                   strokeWidth={2.5}
-                  style={{ animation: `pop-in 320ms ${i * 120}ms both` }}
+                  style={{ animation: `pop-in 340ms ${i * 90}ms both` }}
                 />
               ))}
             </div>
