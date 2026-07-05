@@ -281,13 +281,24 @@ export class EmotionFieldEngine {
           ? Math.sin(this.time * 9 + i * 1.7) * jitterAmp
           : 0);
       const delta = shortestAngleDelta(p.currentRotation, target);
-      const accel = ROT_STIFFNESS * delta - ROT_DAMPING * p.angularVelocity;
+      const absDelta = Math.abs(delta);
+      // Magnetic friction: damping ramps up as the petal enters its snap
+      // window, so motion feels heavier and slower near the target.
+      const proximity = 1 - Math.min(1, absDelta / (this.tolerance * 4));
+      const damping = ROT_DAMPING + (ROT_DAMPING_MAX - ROT_DAMPING) * proximity;
+      const accel = ROT_STIFFNESS * delta - damping * p.angularVelocity;
       p.angularVelocity += accel * dt;
-      // soft clamp to keep things sane on huge deltas
-      if (p.angularVelocity > 1200) p.angularVelocity = 1200;
-      if (p.angularVelocity < -1200) p.angularVelocity = -1200;
-      p.currentRotation = (p.currentRotation + p.angularVelocity * dt) % 360;
-      if (p.currentRotation < 0) p.currentRotation += 360;
+      // Settle & freeze: when we're inside the freeze window AND slow,
+      // dead-stop the petal. This is the non-visual cognitive reward.
+      if (absDelta < ROT_FREEZE_DEG && Math.abs(p.angularVelocity) < 8) {
+        p.currentRotation = target;
+        p.angularVelocity = 0;
+      } else {
+        if (p.angularVelocity > 1200) p.angularVelocity = 1200;
+        if (p.angularVelocity < -1200) p.angularVelocity = -1200;
+        p.currentRotation = (p.currentRotation + p.angularVelocity * dt) % 360;
+        if (p.currentRotation < 0) p.currentRotation += 360;
+      }
 
       // Openness follows target via simple lerp; breath modulates slightly.
       p.openness = lerp(p.openness, p.targetOpenness, OPEN_LERP);
