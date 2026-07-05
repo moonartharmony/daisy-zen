@@ -77,10 +77,11 @@
   --shadow-neo-lg: 6px 6px 0px 0px #1F1F1F;
   --shadow-neo-sunken: inset 3px 3px 0px rgba(0,0,0,0.2);
 
-  /* Motion tokens */
-  --ease-snap: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  --dur-snap: 120ms;
-  --dur-flow: 300ms;
+  /* Motion tokens — quiet, linear-ish easings, no overshoot. */
+  --ease-quiet: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-snap: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-snap: 160ms;
+  --dur-flow: 360ms;
 }
 
 .dark {
