@@ -156,6 +156,10 @@ function Game() {
       setTransitionChapterId(chapter.id);
       haptic.chapter();
     }
+    // Show poetic vignette the first time a biome opens.
+    if (!isChapterSeen(chapter.id)) {
+      setIntroChapterId(chapter.id);
+    }
     // Apply per-chapter difficulty profile to the simulation.
     engine.setDifficulty(chapter.difficulty);
     return () => {
