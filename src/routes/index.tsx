@@ -497,6 +497,26 @@ function Game() {
         />
       )}
 
+      {/* Poetic chapter vignette — shown once per biome */}
+      {introChapterId === chapter.id && (
+        <ChapterIntro
+          chapter={chapter}
+          onEnter={() => {
+            markChapterSeen(chapter.id);
+            setIntroChapterId(null);
+          }}
+        />
+      )}
+
+      {/* Zen scroll collectible modal */}
+      {pendingScroll && (
+        <ZenScroll
+          chapter={chapter}
+          scrollIndex={pendingScroll.index}
+          onClose={() => setPendingScroll(null)}
+        />
+      )}
+
       {/* First-time interaction guide (L1–L2) */}
       <TutorialCoach level={level} hasTapped={moves > 0} hasAligned={hasAligned} />
 
