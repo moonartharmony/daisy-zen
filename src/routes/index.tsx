@@ -353,7 +353,7 @@ function Game() {
     ? puzzle.petals.map((_, i) => (i % 2 === 0 ? livePetalBase : liveAltColor))
     : undefined;
 
-  const idleSpin = moves === 0 && !won;
+  const idleSpin = false;
 
   const ink = chapter.inkColor;
   return (
