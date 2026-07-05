@@ -174,6 +174,7 @@ export function Daisy({
               }}
               style={{
                 cursor: spec.hasArrow ? "pointer" : "default",
+                willChange: "transform",
                 ["--tx" as string]: `${tx}px`,
                 ["--ty" as string]: `${ty}px`,
               }}
