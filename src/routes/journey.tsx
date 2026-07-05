@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
-import { Flower2, TreePine, Mountain, Cherry, Star, Lock, Zap } from "lucide-react";
+import { Flower2, Wind, Mountain, Cherry, Waves, Star, Lock, Zap } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { BottomNav } from "@/components/BottomNav";
 import { CHAPTERS, type Chapter, type ChapterId } from "@/lib/chapters";
@@ -13,7 +13,11 @@ import {
 } from "@/lib/progress";
 
 const search = z
-  .object({ chapter: z.enum(["daisy", "forest", "mountain", "sakura"]).optional() })
+  .object({
+    chapter: z
+      .enum(["daisy", "lavender", "mountain", "sakura", "lotus"])
+      .optional(),
+  })
   .parse;
 
 export const Route = createFileRoute("/journey")({
@@ -21,9 +25,9 @@ export const Route = createFileRoute("/journey")({
   head: () => ({
     meta: [
       { title: "Journey Map — Daisy Zen" },
-      { name: "description", content: "Choose your chapter and continue your zen journey." },
+      { name: "description", content: "Five biomes, one hundred and twenty-five levels of zen." },
       { property: "og:title", content: "Journey Map — Daisy Zen" },
-      { property: "og:description", content: "Choose your chapter and continue your zen journey." },
+      { property: "og:description", content: "Five biomes, one hundred and twenty-five levels of zen." },
     ],
   }),
   component: JourneyMap,
@@ -31,9 +35,10 @@ export const Route = createFileRoute("/journey")({
 
 const ICONS: Record<ChapterId, typeof Flower2> = {
   daisy: Flower2,
-  forest: TreePine,
+  lavender: Wind,
   mountain: Mountain,
   sakura: Cherry,
+  lotus: Waves,
 };
 
 function JourneyMap() {
@@ -92,9 +97,10 @@ function ChapterCard({
   // dusty pink for sakura) so the map already hints at the biome.
   const lockedTint: Record<ChapterId, string> = {
     daisy: "#FFFFFF",
-    forest: "#FFFFFF",
+    lavender: "#EDE2F7",
     mountain: "#EFE6D2",
     sakura: "#FBD9C3",
+    lotus: "#DCEFE8",
   };
   const cardBg = isActive
     ? "var(--primary)"

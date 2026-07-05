@@ -12,6 +12,8 @@ import {
 } from "@/lib/puzzles";
 import { getChapter } from "@/lib/chapters";
 import { ChapterTransition } from "@/components/ChapterTransition";
+import { ChapterIntro } from "@/components/ChapterIntro";
+import { ZenScroll } from "@/components/ZenScroll";
 import { TutorialCoach } from "@/components/TutorialCoach";
 import { BottomNav } from "@/components/BottomNav";
 import { haptic } from "@/lib/haptic";
@@ -19,10 +21,12 @@ import {
   useEmotionEngine,
   petalAccentFromEmotion,
 } from "@/engine/useEmotionEngine";
-import { useProgress } from "@/lib/progress";
+import { useProgress, scrollIdForLevel } from "@/lib/progress";
 
 const searchSchema = z.object({
-  chapter: z.enum(["daisy", "forest", "mountain", "sakura"]).optional(),
+  chapter: z
+    .enum(["daisy", "lavender", "mountain", "sakura", "lotus"])
+    .optional(),
   level: z.coerce.number().int().positive().optional(),
 });
 
@@ -51,7 +55,14 @@ const HINT_DELAY_MS = 45000;
 function Game() {
   // Inbound chapter / level from the Journey Map (?chapter=forest&level=8).
   const search = Route.useSearch();
-  const { unlockLevel, addXp } = useProgress();
+  const {
+    unlockLevel,
+    addXp,
+    collectScroll,
+    hasScroll,
+    isChapterSeen,
+    markChapterSeen,
+  } = useProgress();
 
   const [level, setLevel] = useState<number>(search.level ?? 1);
   const [score, setScore] = useState(0);
@@ -96,6 +107,14 @@ function Game() {
   );
   const lastChapterIdRef = useRef<string>(chapter.id);
 
+  // Chapter intro (poetic vignette) — shown once per biome.
+  const [introChapterId, setIntroChapterId] = useState<string | null>(null);
+  // Scroll modal — populated on win when level % 5 === 0 within a chapter.
+  const [pendingScroll, setPendingScroll] = useState<{
+    chapterId: string;
+    index: number;
+  } | null>(null);
+
   // Hint state
   const [hintAvailable, setHintAvailable] = useState(false);
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -136,6 +155,10 @@ function Game() {
       lastChapterIdRef.current = chapter.id;
       setTransitionChapterId(chapter.id);
       haptic.chapter();
+    }
+    // Show poetic vignette the first time a biome opens.
+    if (!isChapterSeen(chapter.id)) {
+      setIntroChapterId(chapter.id);
     }
     // Apply per-chapter difficulty profile to the simulation.
     engine.setDifficulty(chapter.difficulty);
@@ -246,6 +269,17 @@ function Game() {
       setScore((s) => s + earned);
       addXp(earned);
       unlockLevel(level + 1);
+      // Scroll milestone — every 5th level within a chapter grants a scroll.
+      const milestone = scrollIdForLevel(level);
+      if (milestone && !hasScroll(milestone.chapterId, milestone.scrollIndex)) {
+        setTimeout(() => {
+          collectScroll(milestone.chapterId, milestone.scrollIndex);
+          setPendingScroll({
+            chapterId: milestone.chapterId,
+            index: milestone.scrollIndex,
+          });
+        }, 900);
+      }
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -460,6 +494,26 @@ function Game() {
         <ChapterTransition
           chapter={chapter}
           onDone={() => setTransitionChapterId(null)}
+        />
+      )}
+
+      {/* Poetic chapter vignette — shown once per biome */}
+      {introChapterId === chapter.id && (
+        <ChapterIntro
+          chapter={chapter}
+          onEnter={() => {
+            markChapterSeen(chapter.id);
+            setIntroChapterId(null);
+          }}
+        />
+      )}
+
+      {/* Zen scroll collectible modal */}
+      {pendingScroll && (
+        <ZenScroll
+          chapter={chapter}
+          scrollIndex={pendingScroll.index}
+          onClose={() => setPendingScroll(null)}
         />
       )}
 
