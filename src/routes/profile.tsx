@@ -320,15 +320,6 @@ function Profile() {
             Switch Account
           </button>
 
-          <button
-            className="w-full max-w-md mx-auto neo neo-press rounded-xl bg-white py-3 text-base font-extrabold flex items-center justify-center gap-2"
-            style={{ color: "#C0392B" }}
-          >
-            <LogOut className="size-5" strokeWidth={2.5} />
-            Logout from Daisy Zen
-          </button>
-        </>
-      )}
           <div className="w-full max-w-md mx-auto flex flex-col items-center gap-2">
             <button
               onClick={handleLogoutClick}
