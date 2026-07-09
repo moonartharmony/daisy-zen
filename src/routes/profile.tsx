@@ -191,6 +191,16 @@ function Profile() {
     <main className="min-h-[100dvh] w-full bg-[color:var(--peach)] flex flex-col gap-5 px-4 pt-4 pb-28">
       <ScreenHeader title="Daisy Zen" backTo="/journey" />
 
+      {hasSession && !editing && (
+        <p
+          className="w-full max-w-md mx-auto text-center text-[10px] font-bold tracking-[0.18em] uppercase -mb-2"
+          style={{ color: "var(--ink)", opacity: 0.5 }}
+        >
+          You are securely anchored in your quiet space
+        </p>
+      )}
+
+
       {/* Identity card */}
       <section className="w-full max-w-md mx-auto neo-lg rounded-2xl bg-white p-6 flex flex-col items-center gap-3">
         <div className="relative">
