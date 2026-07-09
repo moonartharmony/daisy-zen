@@ -107,12 +107,66 @@ function Profile() {
   const [profile, setProfile] = useState<ProfileMeta>(DEFAULT_PROFILE);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<ProfileMeta>(DEFAULT_PROFILE);
+  const [hasSession, setHasSession] = useState(false);
+  const [confirmingLogout, setConfirmingLogout] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [offline, setOffline] = useState(false);
 
   useEffect(() => {
     const p = readProfile();
     setProfile(p);
     setDraft(p);
   }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (!mounted) return;
+        setHasSession(!!data.session);
+        setOffline(false);
+      })
+      .catch(() => mounted && setOffline(true));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      setHasSession(!!s);
+    });
+    const onOnline = () => setOffline(false);
+    const onOffline = () => setOffline(true);
+    if (typeof window !== "undefined") {
+      window.addEventListener("online", onOnline);
+      window.addEventListener("offline", onOffline);
+      if (!window.navigator.onLine) setOffline(true);
+    }
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+      if (typeof window !== "undefined") {
+        window.removeEventListener("online", onOnline);
+        window.removeEventListener("offline", onOffline);
+      }
+    };
+  }, []);
+
+  const handleLogoutClick = () => {
+    if (!confirmingLogout) {
+      setConfirmingLogout(true);
+      return;
+    }
+    setLoggingOut(true);
+    const timeout = new Promise<"timeout">((resolve) =>
+      setTimeout(() => resolve("timeout"), 4000),
+    );
+    Promise.race([supabase.auth.signOut(), timeout])
+      .then((res) => {
+        if (res === "timeout") setOffline(true);
+      })
+      .catch(() => setOffline(true))
+      .finally(() => {
+        setLoggingOut(false);
+        setConfirmingLogout(false);
+      });
+  };
 
   const startEdit = () => {
     setDraft(profile);
