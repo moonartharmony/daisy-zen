@@ -19,6 +19,7 @@ import { ScreenHeader } from "@/components/ScreenHeader";
 import { BottomNav } from "@/components/BottomNav";
 import { useProgress } from "@/lib/progress";
 import { CHAPTERS, getChapter } from "@/lib/chapters";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -106,12 +107,66 @@ function Profile() {
   const [profile, setProfile] = useState<ProfileMeta>(DEFAULT_PROFILE);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<ProfileMeta>(DEFAULT_PROFILE);
+  const [hasSession, setHasSession] = useState(false);
+  const [confirmingLogout, setConfirmingLogout] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [offline, setOffline] = useState(false);
 
   useEffect(() => {
     const p = readProfile();
     setProfile(p);
     setDraft(p);
   }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (!mounted) return;
+        setHasSession(!!data.session);
+        setOffline(false);
+      })
+      .catch(() => mounted && setOffline(true));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      setHasSession(!!s);
+    });
+    const onOnline = () => setOffline(false);
+    const onOffline = () => setOffline(true);
+    if (typeof window !== "undefined") {
+      window.addEventListener("online", onOnline);
+      window.addEventListener("offline", onOffline);
+      if (!window.navigator.onLine) setOffline(true);
+    }
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+      if (typeof window !== "undefined") {
+        window.removeEventListener("online", onOnline);
+        window.removeEventListener("offline", onOffline);
+      }
+    };
+  }, []);
+
+  const handleLogoutClick = () => {
+    if (!confirmingLogout) {
+      setConfirmingLogout(true);
+      return;
+    }
+    setLoggingOut(true);
+    const timeout = new Promise<"timeout">((resolve) =>
+      setTimeout(() => resolve("timeout"), 4000),
+    );
+    Promise.race([supabase.auth.signOut(), timeout])
+      .then((res) => {
+        if (res === "timeout") setOffline(true);
+      })
+      .catch(() => setOffline(true))
+      .finally(() => {
+        setLoggingOut(false);
+        setConfirmingLogout(false);
+      });
+  };
 
   const startEdit = () => {
     setDraft(profile);
@@ -135,6 +190,16 @@ function Profile() {
   return (
     <main className="min-h-[100dvh] w-full bg-[color:var(--peach)] flex flex-col gap-5 px-4 pt-4 pb-28">
       <ScreenHeader title="Daisy Zen" backTo="/journey" />
+
+      {hasSession && !editing && (
+        <p
+          className="w-full max-w-md mx-auto text-center text-[10px] font-bold tracking-[0.18em] uppercase -mb-2"
+          style={{ color: "var(--ink)", opacity: 0.5 }}
+        >
+          You are securely anchored in your quiet space
+        </p>
+      )}
+
 
       {/* Identity card */}
       <section className="w-full max-w-md mx-auto neo-lg rounded-2xl bg-white p-6 flex flex-col items-center gap-3">
@@ -255,14 +320,40 @@ function Profile() {
             Switch Account
           </button>
 
-          <button
-            className="w-full max-w-md mx-auto neo neo-press rounded-xl bg-white py-3 text-base font-extrabold flex items-center justify-center gap-2"
-            style={{ color: "#C0392B" }}
-          >
-            <LogOut className="size-5" strokeWidth={2.5} />
-            Logout from Daisy Zen
-          </button>
+          <div className="w-full max-w-md mx-auto flex flex-col items-center gap-2">
+            <button
+              onClick={handleLogoutClick}
+              disabled={loggingOut}
+              className="w-full neo neo-press rounded-xl bg-white py-3 text-base font-extrabold flex items-center justify-center gap-2 disabled:opacity-70"
+              style={{ color: "#C0392B" }}
+            >
+              <LogOut className="size-5" strokeWidth={2.5} />
+              {loggingOut
+                ? "Disconnecting…"
+                : confirmingLogout
+                  ? "Are you sure you want to disconnect?"
+                  : "Logout from Daisy Zen"}
+            </button>
+            {confirmingLogout && !loggingOut && (
+              <button
+                onClick={() => setConfirmingLogout(false)}
+                className="text-xs font-bold tracking-[0.14em] uppercase underline underline-offset-4 opacity-70 hover:opacity-100 transition-opacity"
+                style={{ color: "var(--ink)" }}
+              >
+                Stay in the flow
+              </button>
+            )}
+          </div>
         </>
+      )}
+
+      {offline && !editing && (
+        <div
+          className="w-full max-w-md mx-auto neo-sm rounded-xl bg-white px-4 py-3 text-center text-xs font-bold tracking-wide"
+          style={{ color: "var(--ink)" }}
+        >
+          The continuum is momentarily drifting. Your progress is safe locally.
+        </div>
       )}
 
       <BottomNav />
