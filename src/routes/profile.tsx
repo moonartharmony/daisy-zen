@@ -1,5 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Scale, BookOpen, Flame, Pencil, LogOut, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  Scale,
+  BookOpen,
+  Flame,
+  Pencil,
+  LogOut,
+  Users,
+  Flower,
+  Sparkles,
+  Leaf,
+  Sun,
+  Moon,
+  Check,
+  X,
+} from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { BottomNav } from "@/components/BottomNav";
 import { useProgress } from "@/lib/progress";
@@ -17,13 +32,105 @@ export const Route = createFileRoute("/profile")({
   component: Profile,
 });
 
+// -- Profile metadata (local only, separate from progress state) ------------
+
+const PROFILE_KEY = "daisy-zen-profile-v1";
+
+type AvatarId = "users" | "flower" | "sparkles" | "leaf" | "sun" | "moon";
+
+type ProfileMeta = {
+  name: string;
+  focus: string;
+  avatar: AvatarId;
+};
+
+const DEFAULT_PROFILE: ProfileMeta = {
+  name: "Daisy Williams",
+  focus: "Cultivating quiet alignment",
+  avatar: "users",
+};
+
+const AVATAR_OPTIONS: { id: AvatarId; icon: React.ComponentType<{ className?: string; strokeWidth?: number }>; bg: string }[] = [
+  { id: "users", icon: Users, bg: "#D8C3A8" },
+  { id: "flower", icon: Flower, bg: "#F7C6D0" },
+  { id: "sparkles", icon: Sparkles, bg: "#FFE57F" },
+  { id: "leaf", icon: Leaf, bg: "#B8D6CC" },
+  { id: "sun", icon: Sun, bg: "#FFC98A" },
+  { id: "moon", icon: Moon, bg: "#C9C3E4" },
+];
+
+function readProfile(): ProfileMeta {
+  if (typeof window === "undefined") return DEFAULT_PROFILE;
+  try {
+    const raw = window.localStorage.getItem(PROFILE_KEY);
+    if (!raw) return DEFAULT_PROFILE;
+    const parsed = JSON.parse(raw) as Partial<ProfileMeta>;
+    return { ...DEFAULT_PROFILE, ...parsed };
+  } catch {
+    return DEFAULT_PROFILE;
+  }
+}
+
+function writeProfile(p: ProfileMeta) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+}
+
+function AvatarBadge({ avatar, size = 112 }: { avatar: AvatarId; size?: number }) {
+  const opt = AVATAR_OPTIONS.find((a) => a.id === avatar) ?? AVATAR_OPTIONS[0];
+  const Icon = opt.icon;
+  return (
+    <div
+      className="rounded-full grid place-items-center border-[3.5px] overflow-hidden"
+      style={{
+        width: size,
+        height: size,
+        backgroundColor: opt.bg,
+        borderColor: "var(--ink)",
+      }}
+      aria-hidden
+    >
+      <Icon className="text-[color:var(--ink)]/80" strokeWidth={1.75} />
+    </div>
+  );
+}
+
 function Profile() {
   const { highestUnlocked, xp } = useProgress();
   const chapter = getChapter(highestUnlocked);
   const totalLevels = CHAPTERS[CHAPTERS.length - 2]?.levelEnd ?? 50;
-  const focus = Math.min(100, Math.round((highestUnlocked / totalLevels) * 100));
+  const focusPct = Math.min(100, Math.round((highestUnlocked / totalLevels) * 100));
   const totalXP = xp;
   const dailyStreak = 12;
+
+  const [profile, setProfile] = useState<ProfileMeta>(DEFAULT_PROFILE);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<ProfileMeta>(DEFAULT_PROFILE);
+
+  useEffect(() => {
+    const p = readProfile();
+    setProfile(p);
+    setDraft(p);
+  }, []);
+
+  const startEdit = () => {
+    setDraft(profile);
+    setEditing(true);
+  };
+  const cancel = () => {
+    setDraft(profile);
+    setEditing(false);
+  };
+  const save = () => {
+    const cleaned: ProfileMeta = {
+      name: draft.name.trim() || DEFAULT_PROFILE.name,
+      focus: draft.focus.trim() || DEFAULT_PROFILE.focus,
+      avatar: draft.avatar,
+    };
+    setProfile(cleaned);
+    writeProfile(cleaned);
+    setEditing(false);
+  };
 
   return (
     <main className="min-h-[100dvh] w-full bg-[color:var(--peach)] flex flex-col gap-5 px-4 pt-4 pb-28">
@@ -32,137 +139,246 @@ function Profile() {
       {/* Identity card */}
       <section className="w-full max-w-md mx-auto neo-lg rounded-2xl bg-white p-6 flex flex-col items-center gap-3">
         <div className="relative">
-          <div
-            className="size-28 rounded-full grid place-items-center border-[3.5px] overflow-hidden"
-            style={{
-              backgroundColor: "#D8C3A8",
-              borderColor: "var(--ink)",
-            }}
-            aria-hidden
-          >
-            <Users className="size-14 text-[color:var(--ink)]/70" strokeWidth={1.5} />
-          </div>
-          <button
-            aria-label="Edit avatar"
-            className="absolute bottom-0 right-0 neo-sm rounded-full size-8 grid place-items-center"
-            style={{ backgroundColor: "#2E6B6E", color: "#fff" }}
-          >
-            <Pencil className="size-4" strokeWidth={2.75} />
-          </button>
+          <AvatarBadge avatar={editing ? draft.avatar : profile.avatar} />
+          {!editing && (
+            <button
+              aria-label="Edit profile"
+              onClick={startEdit}
+              className="absolute bottom-0 right-0 neo-sm rounded-full size-8 grid place-items-center neo-press"
+              style={{ backgroundColor: "#2E6B6E", color: "#fff" }}
+            >
+              <Pencil className="size-4" strokeWidth={2.75} />
+            </button>
+          )}
         </div>
-        <h2 className="text-[26px] font-extrabold" style={{ color: "var(--ink)" }}>
-          Daisy Williams
-        </h2>
-        <p className="text-sm font-semibold" style={{ color: "var(--ink)", opacity: 0.7 }}>
-          Zen Level: {chapter.name}
-        </p>
 
-        <div className="w-full flex items-center justify-between text-sm font-bold pt-3">
-          <span style={{ color: "var(--ink)" }}>Current Focus</span>
-          <span style={{ color: "#7A6A00" }}>{focus}%</span>
-        </div>
-        <div
-          className="w-full h-3 rounded-full border-[3px] overflow-hidden bg-white"
-          style={{ borderColor: "var(--ink)" }}
-        >
-          <div
-            className="h-full transition-[width] duration-500"
-            style={{
-              width: `${Math.max(4, focus)}%`,
-              backgroundColor: "#B8D6CC",
-            }}
+        {!editing ? (
+          <>
+            <h2 className="text-[26px] font-extrabold" style={{ color: "var(--ink)" }}>
+              {profile.name}
+            </h2>
+            <p
+              className="text-sm font-semibold text-center"
+              style={{ color: "var(--ink)", opacity: 0.7 }}
+            >
+              {profile.focus}
+            </p>
+            <p
+              className="text-xs font-bold tracking-[0.14em] uppercase pt-1"
+              style={{ color: "var(--ink)", opacity: 0.55 }}
+            >
+              Zen Level · {chapter.name}
+            </p>
+
+            <div className="w-full flex items-center justify-between text-sm font-bold pt-3">
+              <span style={{ color: "var(--ink)" }}>Current Focus</span>
+              <span style={{ color: "#7A6A00" }}>{focusPct}%</span>
+            </div>
+            <div
+              className="w-full h-3 rounded-full border-[3px] overflow-hidden bg-white"
+              style={{ borderColor: "var(--ink)" }}
+            >
+              <div
+                className="h-full transition-[width] duration-500"
+                style={{
+                  width: `${Math.max(4, focusPct)}%`,
+                  backgroundColor: "#B8D6CC",
+                }}
+              />
+            </div>
+          </>
+        ) : (
+          <EditForm
+            draft={draft}
+            setDraft={setDraft}
+            onSave={save}
+            onCancel={cancel}
           />
-        </div>
+        )}
       </section>
 
-      {/* Total alignment */}
-      <section className="w-full max-w-md mx-auto neo-lg rounded-2xl bg-[color:var(--primary)] p-4 flex items-center gap-4">
-        <div className="neo-sm rounded-xl size-14 grid place-items-center bg-white shrink-0">
-          <Scale className="size-7" strokeWidth={2.25} />
-        </div>
-        <div className="flex flex-col">
-          <span
-            className="text-[11px] font-bold tracking-[0.12em] uppercase"
-            style={{ color: "var(--ink)", opacity: 0.7 }}
+      {editing ? null : (
+        <>
+          {/* Total alignment */}
+          <section className="w-full max-w-md mx-auto neo-lg rounded-2xl bg-[color:var(--primary)] p-4 flex items-center gap-4">
+            <div className="neo-sm rounded-xl size-14 grid place-items-center bg-white shrink-0">
+              <Scale className="size-7" strokeWidth={2.25} />
+            </div>
+            <div className="flex flex-col">
+              <span
+                className="text-[11px] font-bold tracking-[0.12em] uppercase"
+                style={{ color: "var(--ink)", opacity: 0.7 }}
+              >
+                Total Alignment
+              </span>
+              <span
+                className="text-[26px] font-extrabold leading-tight"
+                style={{ color: "var(--ink)" }}
+              >
+                {totalXP.toLocaleString()} XP
+              </span>
+            </div>
+          </section>
+
+          {/* Stat duo */}
+          <section className="w-full max-w-md mx-auto grid grid-cols-2 gap-4">
+            <StatCard
+              icon={
+                <BookOpen
+                  className="size-5"
+                  strokeWidth={2.5}
+                  style={{ color: "#1F4F4A" }}
+                />
+              }
+              label="Chapters"
+              value={String(CHAPTERS.length - 2)}
+            />
+            <StatCard
+              icon={
+                <Flame
+                  className="size-5"
+                  strokeWidth={2.5}
+                  style={{ color: "#C0392B" }}
+                  fill="#C0392B"
+                />
+              }
+              label="Daily Streak"
+              value={`${dailyStreak} Days`}
+            />
+          </section>
+
+          <button
+            className="w-full max-w-md mx-auto text-sm font-bold flex items-center justify-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
+            style={{ color: "var(--ink)" }}
           >
-            Total Alignment
-          </span>
-          <span className="text-[26px] font-extrabold leading-tight" style={{ color: "var(--ink)" }}>
-            {totalXP.toLocaleString()} XP
-          </span>
-        </div>
-      </section>
-
-      {/* Stat duo */}
-      <section className="w-full max-w-md mx-auto grid grid-cols-2 gap-4">
-        <StatCard icon={<BookOpen className="size-5" strokeWidth={2.5} style={{ color: "#1F4F4A" }} />} label="Chapters" value={String(CHAPTERS.length - 2)} />
-        <StatCard icon={<Flame className="size-5" strokeWidth={2.5} style={{ color: "#C0392B" }} fill="#C0392B" />} label="Daily Streak" value={`${dailyStreak} Days`} />
-      </section>
-
-      {/* Zen identity panel */}
-      <section className="w-full max-w-md mx-auto neo-lg rounded-2xl bg-white p-5 flex flex-col gap-3">
-        <h3 className="text-headline" style={{ color: "var(--ink)" }}>
-          Zen Identity
-        </h3>
-        <p className="text-sm" style={{ color: "var(--ink)", opacity: 0.7 }}>
-          Sync your progress across the continuum.
-        </p>
-
-        <label className="text-sm font-bold mt-2" style={{ color: "var(--ink)" }}>
-          Universal ID
-        </label>
-        <input
-          type="email"
-          placeholder="daisy@zen.com"
-          className="neo-sm rounded-lg px-3 py-3 text-base bg-[color:var(--sand)]/50 placeholder:text-[color:var(--ink)]/45"
-          style={{ color: "var(--ink)" }}
-        />
-
-        <label className="text-sm font-bold mt-1" style={{ color: "var(--ink)" }}>
-          Access Phrase
-        </label>
-        <input
-          type="password"
-          placeholder="••••••••"
-          className="neo-sm rounded-lg px-3 py-3 text-base bg-[color:var(--sand)]/50 placeholder:text-[color:var(--ink)]/45"
-          style={{ color: "var(--ink)" }}
-        />
-
-        <button
-          className="neo neo-press rounded-xl bg-[color:var(--primary)] py-3 text-base font-extrabold mt-2"
-          style={{ color: "var(--ink)" }}
-        >
-          Connect Identity
-        </button>
-
-        <div className="flex items-center justify-between text-sm font-bold pt-2">
-          <button className="hover:underline" style={{ color: "var(--ink)", opacity: 0.7 }}>
-            Forgot Phrase?
+            <Users className="size-4" strokeWidth={2.5} />
+            Switch Account
           </button>
-          <button className="hover:underline" style={{ color: "#2E6B6E" }}>
-            New Explorer?
+
+          <button
+            className="w-full max-w-md mx-auto neo neo-press rounded-xl bg-white py-3 text-base font-extrabold flex items-center justify-center gap-2"
+            style={{ color: "#C0392B" }}
+          >
+            <LogOut className="size-5" strokeWidth={2.5} />
+            Logout from Daisy Zen
           </button>
-        </div>
-      </section>
-
-      <button
-        className="w-full max-w-md mx-auto text-sm font-bold flex items-center justify-center gap-2"
-        style={{ color: "var(--ink)", opacity: 0.8 }}
-      >
-        <Users className="size-4" strokeWidth={2.5} />
-        Switch Account
-      </button>
-
-      <button
-        className="w-full max-w-md mx-auto neo rounded-xl bg-white py-3 text-base font-extrabold flex items-center justify-center gap-2"
-        style={{ color: "#C0392B" }}
-      >
-        <LogOut className="size-5" strokeWidth={2.5} />
-        Logout from Daisy Zen
-      </button>
+        </>
+      )}
 
       <BottomNav />
     </main>
+  );
+}
+
+function EditForm({
+  draft,
+  setDraft,
+  onSave,
+  onCancel,
+}: {
+  draft: ProfileMeta;
+  setDraft: React.Dispatch<React.SetStateAction<ProfileMeta>>;
+  onSave: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="w-full flex flex-col gap-4 pt-2">
+      {/* Avatar picker */}
+      <div className="flex flex-col gap-2">
+        <span
+          className="text-[11px] font-bold tracking-[0.14em] uppercase"
+          style={{ color: "var(--ink)", opacity: 0.7 }}
+        >
+          Change Avatar
+        </span>
+        <div className="grid grid-cols-6 gap-2">
+          {AVATAR_OPTIONS.map((opt) => {
+            const Icon = opt.icon;
+            const active = draft.avatar === opt.id;
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                aria-label={`Avatar ${opt.id}`}
+                aria-pressed={active}
+                onClick={() => setDraft((d) => ({ ...d, avatar: opt.id }))}
+                className="neo-sm neo-press rounded-xl aspect-square grid place-items-center transition-opacity"
+                style={{
+                  backgroundColor: opt.bg,
+                  outline: active ? "3px solid var(--ink)" : "none",
+                  outlineOffset: active ? "2px" : "0",
+                }}
+              >
+                <Icon
+                  className="size-5 text-[color:var(--ink)]"
+                  strokeWidth={2.25}
+                />
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Zen name */}
+      <label className="flex flex-col gap-1">
+        <span
+          className="text-[11px] font-bold tracking-[0.14em] uppercase"
+          style={{ color: "var(--ink)", opacity: 0.7 }}
+        >
+          Zen Name
+        </span>
+        <input
+          type="text"
+          value={draft.name}
+          maxLength={40}
+          onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
+          className="neo-sm rounded-lg px-3 py-3 text-base bg-white placeholder:text-[color:var(--ink)]/40"
+          style={{ color: "var(--ink)" }}
+          placeholder="Your zen name"
+        />
+      </label>
+
+      {/* Focus / intent */}
+      <label className="flex flex-col gap-1">
+        <span
+          className="text-[11px] font-bold tracking-[0.14em] uppercase"
+          style={{ color: "var(--ink)", opacity: 0.7 }}
+        >
+          Focus / Intent
+        </span>
+        <input
+          type="text"
+          value={draft.focus}
+          maxLength={80}
+          onChange={(e) => setDraft((d) => ({ ...d, focus: e.target.value }))}
+          className="neo-sm rounded-lg px-3 py-3 text-base bg-white placeholder:text-[color:var(--ink)]/40"
+          style={{ color: "var(--ink)" }}
+          placeholder="A short intention"
+        />
+      </label>
+
+      {/* Actions */}
+      <div className="grid grid-cols-2 gap-3 pt-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="neo neo-press rounded-xl bg-transparent py-3 text-base font-extrabold flex items-center justify-center gap-2"
+          style={{ color: "var(--ink)" }}
+        >
+          <X className="size-5" strokeWidth={2.75} />
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={onSave}
+          className="neo neo-press rounded-xl py-3 text-base font-extrabold flex items-center justify-center gap-2"
+          style={{ backgroundColor: "#FFE57F", color: "var(--ink)" }}
+        >
+          <Check className="size-5" strokeWidth={2.75} />
+          Save Changes
+        </button>
+      </div>
+    </div>
   );
 }
 
