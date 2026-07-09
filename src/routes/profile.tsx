@@ -329,13 +329,47 @@ function Profile() {
           </button>
         </>
       )}
+          <div className="w-full max-w-md mx-auto flex flex-col items-center gap-2">
+            <button
+              onClick={handleLogoutClick}
+              disabled={loggingOut}
+              className="w-full neo neo-press rounded-xl bg-white py-3 text-base font-extrabold flex items-center justify-center gap-2 disabled:opacity-70"
+              style={{ color: "#C0392B" }}
+            >
+              <LogOut className="size-5" strokeWidth={2.5} />
+              {loggingOut
+                ? "Disconnecting…"
+                : confirmingLogout
+                  ? "Are you sure you want to disconnect?"
+                  : "Logout from Daisy Zen"}
+            </button>
+            {confirmingLogout && !loggingOut && (
+              <button
+                onClick={() => setConfirmingLogout(false)}
+                className="text-xs font-bold tracking-[0.14em] uppercase underline underline-offset-4 opacity-70 hover:opacity-100 transition-opacity"
+                style={{ color: "var(--ink)" }}
+              >
+                Stay in the flow
+              </button>
+            )}
+          </div>
+        </>
+      )}
+
+      {offline && !editing && (
+        <div
+          className="w-full max-w-md mx-auto neo-sm rounded-xl bg-white px-4 py-3 text-center text-xs font-bold tracking-wide"
+          style={{ color: "var(--ink)" }}
+        >
+          The continuum is momentarily drifting. Your progress is safe locally.
+        </div>
+      )}
 
       <BottomNav />
     </main>
   );
 }
 
-function EditForm({
   draft,
   setDraft,
   onSave,
