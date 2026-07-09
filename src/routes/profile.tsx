@@ -370,6 +370,7 @@ function Profile() {
   );
 }
 
+function EditForm({
   draft,
   setDraft,
   onSave,
