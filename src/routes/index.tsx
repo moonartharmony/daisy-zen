@@ -6,11 +6,10 @@ import { Daisy, type PetalAnim } from "@/components/Daisy";
 import {
   DIRECTIONS,
   DIR_DEG,
-  TOTAL_LEVELS,
   getPuzzle,
   type Direction,
 } from "@/lib/puzzles";
-import { getChapter } from "@/lib/chapters";
+import { getChapter, TOTAL_LEVELS } from "@/lib/chapters";
 import { ChapterTransition } from "@/components/ChapterTransition";
 import { ChapterIntro } from "@/components/ChapterIntro";
 import { ZenScroll } from "@/components/ZenScroll";
@@ -55,6 +54,7 @@ const HINT_DELAY_MS = 45000;
 function Game() {
   // Inbound chapter / level from the Journey Map (?chapter=forest&level=8).
   const search = Route.useSearch();
+  const navigate = Route.useNavigate();
   const {
     unlockLevel,
     addXp,
@@ -304,7 +304,17 @@ function Game() {
   };
 
   const handleNext = () => {
-    setLevel((l) => (l >= TOTAL_LEVELS ? 1 : l + 1));
+    const nextLevel = level >= TOTAL_LEVELS ? level : level + 1;
+    const nextChapter = getChapter(nextLevel);
+    setLevel(nextLevel);
+    unlockLevel(nextLevel);
+    // Keep the URL in sync with the new level & biome so a refresh (or
+    // deep-link share) lands on the correct chapter, not back on Ch. 1.
+    navigate({
+      to: "/",
+      search: { chapter: nextChapter.id, level: nextLevel },
+      replace: true,
+    });
   };
 
   const handleHint = () => {
