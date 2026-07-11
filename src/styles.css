@@ -184,6 +184,15 @@
   transition: opacity 120ms var(--ease-quiet);
   opacity: 0.82;
 }
+/* Lavender buds respond with an organic elastic squeeze rather than a flat press. */
+.daisy-root[data-shape="leaf"] .petal-pressed {
+  animation: petal-elastic 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes petal-elastic {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
 /* Aligned = the settle-and-freeze moment. No color pop, no scale.
    Stroke deepens quietly and the fill lifts to full white after the freeze. */
 .petal-aligned .petal-body {
