@@ -17,6 +17,8 @@ type Props = {
   idleSpin?: boolean;
   /** Biome-driven geometry for the petals. */
   shape?: PetalShape;
+  /** Center core fill (biome accent). */
+  centerColor?: string;
 };
 
 const SIZE = 320;
