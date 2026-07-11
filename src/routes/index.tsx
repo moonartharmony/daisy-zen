@@ -345,6 +345,17 @@ function Game() {
   const idleSpin = false;
 
   const ink = chapter.inkColor;
+
+  // Biome-specific interactive theme. Center core, reset button and progress
+  // fill morph per chapter while the neubrutalist frame stays intact.
+  const biomeTheme: Record<string, { accent: string; onAccent: string; progress: string }> = {
+    daisy:    { accent: "#FFD500", onAccent: "#1F1F1F", progress: "#FFD500" },
+    lavender: { accent: "#3E4E35", onAccent: "#FFFFFF", progress: "#CE93D8" },
+    mountain: { accent: "#4A5A7A", onAccent: "#FFFFFF", progress: "#B7C6DA" },
+    sakura:   { accent: "#F15BB5", onAccent: "#FFFFFF", progress: "#FBD5E0" },
+    lotus:    { accent: "#2E6B6E", onAccent: "#FFFFFF", progress: "#8FC8BE" },
+  };
+  const theme = biomeTheme[chapter.id] ?? biomeTheme.daisy;
   return (
     <main
       className="chapter-bg min-h-[100dvh] w-full flex flex-col items-center px-4 py-5 pb-28 gap-6"
