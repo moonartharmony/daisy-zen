@@ -461,11 +461,12 @@ function Game() {
 
         <div className="neo rounded-xl bg-white h-5 overflow-hidden p-0.5">
           <div
-            className="h-full bg-primary transition-[width] duration-300 ease-out"
+            className="h-full transition-[width] duration-300 ease-out"
             style={{
               width: totalArrowed
                 ? `${(matchedCount / totalArrowed) * 100}%`
                 : "0%",
+              backgroundColor: theme.progress,
             }}
           />
         </div>
@@ -475,7 +476,8 @@ function Game() {
         <div className="flex items-center gap-3">
           <button
             onClick={handleReset}
-            className="neo neo-press rounded-xl bg-primary text-[color:var(--primary-foreground)] py-3 text-body-lg flex items-center justify-center gap-2 flex-1"
+            className="neo neo-press rounded-xl py-3 text-body-lg flex items-center justify-center gap-2 flex-1"
+            style={{ backgroundColor: theme.accent, color: theme.onAccent }}
           >
             <RotateCcw className="size-5" strokeWidth={2.5} />
             Reset
