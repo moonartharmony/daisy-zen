@@ -445,6 +445,7 @@ function Game() {
           petalColors={petalPalette}
           idleSpin={idleSpin}
           shape={chapter.petalShape}
+          centerColor={theme.accent}
         />
       </section>
 
