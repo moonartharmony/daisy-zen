@@ -6,11 +6,10 @@ import { Daisy, type PetalAnim } from "@/components/Daisy";
 import {
   DIRECTIONS,
   DIR_DEG,
-  TOTAL_LEVELS,
   getPuzzle,
   type Direction,
 } from "@/lib/puzzles";
-import { getChapter } from "@/lib/chapters";
+import { getChapter, TOTAL_LEVELS } from "@/lib/chapters";
 import { ChapterTransition } from "@/components/ChapterTransition";
 import { ChapterIntro } from "@/components/ChapterIntro";
 import { ZenScroll } from "@/components/ZenScroll";
