@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
-import { Flower2, Wind, Mountain, Cherry, Waves, Star, Lock, Zap } from "lucide-react";
+import { Flower2, Wind, Mountain, Cherry, Waves, Star, Lock, Zap, Sparkles } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { BottomNav } from "@/components/BottomNav";
 import { CHAPTERS, type Chapter, type ChapterId } from "@/lib/chapters";
@@ -11,6 +12,9 @@ import {
   useProgress,
   type ChapterStatus,
 } from "@/lib/progress";
+
+const LAST_LEVEL_SEEN_KEY = "daisy-zen-level-seen-v1";
+const xpNeededFor = (level: number) => level * 200;
 
 const search = z
   .object({
