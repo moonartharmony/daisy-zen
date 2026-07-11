@@ -46,12 +46,50 @@ const ICONS: Record<ChapterId, typeof Flower2> = {
 };
 
 function JourneyMap() {
-  const { highestUnlocked } = useProgress();
+  const { highestUnlocked, xp, hydrated } = useProgress();
   const navigate = useNavigate();
 
+  // Derive level from highestUnlocked (each unlocked level = one ascension).
+  const level = Math.max(1, highestUnlocked);
+  const xpNeeded = xpNeededFor(level);
+  const currentXp = xp % xpNeeded;
+  const progressPct = Math.min(100, (currentXp / xpNeeded) * 100);
+
+  // Level-up celebration: watches for level increases vs last-seen level.
+  const [celebrateLevel, setCelebrateLevel] = useState<number | null>(null);
+  const [xpFloat, setXpFloat] = useState<{ id: number; amount: number } | null>(null);
+  const lastXpRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!hydrated || typeof window === "undefined") return;
+    const raw = window.localStorage.getItem(LAST_LEVEL_SEEN_KEY);
+    const lastSeen = raw ? parseInt(raw, 10) : level;
+    if (Number.isFinite(lastSeen) && level > lastSeen) {
+      setCelebrateLevel(level);
+    }
+    window.localStorage.setItem(LAST_LEVEL_SEEN_KEY, String(level));
+  }, [hydrated, level]);
+
+  // Floating "+XP" indicator when xp changes.
+  useEffect(() => {
+    if (!hydrated) return;
+    if (lastXpRef.current === null) {
+      lastXpRef.current = xp;
+      return;
+    }
+    const delta = xp - lastXpRef.current;
+    lastXpRef.current = xp;
+    if (delta > 0) {
+      const id = Date.now();
+      setXpFloat({ id, amount: delta });
+      const t = setTimeout(() => setXpFloat((f) => (f?.id === id ? null : f)), 1400);
+      return () => clearTimeout(t);
+    }
+  }, [xp, hydrated]);
+
   const play = (id: ChapterId) => {
-    const level = startingLevelForChapter(id, highestUnlocked);
-    navigate({ to: "/", search: { chapter: id, level } });
+    const startLevel = startingLevelForChapter(id, highestUnlocked);
+    navigate({ to: "/", search: { chapter: id, level: startLevel } });
   };
 
   return (
