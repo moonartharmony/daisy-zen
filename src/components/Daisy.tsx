@@ -223,7 +223,7 @@ export function Daisy({
           >
             <circle
               r={CENTER_R}
-              fill="#FFD700"
+              fill={centerColor}
               stroke="#4d4732"
               strokeWidth={2}
             />
