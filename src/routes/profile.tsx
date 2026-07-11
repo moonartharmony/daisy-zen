@@ -108,6 +108,7 @@ function Profile() {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<ProfileMeta>(DEFAULT_PROFILE);
   const [hasSession, setHasSession] = useState(false);
+  const [sessionEmail, setSessionEmail] = useState<string | null>(null);
   const [confirmingLogout, setConfirmingLogout] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [offline, setOffline] = useState(false);
@@ -125,11 +126,13 @@ function Profile() {
       .then(({ data }) => {
         if (!mounted) return;
         setHasSession(!!data.session);
+        setSessionEmail(data.session?.user?.email ?? null);
         setOffline(false);
       })
       .catch(() => mounted && setOffline(true));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       setHasSession(!!s);
+      setSessionEmail(s?.user?.email ?? null);
     });
     const onOnline = () => setOffline(false);
     const onOffline = () => setOffline(true);
@@ -148,24 +151,21 @@ function Profile() {
     };
   }, []);
 
-  const handleLogoutClick = () => {
+  const handleLogoutClick = async () => {
     if (!confirmingLogout) {
       setConfirmingLogout(true);
       return;
     }
     setLoggingOut(true);
-    const timeout = new Promise<"timeout">((resolve) =>
-      setTimeout(() => resolve("timeout"), 4000),
-    );
-    Promise.race([supabase.auth.signOut(), timeout])
-      .then((res) => {
-        if (res === "timeout") setOffline(true);
-      })
-      .catch(() => setOffline(true))
-      .finally(() => {
-        setLoggingOut(false);
-        setConfirmingLogout(false);
-      });
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      setOffline(true);
+    } finally {
+      if (typeof window !== "undefined") {
+        window.location.replace("/settings");
+      }
+    }
   };
 
   const startEdit = () => {
@@ -226,7 +226,7 @@ function Profile() {
               className="text-sm font-semibold text-center"
               style={{ color: "var(--ink)", opacity: 0.7 }}
             >
-              {profile.focus}
+              {hasSession && sessionEmail ? sessionEmail : profile.focus}
             </p>
             <p
               className="text-xs font-bold tracking-[0.14em] uppercase pt-1"
