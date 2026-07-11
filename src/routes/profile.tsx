@@ -108,6 +108,7 @@ function Profile() {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<ProfileMeta>(DEFAULT_PROFILE);
   const [hasSession, setHasSession] = useState(false);
+  const [sessionEmail, setSessionEmail] = useState<string | null>(null);
   const [confirmingLogout, setConfirmingLogout] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [offline, setOffline] = useState(false);
