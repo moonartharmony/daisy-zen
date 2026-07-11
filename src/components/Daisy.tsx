@@ -110,6 +110,7 @@ export function Daisy({
   petalColors,
   idleSpin = false,
   shape = "pill",
+  centerColor = "#FFD700",
 }: Props) {
   const { petalCount, centerDir } = puzzle;
   const step = 360 / petalCount;
