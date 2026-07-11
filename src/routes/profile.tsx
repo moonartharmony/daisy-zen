@@ -226,7 +226,7 @@ function Profile() {
               className="text-sm font-semibold text-center"
               style={{ color: "var(--ink)", opacity: 0.7 }}
             >
-              {profile.focus}
+              {hasSession && sessionEmail ? sessionEmail : profile.focus}
             </p>
             <p
               className="text-xs font-bold tracking-[0.14em] uppercase pt-1"
