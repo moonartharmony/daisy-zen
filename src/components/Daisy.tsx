@@ -127,7 +127,8 @@ export function Daisy({
 
   return (
     <div
-      className="relative mx-auto select-none"
+      data-shape={shape}
+      className="relative mx-auto select-none daisy-root"
       style={{
         width: SIZE,
         height: SIZE,
