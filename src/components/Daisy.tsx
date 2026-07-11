@@ -17,6 +17,8 @@ type Props = {
   idleSpin?: boolean;
   /** Biome-driven geometry for the petals. */
   shape?: PetalShape;
+  /** Center core fill (biome accent). */
+  centerColor?: string;
 };
 
 const SIZE = 320;
@@ -108,6 +110,7 @@ export function Daisy({
   petalColors,
   idleSpin = false,
   shape = "pill",
+  centerColor = "#FFD700",
 }: Props) {
   const { petalCount, centerDir } = puzzle;
   const step = 360 / petalCount;
@@ -124,7 +127,8 @@ export function Daisy({
 
   return (
     <div
-      className="relative mx-auto select-none"
+      data-shape={shape}
+      className="relative mx-auto select-none daisy-root"
       style={{
         width: SIZE,
         height: SIZE,
@@ -219,7 +223,7 @@ export function Daisy({
           >
             <circle
               r={CENTER_R}
-              fill="#FFD700"
+              fill={centerColor}
               stroke="#4d4732"
               strokeWidth={2}
             />

@@ -345,6 +345,17 @@ function Game() {
   const idleSpin = false;
 
   const ink = chapter.inkColor;
+
+  // Biome-specific interactive theme. Center core, reset button and progress
+  // fill morph per chapter while the neubrutalist frame stays intact.
+  const biomeTheme: Record<string, { accent: string; onAccent: string; progress: string }> = {
+    daisy:    { accent: "#FFD500", onAccent: "#1F1F1F", progress: "#FFD500" },
+    lavender: { accent: "#3E4E35", onAccent: "#FFFFFF", progress: "#CE93D8" },
+    mountain: { accent: "#4A5A7A", onAccent: "#FFFFFF", progress: "#B7C6DA" },
+    sakura:   { accent: "#F15BB5", onAccent: "#FFFFFF", progress: "#FBD5E0" },
+    lotus:    { accent: "#2E6B6E", onAccent: "#FFFFFF", progress: "#8FC8BE" },
+  };
+  const theme = biomeTheme[chapter.id] ?? biomeTheme.daisy;
   return (
     <main
       className="chapter-bg min-h-[100dvh] w-full flex flex-col items-center px-4 py-5 pb-28 gap-6"
@@ -434,6 +445,7 @@ function Game() {
           petalColors={petalPalette}
           idleSpin={idleSpin}
           shape={chapter.petalShape}
+          centerColor={theme.accent}
         />
       </section>
 
@@ -449,11 +461,12 @@ function Game() {
 
         <div className="neo rounded-xl bg-white h-5 overflow-hidden p-0.5">
           <div
-            className="h-full bg-primary transition-[width] duration-300 ease-out"
+            className="h-full transition-[width] duration-300 ease-out"
             style={{
               width: totalArrowed
                 ? `${(matchedCount / totalArrowed) * 100}%`
                 : "0%",
+              backgroundColor: theme.progress,
             }}
           />
         </div>
@@ -463,7 +476,8 @@ function Game() {
         <div className="flex items-center gap-3">
           <button
             onClick={handleReset}
-            className="neo neo-press rounded-xl bg-primary text-[color:var(--primary-foreground)] py-3 text-body-lg flex items-center justify-center gap-2 flex-1"
+            className="neo neo-press rounded-xl py-3 text-body-lg flex items-center justify-center gap-2 flex-1"
+            style={{ backgroundColor: theme.accent, color: theme.onAccent }}
           >
             <RotateCcw className="size-5" strokeWidth={2.5} />
             Reset
