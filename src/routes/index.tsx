@@ -54,6 +54,7 @@ const HINT_DELAY_MS = 45000;
 function Game() {
   // Inbound chapter / level from the Journey Map (?chapter=forest&level=8).
   const search = Route.useSearch();
+  const navigate = Route.useNavigate();
   const {
     unlockLevel,
     addXp,
