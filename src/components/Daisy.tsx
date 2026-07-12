@@ -19,6 +19,8 @@ type Props = {
   shape?: PetalShape;
   /** Center core fill (biome accent). */
   centerColor?: string;
+  /** Center arrow fill. Defaults to dark ink for contrast on light cores. */
+  centerArrowColor?: string;
 };
 
 const SIZE = 320;
@@ -111,6 +113,7 @@ export function Daisy({
   idleSpin = false,
   shape = "pill",
   centerColor = "#FFD700",
+  centerArrowColor = "#1F1F1F",
 }: Props) {
   const { petalCount, centerDir } = puzzle;
   const step = 360 / petalCount;
@@ -230,7 +233,7 @@ export function Daisy({
             <g transform={`rotate(${centerDeg + idleRot})`}>
               <foreignObject x={-20} y={-20} width={40} height={40}>
                 <div style={{ width: 40, height: 40 }}>
-                  <ArrowSvg size={40} color="#1F1F1F" />
+                  <ArrowSvg size={40} color={centerArrowColor} />
                 </div>
               </foreignObject>
             </g>
