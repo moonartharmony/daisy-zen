@@ -19,6 +19,8 @@ type Props = {
   shape?: PetalShape;
   /** Center core fill (biome accent). */
   centerColor?: string;
+  /** Center arrow fill. Defaults to dark ink for contrast on light cores. */
+  centerArrowColor?: string;
 };
 
 const SIZE = 320;
