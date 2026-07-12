@@ -16,16 +16,14 @@ import {
 const LAST_LEVEL_SEEN_KEY = "daisy-zen-level-seen-v1";
 const xpNeededFor = (level: number) => level * 200;
 
-const search = z
-  .object({
-    chapter: z
-      .enum(["daisy", "lavender", "mountain", "sakura", "lotus"])
-      .optional(),
-  })
-  .parse;
+const searchSchema = z.object({
+  chapter: z
+    .enum(["daisy", "lavender", "mountain", "sakura", "lotus"])
+    .optional(),
+});
 
 export const Route = createFileRoute("/journey")({
-  validateSearch: (s: Record<string, unknown>) => search(s),
+  validateSearch: (s: Record<string, unknown>) => searchSchema.parse(s),
   head: () => ({
     meta: [
       { title: "Journey Map — Daisy Zen" },
