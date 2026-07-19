@@ -220,7 +220,7 @@ function Profile() {
     setDraft(profile);
     setEditing(false);
   };
-  const save = () => {
+  const save = async () => {
     const cleaned: ProfileMeta = {
       name: draft.name.trim() || DEFAULT_PROFILE.name,
       focus: draft.focus.trim() || DEFAULT_PROFILE.focus,
@@ -229,6 +229,17 @@ function Profile() {
     setProfile(cleaned);
     writeProfile(cleaned);
     setEditing(false);
+    if (userId) {
+      setSaving(true);
+      const { error } = await supabase.from("profiles").upsert({
+        user_id: userId,
+        name: cleaned.name,
+        focus: cleaned.focus,
+        avatar: cleaned.avatar,
+      });
+      setSaving(false);
+      if (error) setOffline(true);
+    }
   };
 
   return (
