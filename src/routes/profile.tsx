@@ -111,15 +111,55 @@ function Profile() {
   const [draft, setDraft] = useState<ProfileMeta>(DEFAULT_PROFILE);
   const [hasSession, setHasSession] = useState(false);
   const [sessionEmail, setSessionEmail] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [confirmingLogout, setConfirmingLogout] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [offline, setOffline] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const p = readProfile();
     setProfile(p);
     setDraft(p);
   }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("name, focus, avatar")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (cancelled) return;
+      if (error) {
+        setOffline(true);
+        return;
+      }
+      if (data) {
+        const remote: ProfileMeta = {
+          name: data.name || DEFAULT_PROFILE.name,
+          focus: data.focus || DEFAULT_PROFILE.focus,
+          avatar: (data.avatar as AvatarId) || DEFAULT_PROFILE.avatar,
+        };
+        setProfile(remote);
+        setDraft(remote);
+        writeProfile(remote);
+      } else {
+        const local = readProfile();
+        await supabase.from("profiles").upsert({
+          user_id: userId,
+          name: local.name,
+          focus: local.focus,
+          avatar: local.avatar,
+        });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
 
   useEffect(() => {
     let mounted = true;
@@ -129,12 +169,14 @@ function Profile() {
         if (!mounted) return;
         setHasSession(!!data.session);
         setSessionEmail(data.session?.user?.email ?? null);
+        setUserId(data.session?.user?.id ?? null);
         setOffline(false);
       })
       .catch(() => mounted && setOffline(true));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       setHasSession(!!s);
       setSessionEmail(s?.user?.email ?? null);
+      setUserId(s?.user?.id ?? null);
     });
     const onOnline = () => setOffline(false);
     const onOffline = () => setOffline(true);
