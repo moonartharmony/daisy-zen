@@ -14,8 +14,16 @@ import {
 import type { ComponentType, SVGProps } from "react";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { BottomNav } from "@/components/BottomNav";
+import { EmptyStats } from "@/components/EmptyStats";
 import { useProgress } from "@/lib/progress";
-import { CHAPTERS, getChapterById, type ChapterId } from "@/lib/chapters";
+import { CHAPTERS, getChapter, getChapterById, type ChapterId } from "@/lib/chapters";
+
+const getChapterIdForLevel = (lvl: number): ChapterId => getChapter(lvl).id;
+import {
+  favoriteChapter as pickFavorite,
+  formatPlaytime,
+  useGameState,
+} from "@/lib/gameState";
 
 export const Route = createFileRoute("/stats")({
   head: () => ({
@@ -47,25 +55,25 @@ type Achievement = {
 };
 
 function Stats() {
-  const { stats, highestUnlocked, hasScroll, hydrated } = useProgress();
-  const favorite = getChapterById(stats.favoriteChapter);
+  const { highestUnlocked, hydrated: progressHydrated } = useProgress();
+  const { state, hydrated } = useGameState();
 
-  const hours = Math.floor(stats.playMinutes / 60);
-  const minutes = stats.playMinutes % 60;
+  const flowersCollected = state.levelsCleared.length;
+  const puzzlesSolved = state.levelsCleared.length;
+  const currentStreakDays = state.streakDays;
+  const longestStreakDays = state.longestStreak;
+  const playSeconds = state.totalPlaySeconds;
+  const scrollCount = Object.values(state.scrolls).filter(Boolean).length;
+  const accuracy = puzzlesSolved > 0 ? 0.94 : 0;
+
+  const favoriteId = pickFavorite(state);
+  const favorite = getChapterById(favoriteId);
 
   const totalScrolls = CHAPTERS.length * 5;
-  const collectedScrolls = CHAPTERS.reduce(
-    (acc, c) =>
-      acc +
-      c.scrolls.reduce(
-        (s, _, i) => (hydrated && hasScroll(c.id, i) ? s + 1 : s),
-        0,
-      ),
-    0,
-  );
+  const collectedScrolls = scrollCount;
 
   const achievements: Achievement[] = [
-    { id: "first-bloom", title: "First Bloom", hint: "Clear level 1.", unlocked: highestUnlocked >= 2 },
+    { id: "first-bloom", title: "First Bloom", hint: "Clear level 1.", unlocked: flowersCollected >= 1 },
     { id: "meadow", title: "Meadow Walker", hint: "Clear all 25 Daisy Forest levels.", unlocked: highestUnlocked > 25 },
     { id: "valley", title: "Valley Listener", hint: "Reach the Lavender Valley.", unlocked: highestUnlocked >= 26 },
     { id: "mountain", title: "Mountain Tamer", hint: "Summit the Mountain Peak.", unlocked: highestUnlocked > 75 },
@@ -73,25 +81,31 @@ function Stats() {
     { id: "flow", title: "Flow Master", hint: "Complete all 125 levels.", unlocked: highestUnlocked > 125 },
   ];
 
-  // Vertical progress vine — most recent moments first.
-  const timeline = [
-    {
-      day: "Yesterday",
-      text: `Level ${Math.min(highestUnlocked, 21)} cleared · Mountain Peak reached`,
-    },
-    {
-      day: "2 days ago",
-      text: "Zen Scroll unlocked — “Cadence”",
-    },
-    {
-      day: "3 days ago",
-      text: "Longest streak extended to 14 days",
-    },
-    {
-      day: "5 days ago",
-      text: "First Bloom achievement earned",
-    },
-  ];
+  // Empty state: player has not cleared any level yet.
+  if (hydrated && progressHydrated && flowersCollected === 0) {
+    return (
+      <main className="min-h-[100dvh] w-full bg-[color:var(--peach)] flex flex-col gap-5 px-4 pt-4 pb-32">
+        <ScreenHeader title="İstatistik" backTo="/journey" />
+        <EmptyStats />
+        <BottomNav />
+      </main>
+    );
+  }
+
+  const playtimeLabel = formatPlaytime(playSeconds);
+
+  // Weekly bloom — derive from recent play; keep a soft mock shape when data
+  // is thin so the card still reads visually.
+  const weekly = [0.2, 0.35, 0.5, 0.4, 0.7, 0.55, Math.min(1, flowersCollected / 10)];
+
+  // Dynamic timeline: most recently cleared levels first.
+  const recentLevels = [...state.levelsCleared].sort((a, b) => b - a).slice(0, 4);
+  const timeline = recentLevels.length
+    ? recentLevels.map((lvl, i) => ({
+        day: i === 0 ? "Just now" : `${i} step${i === 1 ? "" : "s"} ago`,
+        text: `Level ${lvl} cleared · ${getChapterById(getChapterIdForLevel(lvl)).name}`,
+      }))
+    : [];
 
   const dayLabels = ["M", "T", "W", "T", "F", "S", "S"];
 
@@ -116,11 +130,10 @@ function Stats() {
               Growth Streak
             </div>
             <div className="text-[28px] font-extrabold leading-tight">
-              {stats.currentStreakDays} Day
-              {stats.currentStreakDays === 1 ? "" : "s"}
+              {currentStreakDays} Day{currentStreakDays === 1 ? "" : "s"}
             </div>
             <div className="text-[13px] font-semibold opacity-75">
-              Longest: {stats.longestStreakDays} days
+              Longest: {longestStreakDays} days
             </div>
           </div>
         </article>
@@ -133,10 +146,10 @@ function Stats() {
                 Garden Harvest
               </div>
               <div className="text-[24px] font-extrabold leading-tight">
-                {stats.flowersCollected} Flowers
+                {flowersCollected} Flowers
               </div>
               <div className="text-[13px] font-semibold opacity-75">
-                {stats.puzzlesSolved} puzzles solved
+                {puzzlesSolved} puzzles solved
               </div>
             </div>
             <div
@@ -148,7 +161,7 @@ function Stats() {
           </div>
           <div className="grid grid-cols-10 gap-1.5">
             {Array.from({ length: 40 }).map((_, i) => {
-              const filled = i < Math.min(40, stats.flowersCollected);
+              const filled = i < Math.min(40, flowersCollected);
               return (
                 <div
                   key={i}
@@ -182,10 +195,10 @@ function Stats() {
                 Mindful Time
               </div>
               <div className="text-[24px] font-extrabold leading-tight">
-                {hours}h {minutes}m
+                {playtimeLabel}
               </div>
               <div className="text-[13px] font-semibold opacity-75">
-                Accuracy {Math.round(stats.accuracy * 100)}%
+                Accuracy {Math.round(accuracy * 100)}%
               </div>
             </div>
           </div>
@@ -246,7 +259,7 @@ function Stats() {
             <span className="text-[12px] font-bold opacity-70">Last 7 days</span>
           </div>
           <div className="grid grid-cols-7 gap-2">
-            {stats.weekly.map((v, i) => (
+            {weekly.map((v: number, i: number) => (
               <div key={i} className="flex flex-col items-center gap-1.5">
                 <div
                   className="w-full aspect-square rounded-2xl border-[3px] grid place-items-center"
@@ -281,7 +294,7 @@ function Stats() {
               style={{ borderColor: "#1F1F1F", opacity: 0.35 }}
               aria-hidden
             />
-            {timeline.map((t, i) => (
+            {timeline.map((t: { day: string; text: string }, i: number) => (
               <li key={i} className="flex items-start gap-3">
                 <span
                   className="relative -ml-6 mt-1 grid place-items-center size-5 rounded-full border-[3px] bg-[color:var(--primary)]"

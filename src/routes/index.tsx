@@ -21,6 +21,7 @@ import {
   petalAccentFromEmotion,
 } from "@/engine/useEmotionEngine";
 import { useProgress, scrollIdForLevel } from "@/lib/progress";
+import { updateOnWin } from "@/lib/gameState";
 
 const searchSchema = z.object({
   chapter: z
@@ -115,14 +116,14 @@ function Game() {
     index: number;
   } | null>(null);
 
-  // Hint state
-  const [hintAvailable, setHintAvailable] = useState(false);
+  // Hint state — button stays unrendered until the timer elapses.
+  const [hintReady, setHintReady] = useState(false);
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const startHintTimer = () => {
     if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
-    setHintAvailable(false);
-    hintTimerRef.current = setTimeout(() => setHintAvailable(true), HINT_DELAY_MS);
+    setHintReady(false);
+    hintTimerRef.current = setTimeout(() => setHintReady(true), HINT_DELAY_MS);
   };
 
   // Reset state on level change. Engine is reset and seeded with the new
@@ -251,7 +252,13 @@ function Game() {
       engine.injectImpulse("win");
       engine.surgeOpenness(0.15, 700);
       if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
-      setHintAvailable(false);
+      setHintReady(false);
+      // Merge win into centralized game state (streak, playtime, xp, scrolls).
+      updateOnWin({
+        level,
+        earnedXp: earned,
+        elapsedSeconds: elapsed,
+      });
       const target = earned;
       setDisplayedScore(0);
       const startTs = performance.now();
@@ -332,7 +339,7 @@ function Game() {
     if (bestIdx >= 0) {
       setPetalAnim(bestIdx, "hint", 2200);
     }
-    setHintAvailable(false);
+    setHintReady(false);
   };
 
   const totalArrowed = arrowedIndices.length;
@@ -472,7 +479,7 @@ function Game() {
           />
         </div>
         <div className="text-label -mt-1" style={{ color: "var(--ink)", opacity: 0.7 }}>
-          Moves {moves} · Budget {moveBudget}
+          Moves: {moves}
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -483,7 +490,7 @@ function Game() {
             <RotateCcw className="size-5" strokeWidth={2.5} />
             Reset
           </button>
-          {hintAvailable && !won && (
+          {hintReady && !won && (
             <button
               onClick={handleHint}
               className="neo neo-press rounded-xl bg-white text-[color:var(--ink)] py-3 px-4 text-body-lg flex items-center justify-center gap-2 animate-pop-in"
