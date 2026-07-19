@@ -119,11 +119,10 @@ function Stats() {
               Growth Streak
             </div>
             <div className="text-[28px] font-extrabold leading-tight">
-              {stats.currentStreakDays} Day
-              {stats.currentStreakDays === 1 ? "" : "s"}
+              {currentStreakDays} Day{currentStreakDays === 1 ? "" : "s"}
             </div>
             <div className="text-[13px] font-semibold opacity-75">
-              Longest: {stats.longestStreakDays} days
+              Longest: {longestStreakDays} days
             </div>
           </div>
         </article>
@@ -136,10 +135,10 @@ function Stats() {
                 Garden Harvest
               </div>
               <div className="text-[24px] font-extrabold leading-tight">
-                {stats.flowersCollected} Flowers
+                {flowersCollected} Flowers
               </div>
               <div className="text-[13px] font-semibold opacity-75">
-                {stats.puzzlesSolved} puzzles solved
+                {puzzlesSolved} puzzles solved
               </div>
             </div>
             <div
@@ -151,7 +150,7 @@ function Stats() {
           </div>
           <div className="grid grid-cols-10 gap-1.5">
             {Array.from({ length: 40 }).map((_, i) => {
-              const filled = i < Math.min(40, stats.flowersCollected);
+              const filled = i < Math.min(40, flowersCollected);
               return (
                 <div
                   key={i}
@@ -185,10 +184,10 @@ function Stats() {
                 Mindful Time
               </div>
               <div className="text-[24px] font-extrabold leading-tight">
-                {hours}h {minutes}m
+                {playtimeLabel}
               </div>
               <div className="text-[13px] font-semibold opacity-75">
-                Accuracy {Math.round(stats.accuracy * 100)}%
+                Accuracy {Math.round(accuracy * 100)}%
               </div>
             </div>
           </div>
@@ -249,7 +248,7 @@ function Stats() {
             <span className="text-[12px] font-bold opacity-70">Last 7 days</span>
           </div>
           <div className="grid grid-cols-7 gap-2">
-            {stats.weekly.map((v, i) => (
+            {weekly.map((v: number, i: number) => (
               <div key={i} className="flex flex-col items-center gap-1.5">
                 <div
                   className="w-full aspect-square rounded-2xl border-[3px] grid place-items-center"
