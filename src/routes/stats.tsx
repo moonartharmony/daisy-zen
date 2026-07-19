@@ -16,7 +16,9 @@ import { ScreenHeader } from "@/components/ScreenHeader";
 import { BottomNav } from "@/components/BottomNav";
 import { EmptyStats } from "@/components/EmptyStats";
 import { useProgress } from "@/lib/progress";
-import { CHAPTERS, getChapterById, type ChapterId } from "@/lib/chapters";
+import { CHAPTERS, getChapter, getChapterById, type ChapterId } from "@/lib/chapters";
+
+const getChapterIdForLevel = (lvl: number): ChapterId => getChapter(lvl).id;
 import {
   favoriteChapter as pickFavorite,
   formatPlaytime,
@@ -95,6 +97,15 @@ function Stats() {
   // Weekly bloom — derive from recent play; keep a soft mock shape when data
   // is thin so the card still reads visually.
   const weekly = [0.2, 0.35, 0.5, 0.4, 0.7, 0.55, Math.min(1, flowersCollected / 10)];
+
+  // Dynamic timeline: most recently cleared levels first.
+  const recentLevels = [...state.levelsCleared].sort((a, b) => b - a).slice(0, 4);
+  const timeline = recentLevels.length
+    ? recentLevels.map((lvl, i) => ({
+        day: i === 0 ? "Just now" : `${i} step${i === 1 ? "" : "s"} ago`,
+        text: `Level ${lvl} cleared · ${getChapterById(getChapterIdForLevel(lvl)).name}`,
+      }))
+    : [];
 
   const dayLabels = ["M", "T", "W", "T", "F", "S", "S"];
 
@@ -283,7 +294,7 @@ function Stats() {
               style={{ borderColor: "#1F1F1F", opacity: 0.35 }}
               aria-hidden
             />
-            {timeline.map((t, i) => (
+            {timeline.map((t: { day: string; text: string }, i: number) => (
               <li key={i} className="flex items-start gap-3">
                 <span
                   className="relative -ml-6 mt-1 grid place-items-center size-5 rounded-full border-[3px] bg-[color:var(--primary)]"
