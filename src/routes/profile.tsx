@@ -19,6 +19,7 @@ import { ScreenHeader } from "@/components/ScreenHeader";
 import { BottomNav } from "@/components/BottomNav";
 import { useProgress } from "@/lib/progress";
 import { CHAPTERS, getChapter } from "@/lib/chapters";
+import { useGameState } from "@/lib/gameState";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/profile")({
@@ -98,11 +99,12 @@ function AvatarBadge({ avatar, size = 112 }: { avatar: AvatarId; size?: number }
 
 function Profile() {
   const { highestUnlocked, xp } = useProgress();
+  const { state: gameState } = useGameState();
   const chapter = getChapter(highestUnlocked);
   const totalLevels = CHAPTERS[CHAPTERS.length - 2]?.levelEnd ?? 50;
   const focusPct = Math.min(100, Math.round((highestUnlocked / totalLevels) * 100));
-  const totalXP = xp;
-  const dailyStreak = 12;
+  const totalXP = xp || gameState.totalXp;
+  const dailyStreak = gameState.streakDays;
 
   const [profile, setProfile] = useState<ProfileMeta>(DEFAULT_PROFILE);
   const [editing, setEditing] = useState(false);
