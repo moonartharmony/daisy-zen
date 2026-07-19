@@ -7,8 +7,11 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 import appCss from "../styles.css?url";
+import { initPostHog, identifyUser, resetAnalyticsUser } from "@/lib/analytics";
+import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
   return (
@@ -114,6 +117,25 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  // Initialize PostHog once on first client render.
+  useEffect(() => {
+    initPostHog();
+  }, []);
+
+  // Identify/reset the analytics user whenever auth state changes.
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        identifyUser(session.user.id, session.user.email);
+      } else {
+        resetAnalyticsUser();
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

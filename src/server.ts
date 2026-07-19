@@ -3,6 +3,23 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 
+const STATIC_ASSET_RE = /\.(js|css|woff2?|png|svg|ico|webp)(\?|$)/;
+
+function applyCacheHeaders(request: Request, response: Response): Response {
+  const { pathname, search } = new URL(request.url);
+  const headers = new Headers(response.headers);
+  if (STATIC_ASSET_RE.test(pathname + search)) {
+    headers.set("Cache-Control", "public, max-age=31536000, immutable");
+  } else {
+    headers.set("Cache-Control", "no-store, must-revalidate");
+  }
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
 };
@@ -71,7 +88,8 @@ export default {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      const normalized = await normalizeCatastrophicSsrResponse(response);
+      return applyCacheHeaders(request, normalized);
     } catch (error) {
       console.error(error);
       return brandedErrorResponse();

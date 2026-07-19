@@ -9,30 +9,42 @@ const LAST_CHAPTER_KEY = "daisy-last-chapter";
 const CURRENT_LEVEL_KEY = "current-level";
 const CHAPTER_SEEN_KEY = "daisy-zen-intro-seen-v1";
 
-const DEFAULT_LEVEL = 8;
-const DEFAULT_XP = 1240;
+const DEFAULT_LEVEL = 1;
+const DEFAULT_XP = 0;
 
-/** Mock stats snapshot — surfaced on /stats until real analytics arrives. */
+/**
+ * ZenStats — all fields are derived from real gameplay events.
+ * Written by updateOnWin() on each level completion.
+ */
 export type ZenStats = {
+  /** Sorted list of level numbers the player has cleared. */
+  levelsCleared: number[];
+  /** Accumulated play time in seconds across all wins. */
+  playSeconds: number;
+  /** Total petal taps across all wins. */
+  totalMoves: number;
+  /** Total arrows aligned across all wins (= Σ arrowedIndices.length per win). */
+  totalAligned: number;
+  /** XP earned per chapter id. */
+  chapterXp: Partial<Record<ChapterId, number>>;
   currentStreakDays: number;
   longestStreakDays: number;
-  flowersCollected: number;
-  puzzlesSolved: number;
-  playMinutes: number;
-  accuracy: number; // 0..1
-  favoriteChapter: ChapterId;
-  weekly: number[]; // 7 entries, 0..1 intensity for Mon..Sun
+  /** ISO date "YYYY-MM-DD" of last play session. */
+  lastPlayDate: string;
+  /** XP earned per ISO date, kept for the 7-day activity chart. */
+  dailyXp: Record<string, number>;
 };
 
-const DEFAULT_STATS: ZenStats = {
-  currentStreakDays: 5,
-  longestStreakDays: 14,
-  flowersCollected: 42,
-  puzzlesSolved: 120,
-  playMinutes: 195, // 3h 15m
-  accuracy: 0.94,
-  favoriteChapter: "sakura",
-  weekly: [0.4, 0.7, 0.9, 0.5, 1, 0.6, 0.3],
+const EMPTY_STATS: ZenStats = {
+  levelsCleared: [],
+  playSeconds: 0,
+  totalMoves: 0,
+  totalAligned: 0,
+  chapterXp: {},
+  currentStreakDays: 0,
+  longestStreakDays: 0,
+  lastPlayDate: "",
+  dailyXp: {},
 };
 
 function readNumber(key: string, fallback: number): number {
@@ -97,14 +109,14 @@ export function scrollIdForLevel(level: number): {
  * useProgress
  * -----------
  * Tracks highest-unlocked level, XP, collected scrolls, chapter intros
- * seen, and mock zen stats. All fields persist in localStorage.
+ * seen, and real gameplay stats. All fields persist in localStorage.
  */
 export function useProgress() {
   const [highestUnlocked, setHighestUnlocked] = useState<number>(DEFAULT_LEVEL);
   const [xp, setXp] = useState<number>(DEFAULT_XP);
   const [scrolls, setScrolls] = useState<Record<string, boolean>>({});
   const [seenChapters, setSeenChapters] = useState<Record<string, boolean>>({});
-  const [stats, setStats] = useState<ZenStats>(DEFAULT_STATS);
+  const [stats, setStats] = useState<ZenStats>(EMPTY_STATS);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -112,7 +124,9 @@ export function useProgress() {
     setXp(readNumber(XP_KEY, DEFAULT_XP));
     setScrolls(readJson<Record<string, boolean>>(SCROLLS_KEY, {}));
     setSeenChapters(readJson<Record<string, boolean>>(CHAPTER_SEEN_KEY, {}));
-    setStats(readJson<ZenStats>(STATS_KEY, DEFAULT_STATS));
+    // Migrate: if stored object has old mock shape, fall back to EMPTY_STATS.
+    const stored = readJson<ZenStats>(STATS_KEY, EMPTY_STATS);
+    setStats(Array.isArray(stored.levelsCleared) ? stored : EMPTY_STATS);
     setHydrated(true);
   }, []);
 
@@ -129,6 +143,63 @@ export function useProgress() {
     setXp((prev) => {
       const next = Math.max(0, prev + delta);
       writeNumber(XP_KEY, next);
+      return next;
+    });
+  }, []);
+
+  /**
+   * updateOnWin — merge one win's performance data into ZenStats.
+   * Call this immediately after a level is cleared, alongside addXp/unlockLevel.
+   */
+  const updateOnWin = useCallback((opts: {
+    level: number;
+    elapsed: number;
+    moves: number;
+    aligned: number;
+    chapterId: ChapterId;
+    xpEarned: number;
+  }) => {
+    setStats((prev) => {
+      const today = new Date().toISOString().slice(0, 10);
+
+      const levelsCleared = prev.levelsCleared.includes(opts.level)
+        ? prev.levelsCleared
+        : [...prev.levelsCleared, opts.level].sort((a, b) => a - b);
+
+      // Streak: extend if yesterday was the last play date, reset otherwise.
+      let { currentStreakDays, longestStreakDays, lastPlayDate } = prev;
+      if (lastPlayDate !== today) {
+        const yesterday = new Date(Date.now() - 86_400_000)
+          .toISOString()
+          .slice(0, 10);
+        currentStreakDays =
+          lastPlayDate === yesterday ? currentStreakDays + 1 : 1;
+        longestStreakDays = Math.max(longestStreakDays, currentStreakDays);
+        lastPlayDate = today;
+      }
+
+      const dailyXp = {
+        ...prev.dailyXp,
+        [today]: (prev.dailyXp[today] ?? 0) + opts.xpEarned,
+      };
+      const chapterXp = {
+        ...prev.chapterXp,
+        [opts.chapterId]:
+          (prev.chapterXp[opts.chapterId] ?? 0) + opts.xpEarned,
+      };
+
+      const next: ZenStats = {
+        levelsCleared,
+        playSeconds: prev.playSeconds + opts.elapsed,
+        totalMoves: prev.totalMoves + opts.moves,
+        totalAligned: prev.totalAligned + opts.aligned,
+        chapterXp,
+        currentStreakDays,
+        longestStreakDays,
+        lastPlayDate,
+        dailyXp,
+      };
+      writeJson(STATS_KEY, next);
       return next;
     });
   }, []);
@@ -169,10 +240,12 @@ export function useProgress() {
     writeNumber(XP_KEY, DEFAULT_XP);
     writeJson(SCROLLS_KEY, {});
     writeJson(CHAPTER_SEEN_KEY, {});
+    writeJson(STATS_KEY, EMPTY_STATS);
     setHighestUnlocked(DEFAULT_LEVEL);
     setXp(DEFAULT_XP);
     setScrolls({});
     setSeenChapters({});
+    setStats(EMPTY_STATS);
   }, []);
 
   return {
@@ -183,6 +256,7 @@ export function useProgress() {
     stats,
     unlockLevel,
     addXp,
+    updateOnWin,
     collectScroll,
     hasScroll,
     markChapterSeen,

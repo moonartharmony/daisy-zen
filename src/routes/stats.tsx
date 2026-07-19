@@ -17,13 +17,13 @@ import { BottomNav } from "@/components/BottomNav";
 import { EmptyStats } from "@/components/EmptyStats";
 import { useProgress } from "@/lib/progress";
 import { CHAPTERS, getChapter, getChapterById, type ChapterId } from "@/lib/chapters";
-
-const getChapterIdForLevel = (lvl: number): ChapterId => getChapter(lvl).id;
 import {
   favoriteChapter as pickFavorite,
   formatPlaytime,
   useGameState,
 } from "@/lib/gameState";
+
+const getChapterIdForLevel = (lvl: number): ChapterId => getChapter(lvl).id;
 
 export const Route = createFileRoute("/stats")({
   head: () => ({

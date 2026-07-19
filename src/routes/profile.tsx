@@ -18,7 +18,7 @@ import {
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { BottomNav } from "@/components/BottomNav";
 import { useProgress } from "@/lib/progress";
-import { CHAPTERS, getChapter } from "@/lib/chapters";
+import { CHAPTERS, getChapter, TOTAL_LEVELS } from "@/lib/chapters";
 import { useGameState } from "@/lib/gameState";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/profile")({
   component: Profile,
 });
 
-// -- Profile metadata (local only, separate from progress state) ------------
+// -- Profile metadata — localStorage + Supabase user_metadata sync ----------
 
 const PROFILE_KEY = "daisy-zen-profile-v1";
 
@@ -101,10 +101,10 @@ function Profile() {
   const { highestUnlocked, xp } = useProgress();
   const { state: gameState } = useGameState();
   const chapter = getChapter(highestUnlocked);
-  const totalLevels = CHAPTERS[CHAPTERS.length - 2]?.levelEnd ?? 50;
-  const focusPct = Math.min(100, Math.round((highestUnlocked / totalLevels) * 100));
+  const focusPct = Math.min(100, Math.round((highestUnlocked / TOTAL_LEVELS) * 100));
   const totalXP = xp || gameState.totalXp;
   const dailyStreak = gameState.streakDays;
+  const completedChapters = CHAPTERS.filter((c) => highestUnlocked > c.levelEnd).length;
 
   const [profile, setProfile] = useState<ProfileMeta>(DEFAULT_PROFILE);
   const [editing, setEditing] = useState(false);
@@ -117,10 +117,11 @@ function Profile() {
   const [offline, setOffline] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Hydrate from localStorage first, then override with cloud data if richer.
   useEffect(() => {
-    const p = readProfile();
-    setProfile(p);
-    setDraft(p);
+    const local = readProfile();
+    setProfile(local);
+    setDraft(local);
   }, []);
 
   useEffect(() => {
@@ -163,6 +164,19 @@ function Profile() {
 
   useEffect(() => {
     let mounted = true;
+
+    function applyCloudProfile(meta: Record<string, unknown> | undefined) {
+      if (!meta?.profile) return;
+      const cloud = meta.profile as Partial<ProfileMeta>;
+      if (!cloud.name && !cloud.focus) return;
+      const merged: ProfileMeta = { ...DEFAULT_PROFILE, ...cloud };
+      writeProfile(merged);
+      if (mounted) {
+        setProfile(merged);
+        setDraft(merged);
+      }
+    }
+
     supabase.auth
       .getSession()
       .then(({ data }) => {
@@ -171,12 +185,15 @@ function Profile() {
         setSessionEmail(data.session?.user?.email ?? null);
         setUserId(data.session?.user?.id ?? null);
         setOffline(false);
+        applyCloudProfile(data.session?.user?.user_metadata);
       })
       .catch(() => mounted && setOffline(true));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      if (!mounted) return;
       setHasSession(!!s);
       setSessionEmail(s?.user?.email ?? null);
       setUserId(s?.user?.id ?? null);
+      applyCloudProfile(s?.user?.user_metadata);
     });
     const onOnline = () => setOffline(false);
     const onOffline = () => setOffline(true);
@@ -351,7 +368,7 @@ function Profile() {
                 />
               }
               label="Chapters"
-              value={String(CHAPTERS.length - 2)}
+              value={String(completedChapters)}
             />
             <StatCard
               icon={
@@ -363,7 +380,7 @@ function Profile() {
                 />
               }
               label="Daily Streak"
-              value={`${dailyStreak} Days`}
+              value={dailyStreak === 1 ? "1 Day" : `${dailyStreak} Days`}
             />
           </section>
 

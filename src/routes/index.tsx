@@ -368,7 +368,10 @@ function Game() {
       className="chapter-bg min-h-[100dvh] w-full flex flex-col items-center px-4 py-5 pb-28 gap-6"
       style={{ backgroundColor: chapter.bgColor, color: ink }}
     >
-      <header className="w-full max-w-md flex items-center justify-between gap-3">
+      <header
+        className="w-full max-w-md flex items-center justify-between gap-3"
+        style={{ background: "transparent", borderBottom: "none" }}
+      >
         <button
           aria-label="Pause"
           onClick={() => setPaused(true)}
