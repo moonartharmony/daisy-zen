@@ -339,7 +339,7 @@ function Game() {
     if (bestIdx >= 0) {
       setPetalAnim(bestIdx, "hint", 2200);
     }
-    setHintAvailable(false);
+    setHintReady(false);
   };
 
   const totalArrowed = arrowedIndices.length;
