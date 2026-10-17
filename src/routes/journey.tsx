@@ -330,7 +330,7 @@ function ChapterCard({
       <div className="flex items-center justify-between gap-3 pt-1">
         <div className="flex flex-col gap-2 flex-1 min-w-0">
           <div className="text-[14px] font-bold" style={{ color: inkSoft }}>
-            Seviye {chapter.levelStart}-{chapter.levelEnd}
+            Levels {chapter.levelStart}-{chapter.levelEnd}
           </div>
           {isActive && (
             <div
