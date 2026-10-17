@@ -37,6 +37,11 @@
   --color-petal: var(--petal);
   --color-ink: var(--ink);
   --color-sage: var(--sage);
+  --color-biome: var(--biome-bg);
+  --color-biome-accent: var(--biome-accent);
+  --color-biome-on-accent: var(--biome-on-accent);
+  --color-biome-progress: var(--biome-progress);
+  --color-biome-ink: var(--biome-ink);
   --font-sans: 'Space Grotesk', 'Quicksand', system-ui, sans-serif;
 }
 
@@ -82,6 +87,33 @@
   --ease-snap: cubic-bezier(0.4, 0, 0.2, 1);
   --dur-snap: 160ms;
   --dur-flow: 360ms;
+  --shadow-badge: 2px 2px 0 var(--ink);
+  --shadow-pressed: 1px 1px 0 var(--ink);
+  --shadow-flat: 0 0 0 var(--ink);
+  --biome-bg: #FDE69E;
+  --biome-accent: #FFD500;
+  --biome-on-accent: #1F1F1F;
+  --biome-progress: #FFD500;
+  --biome-ink: #1F1F1F;
+}
+
+.game-theme[data-biome="lavender"] { --biome-bg: #E9B7FF; --biome-accent: #3E4E35; --biome-on-accent: #FFFFFF; --biome-progress: #CE93D8; }
+.game-theme[data-biome="mountain"] { --biome-bg: #748392; --biome-accent: #4A5A7A; --biome-on-accent: #FFFFFF; --biome-progress: #B7C6DA; --biome-ink: #FFFFFF; }
+.game-theme[data-biome="sakura"] { --biome-bg: #FBC9A8; --biome-accent: #F15BB5; --biome-on-accent: #FFFFFF; --biome-progress: #FBD5E0; }
+.game-theme[data-biome="lotus"] { --biome-bg: #B9DED4; --biome-accent: #2E6B6E; --biome-on-accent: #FFFFFF; --biome-progress: #8FC8BE; --biome-ink: #1F3B36; }
+
+.stat-badge { border: 2px solid var(--ink); box-shadow: var(--shadow-badge); }
+.neo-control { border: 2px solid var(--ink); box-shadow: var(--shadow-neo-sm); transition: transform 160ms var(--ease-quiet), box-shadow 160ms var(--ease-quiet); }
+.neo-control:active { transform: translate(2px, 2px); box-shadow: var(--shadow-flat); }
+.completion-card { border: 3px solid var(--ink); box-shadow: var(--shadow-neo-lg); }
+.next-action:active { transform: translateY(2px); box-shadow: var(--shadow-pressed); }
+.completion-backdrop { animation: completion-backdrop 220ms 450ms both; }
+.completion-entry { animation: pop-in 260ms 450ms both; }
+@keyframes completion-backdrop { from { background: transparent; backdrop-filter: blur(0); } to { background: color-mix(in oklab, var(--ink) 20%, transparent); backdrop-filter: blur(4px); } }
+.reward-flight { offset-path: path("M 0 0 Q 50 -100 0 -220"); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; animation-delay: 0ms !important; transition-duration: 1ms !important; }
+  .completion-backdrop { background: color-mix(in oklab, var(--ink) 20%, transparent); backdrop-filter: blur(4px); }
 }
 
 .dark {
