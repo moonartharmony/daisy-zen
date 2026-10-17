@@ -47,7 +47,7 @@ type ProfileMeta = {
 };
 
 const DEFAULT_PROFILE: ProfileMeta = {
-  name: "Moonlight",
+  name: "moonartharmony",
   focus: "Designer",
   avatar: "users",
 };
