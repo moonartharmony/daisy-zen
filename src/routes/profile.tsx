@@ -182,7 +182,7 @@ function Profile() {
       if (!meta?.profile) return;
       const cloud = meta.profile as Partial<ProfileMeta>;
       if (!cloud.name && !cloud.focus) return;
-      const merged: ProfileMeta = { ...DEFAULT_PROFILE, ...cloud };
+      const merged: ProfileMeta = withFixedIdentity({ ...DEFAULT_PROFILE, ...cloud });
       writeProfile(merged);
       if (mounted) {
         setProfile(merged);
