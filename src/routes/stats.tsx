@@ -29,6 +29,10 @@ export const Route = createFileRoute("/stats")({
   head: () => ({
     meta: [
       { title: "Statistics — Daisy Zen" },
+      { property: "og:title", content: "Statistics — Daisy Zen" },
+      { property: "og:description", content: "Growth streaks, garden harvest, mindful minutes, and the scrolls you've gathered along the way." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       {
         name: "description",
         content:

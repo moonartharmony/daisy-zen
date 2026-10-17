@@ -29,6 +29,8 @@ export const Route = createFileRoute("/profile")({
       { name: "description", content: "Your zen identity and progress." },
       { property: "og:title", content: "Profile — Daisy Zen" },
       { property: "og:description", content: "Your zen identity and progress." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Profile,

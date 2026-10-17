@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
-import { Pause, RotateCcw, ArrowRight, Lightbulb, Map, Star } from "lucide-react";
+import { Pause, RotateCcw, ArrowRight, Lightbulb, Map, Star, ScrollText, Sparkles } from "lucide-react";
 import { Daisy, type PetalAnim } from "@/components/Daisy";
+import { Button } from "@/components/ui/button";
+import { CompletionRewards } from "@/components/CompletionRewards";
 import {
   DIRECTIONS,
   DIR_DEG,
@@ -87,6 +89,8 @@ function Game() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const {
+    xp,
+    scrolls,
     unlockLevel,
     addXp,
     collectScroll,
@@ -106,6 +110,9 @@ function Game() {
   const startedAtRef = useRef<number>(Date.now());
   const lastCanvasTapRef = useRef<number>(0);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const flowerRef = useRef<HTMLDivElement>(null);
+  const xpRef = useRef<HTMLSpanElement>(null);
+  const scrollRef = useRef<HTMLSpanElement>(null);
 
   const puzzle = useMemo(() => getPuzzle(level), [level]);
   const chapter = useMemo(() => getChapter(level), [level]);
@@ -376,60 +383,51 @@ function Game() {
 
   // Strict white-only interaction rule: petals & arrows are always pure white.
   // Contrast comes solely from the heavy black stroke against the chapter bg.
-  const livePetalBase = "#FFFFFF";
+  const livePetalBase = "var(--petal)";
   const petalPalette: string[] | undefined = undefined;
 
   const idleSpin = false;
 
-  const ink = chapter.inkColor;
-
-  // Biome-specific interactive theme. Center core, reset button and progress
-  // fill morph per chapter while the neubrutalist frame stays intact.
-  const biomeTheme: Record<string, { accent: string; onAccent: string; progress: string }> = {
-    daisy:    { accent: "#FFD500", onAccent: "#1F1F1F", progress: "#FFD500" },
-    lavender: { accent: "#3E4E35", onAccent: "#FFFFFF", progress: "#CE93D8" },
-    mountain: { accent: "#4A5A7A", onAccent: "#FFFFFF", progress: "#B7C6DA" },
-    sakura:   { accent: "#F15BB5", onAccent: "#FFFFFF", progress: "#FBD5E0" },
-    lotus:    { accent: "#2E6B6E", onAccent: "#FFFFFF", progress: "#8FC8BE" },
-  };
-  const theme = biomeTheme[chapter.id] ?? biomeTheme.daisy;
+  const ink = "var(--biome-ink)";
+  const theme = { accent: "var(--biome-accent)", onAccent: "var(--biome-on-accent)", progress: "var(--biome-progress)" };
   return (
     <main
-      className="chapter-bg min-h-[100dvh] w-full flex flex-col items-center px-4 py-5 pb-28 gap-6"
-      style={{ backgroundColor: chapter.bgColor, color: ink }}
+      data-biome={chapter.id}
+      className="game-theme chapter-bg bg-biome text-biome-ink min-h-[100dvh] w-full flex flex-col items-center px-4 py-5 pb-28 gap-6"
     >
       <header
         className="w-full max-w-md flex items-center justify-between gap-3"
         style={{ background: "transparent", borderBottom: "none" }}
       >
-        <button
+        <Button variant="neo" size="touch"
           aria-label="Pause"
           onClick={() => setPaused(true)}
-          className="neo neo-press rounded-xl bg-white p-2.5"
+          className="rounded-xl"
         >
-          <Pause className="size-5" strokeWidth={2.5} style={{ color: "#1F1F1F" }} />
-        </button>
-        <div className="text-headline" style={{ color: ink }}>
-          Level {String(level).padStart(2, "0")}
+          <Pause className="size-5" strokeWidth={2.5} />
+        </Button>
+        <div className="flex flex-wrap justify-center gap-2 text-xs font-black text-ink" aria-label="Game statistics">
+          <span className="stat-badge rounded-lg bg-card px-2.5 py-2">LEVEL {String(level).padStart(2, "0")}</span>
+          <span ref={xpRef} aria-label={`${xp} XP`} className="stat-badge rounded-lg bg-card px-2.5 py-2 flex items-center gap-1"><Sparkles className="size-3.5" />{xp} XP</span>
+          <span ref={scrollRef} aria-label={`${Object.values(scrolls).filter(Boolean).length} Zen Scrolls`} title="Zen Scrolls" className="stat-badge rounded-lg bg-card px-2.5 py-2 flex items-center gap-1"><ScrollText className="size-3.5" />{Object.values(scrolls).filter(Boolean).length}</span>
         </div>
-        <Link
+        <Button asChild variant="neo" size="touch" className="rounded-xl"><Link
           to="/journey"
           aria-label="Journey Map"
           title={`Score: ${score}`}
-          className="neo neo-press rounded-xl bg-white p-2.5 grid place-items-center"
         >
-          <Map className="size-5" strokeWidth={2.5} style={{ color: "#1F1F1F" }} />
-        </Link>
+          <Map className="size-5" strokeWidth={2.5} />
+        </Link></Button>
       </header>
 
       <div className="w-full max-w-md flex flex-col items-center gap-0.5 -mt-2">
         <span
-          className="text-[12px] font-extrabold tracking-[0.22em]"
+          className="text-[12px] font-extrabold"
           style={{ color: ink, opacity: 0.85 }}
         >
           {chapter.bolum}
         </span>
-        <span className="text-headline" style={{ color: ink }}>
+        <span className="rounded-full bg-card/60 border-2 border-ink px-4 py-1.5 text-base font-black uppercase text-ink text-center">
           {chapter.name}
         </span>
       </div>
@@ -473,10 +471,12 @@ function Game() {
           window.addEventListener("pointermove", cancel);
         }}
       >
-        <Daisy
+        <div ref={flowerRef}><Daisy
           puzzle={puzzle}
           snapshot={snapshot}
           petalAnims={petalAnims}
+          alignedPetals={petalDirs.map((dir) => dir === puzzle.centerDir)}
+          completed={won}
           onTapPetal={handleTap}
           bursting={bursting}
           centerPulsing={centerPulsing}
@@ -487,11 +487,11 @@ function Game() {
           shape={chapter.petalShape}
           centerColor={theme.accent}
           centerArrowColor={theme.onAccent}
-        />
+        /></div>
       </section>
 
       <footer className="w-full max-w-md flex flex-col gap-3">
-        <div className="neo-lg rounded-2xl bg-white px-4 py-3 flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-3">
           <span className="text-label" style={{ color: "var(--ink)" }}>
             {chapter.name}
           </span>
@@ -500,14 +500,13 @@ function Game() {
           </span>
         </div>
 
-        <div className="neo rounded-xl bg-white h-5 overflow-hidden p-0.5">
+        <div className="neo-sm rounded-lg bg-card h-5 overflow-hidden p-0.5">
           <div
-            className="h-full transition-[width] duration-300 ease-out"
+            className="bg-biome-progress h-full transition-[width] duration-300 ease-out"
             style={{
               width: totalArrowed
                 ? `${(matchedCount / totalArrowed) * 100}%`
                 : "0%",
-              backgroundColor: theme.progress,
             }}
           />
         </div>
@@ -515,22 +514,21 @@ function Game() {
           Moves: {moves}
         </div>
         <div className="flex items-center gap-3">
-          <button
+          <Button variant="neo" size="touch"
             onClick={handleReset}
-            className="neo neo-press rounded-xl py-3 text-body-lg flex items-center justify-center gap-2 flex-1"
-            style={{ backgroundColor: theme.accent, color: theme.onAccent }}
+            className="rounded-xl py-3 text-body-lg flex-1 bg-biome-accent text-biome-on-accent hover:bg-biome-accent/90"
           >
             <RotateCcw className="size-5" strokeWidth={2.5} />
             Reset
-          </button>
+          </Button>
           {hintReady && !won && (
-            <button
+            <Button variant="neo" size="touch"
               onClick={handleHint}
-              className="neo neo-press rounded-xl bg-white text-[color:var(--ink)] py-3 px-4 text-body-lg flex items-center justify-center gap-2 animate-pop-in"
+              className="rounded-xl py-3 px-4 text-body-lg animate-pop-in"
             >
               <Lightbulb className="size-5" strokeWidth={2.5} />
               Hint
-            </button>
+            </Button>
           )}
         </div>
       </footer>
@@ -568,35 +566,35 @@ function Game() {
 
       {/* Win overlay */}
       {won && (
+        <CompletionRewards originRef={flowerRef} xpRef={xpRef} scrollRef={scrollRef} hasScrollReward={Boolean(scrollIdForLevel(level))} />
+      )}
+      {won && (
         <div
-          className="fixed inset-0 z-[90] pointer-events-auto flex items-center justify-center px-6"
-          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+          className="completion-backdrop fixed inset-0 z-[90] pointer-events-auto flex items-center justify-center px-6"
         >
-          <div className="neo-lg rounded-3xl bg-white w-full max-w-sm p-8 flex flex-col items-center gap-5 animate-pop-in text-center">
+          <div role="dialog" aria-modal="true" aria-labelledby="completion-title" className="completion-card completion-entry rounded-2xl bg-card text-card-foreground w-full max-w-sm p-8 flex flex-col items-center gap-5 text-center">
             <div className="flex items-center gap-2" aria-label="Three stars">
               {[0, 1, 2].map((i) => (
                 <Star
                   key={i}
-                  className="size-10"
-                  fill="#FFD700"
-                  stroke="#1F1F1F"
+                  className="size-10 fill-primary text-ink"
                   strokeWidth={2.5}
                   style={{ animation: `pop-in 340ms ${i * 90}ms both` }}
                 />
               ))}
             </div>
-            <h2 className="text-display text-[color:var(--ink)]">
+            <h2 id="completion-title" className="text-display text-ink">
               Level Complete!
             </h2>
             <div className="text-body-lg text-[color:var(--ink)]">
               +{displayedScore} XP
             </div>
-            <button
+            <Button variant="neoPrimary" size="touch"
               onClick={handleNext}
-              className="neo neo-press rounded-xl bg-primary text-[color:var(--primary-foreground)] py-3 px-6 text-body-lg flex items-center justify-center gap-2 w-full"
+              className="next-action rounded-xl py-3 px-6 text-body-lg w-full"
             >
-              Next Level <ArrowRight className="size-5" strokeWidth={2.5} />
-            </button>
+              {level === chapter.levelEnd && level < TOTAL_LEVELS ? "Enter Next Biome" : "Next Level"} <ArrowRight className="size-5" strokeWidth={2.5} />
+            </Button>
           </div>
         </div>
       )}
