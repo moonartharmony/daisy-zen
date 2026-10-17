@@ -30,8 +30,7 @@ const searchSchema = z.object({
   level: z.coerce.number().int().positive().optional(),
 });
 
-const OG_IMAGE =
-  "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/9dfdb64b-30a8-4dde-895d-8f816d6011d8/id-preview-d4896d93--51390fa7-470d-42ea-a0be-d391311d492a.lovable.app-1782655794539.png";
+const OG_IMAGE = "https://daisy-zen.lovable.app/og-image.png";
 
 export const Route = createFileRoute("/")({
   validateSearch: (s: Record<string, unknown>) => searchSchema.parse(s),
