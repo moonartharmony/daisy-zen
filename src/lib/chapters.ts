@@ -47,7 +47,7 @@ export const CHAPTERS: Chapter[] = [
   {
     id: "daisy",
     name: "The Daisy Forest",
-    bolum: "BÖLÜM 1",
+    bolum: "CHAPTER 1",
     epigraph: "Where arrows first speak.",
     intro:
       "The forest wakes softly. Every arrow is a whisper — turn them gently, and the meadow will hum in return.",
@@ -72,7 +72,7 @@ export const CHAPTERS: Chapter[] = [
   {
     id: "lavender",
     name: "The Lavender Valley",
-    bolum: "BÖLÜM 2",
+    bolum: "CHAPTER 2",
     epigraph: "Rhythms overlap. Listen for the beat.",
     intro:
       "The valley breathes in fields of purple. Follow one wave, then two, then the pulse that holds them both.",
@@ -98,7 +98,7 @@ export const CHAPTERS: Chapter[] = [
   {
     id: "mountain",
     name: "The Mountain Peak",
-    bolum: "BÖLÜM 3",
+    bolum: "CHAPTER 3",
     epigraph: "Climb the wind.",
     intro:
       "The mountain asks you to lean into the wind — not to fight it, but to find your center within it.",
@@ -123,7 +123,7 @@ export const CHAPTERS: Chapter[] = [
   {
     id: "sakura",
     name: "The Sakura Garden",
-    bolum: "BÖLÜM 4",
+    bolum: "CHAPTER 4",
     epigraph: "Petals fall, the path remains.",
     intro:
       "The garden is fluent in impermanence. Each petal that lands is a small forgiveness — and a smaller invitation.",
@@ -149,7 +149,7 @@ export const CHAPTERS: Chapter[] = [
   {
     id: "lotus",
     name: "The Lotus Lake",
-    bolum: "BÖLÜM 5",
+    bolum: "CHAPTER 5",
     epigraph: "The still water knows every direction.",
     intro:
       "The lake is a mirror wide as your attention. Here, flow is not effort — it is the shape water takes when nothing resists.",
