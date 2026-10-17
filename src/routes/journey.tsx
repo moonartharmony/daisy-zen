@@ -30,6 +30,8 @@ export const Route = createFileRoute("/journey")({
       { name: "description", content: "Five biomes, one hundred and twenty-five levels of zen." },
       { property: "og:title", content: "Journey Map — Daisy Zen" },
       { property: "og:description", content: "Five biomes, one hundred and twenty-five levels of zen." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: JourneyMap,

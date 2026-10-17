@@ -11,6 +11,8 @@ export const Route = createFileRoute("/settings")({
       { title: "Settings — Daisy Zen" },
       { name: "description", content: "Sign in and adjust your Daisy Zen space." },
       { property: "og:title", content: "Settings — Daisy Zen" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       {
         property: "og:description",
         content: "Sign in and adjust your Daisy Zen space.",
