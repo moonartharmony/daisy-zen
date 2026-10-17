@@ -110,7 +110,6 @@
 .completion-backdrop { animation: completion-backdrop 220ms 450ms both; }
 .completion-entry { animation: pop-in 260ms 450ms both; }
 @keyframes completion-backdrop { from { background: transparent; backdrop-filter: blur(0); } to { background: color-mix(in oklab, var(--ink) 20%, transparent); backdrop-filter: blur(4px); } }
-.reward-flight { offset-path: path("M 0 0 Q 50 -100 0 -220"); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 1ms !important; animation-delay: 0ms !important; transition-duration: 1ms !important; }
   .completion-backdrop { background: color-mix(in oklab, var(--ink) 20%, transparent); backdrop-filter: blur(4px); }
