@@ -72,7 +72,7 @@ function readProfile(): ProfileMeta {
     const raw = window.localStorage.getItem(PROFILE_KEY);
     if (!raw) return DEFAULT_PROFILE;
     const parsed = JSON.parse(raw) as Partial<ProfileMeta>;
-    return { ...DEFAULT_PROFILE, ...parsed };
+    return withFixedIdentity({ ...DEFAULT_PROFILE, ...parsed });
   } catch {
     return DEFAULT_PROFILE;
   }
@@ -144,14 +144,22 @@ function Profile() {
         return;
       }
       if (data) {
-        const remote: ProfileMeta = {
+        const remote: ProfileMeta = withFixedIdentity({
           name: data.name || DEFAULT_PROFILE.name,
           focus: data.focus || DEFAULT_PROFILE.focus,
           avatar: (data.avatar as AvatarId) || DEFAULT_PROFILE.avatar,
-        };
+        });
         setProfile(remote);
         setDraft(remote);
         writeProfile(remote);
+        if (data.name !== remote.name || data.focus !== remote.focus) {
+          await supabase.from("profiles").upsert({
+            user_id: userId,
+            name: remote.name,
+            focus: remote.focus,
+            avatar: remote.avatar,
+          });
+        }
       } else {
         const local = readProfile();
         await supabase.from("profiles").upsert({
