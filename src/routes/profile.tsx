@@ -47,10 +47,15 @@ type ProfileMeta = {
 };
 
 const DEFAULT_PROFILE: ProfileMeta = {
-  name: "Daisy Williams",
-  focus: "Cultivating quiet alignment",
+  name: "Moonlight",
+  focus: "Designer",
   avatar: "users",
 };
+
+// Force-override any previously stored identity with the fixed defaults.
+function withFixedIdentity(p: ProfileMeta): ProfileMeta {
+  return { ...p, name: DEFAULT_PROFILE.name, focus: DEFAULT_PROFILE.focus };
+}
 
 const AVATAR_OPTIONS: { id: AvatarId; icon: React.ComponentType<{ className?: string; strokeWidth?: number }>; bg: string }[] = [
   { id: "users", icon: Users, bg: "#D8C3A8" },
@@ -67,7 +72,7 @@ function readProfile(): ProfileMeta {
     const raw = window.localStorage.getItem(PROFILE_KEY);
     if (!raw) return DEFAULT_PROFILE;
     const parsed = JSON.parse(raw) as Partial<ProfileMeta>;
-    return { ...DEFAULT_PROFILE, ...parsed };
+    return withFixedIdentity({ ...DEFAULT_PROFILE, ...parsed });
   } catch {
     return DEFAULT_PROFILE;
   }
@@ -139,14 +144,22 @@ function Profile() {
         return;
       }
       if (data) {
-        const remote: ProfileMeta = {
+        const remote: ProfileMeta = withFixedIdentity({
           name: data.name || DEFAULT_PROFILE.name,
           focus: data.focus || DEFAULT_PROFILE.focus,
           avatar: (data.avatar as AvatarId) || DEFAULT_PROFILE.avatar,
-        };
+        });
         setProfile(remote);
         setDraft(remote);
         writeProfile(remote);
+        if (data.name !== remote.name || data.focus !== remote.focus) {
+          await supabase.from("profiles").upsert({
+            user_id: userId,
+            name: remote.name,
+            focus: remote.focus,
+            avatar: remote.avatar,
+          });
+        }
       } else {
         const local = readProfile();
         await supabase.from("profiles").upsert({
@@ -169,7 +182,7 @@ function Profile() {
       if (!meta?.profile) return;
       const cloud = meta.profile as Partial<ProfileMeta>;
       if (!cloud.name && !cloud.focus) return;
-      const merged: ProfileMeta = { ...DEFAULT_PROFILE, ...cloud };
+      const merged: ProfileMeta = withFixedIdentity({ ...DEFAULT_PROFILE, ...cloud });
       writeProfile(merged);
       if (mounted) {
         setProfile(merged);
