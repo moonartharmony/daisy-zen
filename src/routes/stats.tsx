@@ -85,7 +85,7 @@ function Stats() {
   if (hydrated && progressHydrated && flowersCollected === 0) {
     return (
       <main className="min-h-[100dvh] w-full bg-[color:var(--peach)] flex flex-col gap-5 px-4 pt-4 pb-32">
-        <ScreenHeader title="İstatistik" backTo="/journey" />
+        <ScreenHeader title="Stats" backTo="/journey" />
         <EmptyStats />
         <BottomNav />
       </main>
@@ -111,7 +111,7 @@ function Stats() {
 
   return (
     <main className="min-h-[100dvh] w-full bg-[color:var(--peach)] flex flex-col gap-5 px-4 pt-4 pb-32">
-      <ScreenHeader title="İstatistik" backTo="/journey" />
+      <ScreenHeader title="Stats" backTo="/journey" />
 
       <section className="w-full max-w-md mx-auto flex flex-col gap-5">
         {/* Growth streak — amber sun */}

@@ -26,7 +26,7 @@ export function ChapterIntro({ chapter, onEnter }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[110] flex flex-col items-center justify-center px-8 animate-chapter-fade"
+      className="fixed inset-0 z-[110] pointer-events-auto flex flex-col items-center justify-center px-8 animate-pop-in"
       style={{ backgroundColor: chapter.bgColor, color: chapter.inkColor }}
     >
       <div

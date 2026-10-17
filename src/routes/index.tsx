@@ -539,7 +539,7 @@ function Game() {
       {/* Win overlay */}
       {won && (
         <div
-          className="fixed inset-0 z-40 flex items-center justify-center px-6"
+          className="fixed inset-0 z-[90] pointer-events-auto flex items-center justify-center px-6"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
           <div className="neo-lg rounded-3xl bg-white w-full max-w-sm p-8 flex flex-col items-center gap-5 animate-pop-in text-center">

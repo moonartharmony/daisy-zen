@@ -26,10 +26,10 @@ const MapIcon = (props: SVGProps<SVGSVGElement>) => (
 );
 
 const ITEMS: Item[] = [
-  { to: "/", label: "Ana Sayfa", Icon: Home },
-  { to: "/journey", label: "Harita", Icon: MapIcon },
-  { to: "/stats", label: "İstatistik", Icon: BarChart3 },
-  { to: "/profile", label: "Profil", Icon: User },
+  { to: "/", label: "Home", Icon: Home },
+  { to: "/journey", label: "Journey", Icon: MapIcon },
+  { to: "/stats", label: "Stats", Icon: BarChart3 },
+  { to: "/profile", label: "Profile", Icon: User },
 ];
 
 export function BottomNav() {

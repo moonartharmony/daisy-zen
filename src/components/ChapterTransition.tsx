@@ -14,7 +14,7 @@ export function ChapterTransition({ chapter, onDone }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-4 px-6 animate-chapter-fade"
+      className="fixed inset-0 z-[100] pointer-events-none flex flex-col items-center justify-center gap-4 px-6 animate-chapter-fade"
       style={{ backgroundColor: chapter.bgColor }}
     >
       <h1

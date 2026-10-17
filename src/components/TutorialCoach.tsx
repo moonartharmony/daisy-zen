@@ -52,13 +52,13 @@ export function TutorialCoach({ level, hasTapped, hasAligned }: Props) {
   if (level === 1) {
     const message = !hasTapped
       ? {
-          title: "Bir yaprağa dokun",
-          body: "Her dokunuş, oktaki yönü saat yönünde çevirir.",
+          title: "Tap a petal",
+          body: "Each tap turns its arrow 90° clockwise.",
         }
       : !hasAligned
       ? {
-          title: "Sarı merkezle hizala",
-          body: "Tüm yaprak oklarını ortadaki yönle aynı yöne çevir.",
+          title: "Match the yellow center",
+          body: "Point every petal arrow the same way as the center arrow.",
         }
       : null;
 
@@ -81,7 +81,7 @@ export function TutorialCoach({ level, hasTapped, hasAligned }: Props) {
       <div className="pointer-events-none fixed inset-x-0 top-20 z-30 flex justify-center px-4">
         <div className="neo pointer-events-auto animate-pop-in max-w-xs rounded-2xl bg-white px-4 py-2 text-center">
           <div className="text-sm font-semibold text-[color:var(--ink)]">
-            İpucu: tüm okları sarı merkezin yönüne çevir.
+            Tip: point every arrow the way the yellow center points.
           </div>
         </div>
       </div>
