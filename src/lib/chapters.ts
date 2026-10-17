@@ -11,7 +11,7 @@ export type Chapter = {
   id: ChapterId;
   /** Display name ("The Daisy Forest", ...). */
   name: string;
-  /** Chapter index label ("BÖLÜM 1"). */
+  /** Chapter index label ("CHAPTER 1"). */
   bolum: string;
   /** Short poetic tagline used on cards / chapter overlay. */
   epigraph: string;

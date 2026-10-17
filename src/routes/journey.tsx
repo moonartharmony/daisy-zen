@@ -314,7 +314,7 @@ function ChapterCard({
             className="text-[12px] font-bold tracking-[0.12em] uppercase"
             style={{ color: inkSoft, opacity: 0.7 }}
           >
-            Bölüm {index}
+            Chapter {index}
           </div>
           <h2
             className="text-[26px] font-extrabold leading-tight"
@@ -376,7 +376,7 @@ function StatusBadge({ status }: { status: ChapterStatus }) {
         style={{ color: "var(--ink)" }}
       >
         <Zap className="size-3.5" strokeWidth={3} fill="currentColor" />
-        <span className="text-[11px] font-extrabold tracking-wider">AKTİF</span>
+        <span className="text-[11px] font-extrabold tracking-wider">ACTIVE</span>
       </div>
     );
   }
@@ -426,7 +426,7 @@ function CTAButton({
         borderColor: "rgba(31,31,31,0.35)",
       }}
     >
-      KİLİTLİ
+      LOCKED
     </button>
   );
 }
