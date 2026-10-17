@@ -47,10 +47,15 @@ type ProfileMeta = {
 };
 
 const DEFAULT_PROFILE: ProfileMeta = {
-  name: "Daisy Williams",
-  focus: "Cultivating quiet alignment",
+  name: "Moonlight",
+  focus: "Designer",
   avatar: "users",
 };
+
+// Force-override any previously stored identity with the fixed defaults.
+function withFixedIdentity(p: ProfileMeta): ProfileMeta {
+  return { ...p, name: DEFAULT_PROFILE.name, focus: DEFAULT_PROFILE.focus };
+}
 
 const AVATAR_OPTIONS: { id: AvatarId; icon: React.ComponentType<{ className?: string; strokeWidth?: number }>; bg: string }[] = [
   { id: "users", icon: Users, bg: "#D8C3A8" },
