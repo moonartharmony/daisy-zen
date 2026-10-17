@@ -48,7 +48,7 @@ type ProfileMeta = {
 
 const DEFAULT_PROFILE: ProfileMeta = {
   name: "moonartharmony",
-  focus: "Designer",
+  focus: "Product Designer",
   avatar: "users",
 };
 
