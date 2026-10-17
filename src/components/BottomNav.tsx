@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Home, BarChart3, User } from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
+import { Button } from "@/components/ui/button";
 
 type Item = {
   to: "/" | "/journey" | "/stats" | "/profile";
@@ -38,30 +39,21 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Primary"
-      className="fixed bottom-0 inset-x-0 z-30 bg-[color:var(--peach)] border-t-[3.5px] border-[color:var(--ink)]"
+      className="fixed bottom-0 inset-x-0 z-30 bg-background border-t-[3.5px] border-ink"
     >
       <ul className="flex items-center justify-around max-w-md mx-auto px-3 py-3">
         {ITEMS.map(({ to, label, Icon }) => {
           const active = pathname === to;
           return (
             <li key={to}>
-              <Link to={to} className="flex flex-col items-center gap-1 group">
-                <span
-                  className={
-                    active
-                      ? "neo-sm rounded-xl bg-primary p-2.5 text-[color:var(--ink)]"
-                      : "p-2.5 text-[color:var(--ink)]/80"
-                  }
-                >
-                  <Icon className="size-5" />
-                </span>
-                <span
-                  className="text-[11px] font-bold tracking-wide"
-                  style={{ color: "var(--ink)" }}
-                >
-                  {label}
-                </span>
-              </Link>
+              <div className="flex flex-col items-center gap-1.5">
+                <Button asChild variant={active ? "neoPrimary" : "neo"} size="touch" className="size-11 rounded-xl p-0">
+                  <Link to={to} aria-label={label} aria-current={active ? "page" : undefined} title={label}>
+                    <Icon className="size-5" />
+                  </Link>
+                </Button>
+                <span className="text-[11px] font-extrabold text-ink">{label}</span>
+              </div>
             </li>
           );
         })}

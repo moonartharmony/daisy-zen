@@ -1,6 +1,8 @@
 import type { Puzzle } from "@/lib/puzzles";
 import type { WorldSnapshot } from "@/engine/types";
 import type { PetalShape } from "@/lib/chapters";
+import { memo, useEffect } from "react";
+import { animate, motion, useMotionValue, useReducedMotion } from "framer-motion";
 
 export type PetalAnim = "pressed" | "aligned" | "error" | "hint" | null;
 
@@ -8,6 +10,7 @@ type Props = {
   puzzle: Puzzle;
   snapshot: WorldSnapshot;
   petalAnims: PetalAnim[];
+  alignedPetals?: boolean[];
   onTapPetal: (index: number) => void;
   bursting?: boolean;
   centerPulsing?: boolean;
@@ -21,6 +24,7 @@ type Props = {
   centerColor?: string;
   /** Center arrow fill. Defaults to dark ink for contrast on light cores. */
   centerArrowColor?: string;
+  completed?: boolean;
 };
 
 const SIZE = 320;
@@ -30,10 +34,11 @@ const PETAL_RY = 56;
 const PETAL_DIST = 96;
 const CENTER_R = 48;
 
-function ArrowSvg({ size = 28, color = "#1b1c1c" }: { size?: number; color?: string }) {
+function ArrowSvg({ size = 28, color = "var(--petal)" }: { size?: number; color?: string }) {
   const s = size;
   return (
     <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+      <path d="M12 3 L12 21 M12 3 L6 9 M12 3 L18 9" stroke="var(--ink)" strokeWidth={5.5} strokeLinecap="round" strokeLinejoin="round" />
       <path
         d="M12 3 L12 21 M12 3 L6 9 M12 3 L18 9"
         stroke={color}
@@ -43,6 +48,27 @@ function ArrowSvg({ size = 28, color = "#1b1c1c" }: { size?: number; color?: str
       />
     </svg>
   );
+}
+
+const AlignmentIndicator = memo(function AlignmentIndicator({ aligned }: { aligned: boolean }) {
+  const scale = useMotionValue(aligned ? 1 : 0);
+  const reduced = useReducedMotion();
+  useEffect(() => {
+    if (reduced) { scale.set(aligned ? 1 : 0); return; }
+    const animation = animate(scale, aligned ? [0, 1.25, 1] : 0, { duration: aligned ? 0.25 : 0.1, ease: "easeOut" });
+    return () => animation.stop();
+  }, [aligned, reduced, scale]);
+  return <motion.g style={{ scale, transformBox: "fill-box", transformOrigin: "center" }} aria-hidden="true">
+    <circle r={9} fill="var(--card)" stroke="var(--ink)" strokeWidth={2} />
+    <path d="M -4 0 L -1 3 L 4 -3" fill="none" stroke="var(--ink)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+  </motion.g>;
+});
+
+function CompletionRipple() {
+  const reduced = useReducedMotion();
+  if (reduced) return null;
+  return <motion.circle r={CENTER_R + 3} fill="none" stroke="var(--ink)" strokeWidth={2.5}
+    style={{ transformOrigin: "0px 0px" }} initial={{ scale: 1, opacity: 0.8 }} animate={{ scale: 1.6, opacity: 0 }} transition={{ duration: 0.45, ease: "easeOut" }} />;
 }
 
 /**
@@ -104,16 +130,18 @@ export function Daisy({
   puzzle,
   snapshot,
   petalAnims,
+  alignedPetals,
   onTapPetal,
   bursting,
   centerPulsing,
   centerGlow,
-  petalColor = "#FFFFFF",
+  petalColor = "var(--petal)",
   petalColors,
   idleSpin = false,
   shape = "pill",
-  centerColor = "#FFD700",
-  centerArrowColor = "#1F1F1F",
+  centerColor = "var(--primary)",
+  centerArrowColor = "var(--primary-foreground)",
+  completed = false,
 }: Props) {
   const { petalCount, centerDir } = puzzle;
   const step = 360 / petalCount;
@@ -177,7 +205,15 @@ export function Daisy({
               transform={`translate(${CENTER} ${CENTER}) rotate(${angle}) translate(0 ${-livePetalDist})`}
               onPointerDown={(e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 if (!bursting && spec.hasArrow) onTapPetal(i);
+              }}
+              role={spec.hasArrow ? "button" : undefined}
+              tabIndex={spec.hasArrow ? 0 : undefined}
+              aria-label={spec.hasArrow ? `Rotate petal ${i + 1}` : undefined}
+              aria-pressed={spec.hasArrow ? alignedPetals?.[i] : undefined}
+              onKeyDown={(e) => {
+                if (spec.hasArrow && !bursting && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); onTapPetal(i); }
               }}
               style={{
                 cursor: spec.hasArrow ? "pointer" : "default",
@@ -188,13 +224,13 @@ export function Daisy({
               className={bursting ? "animate-petal-burst" : ""}
             >
               {/* Drop-shadow petal (offset 2,2) for the Neubrutalist edge. */}
-              <path d={dShadow} transform="translate(2 2)" fill="#4d4732" />
+              <path d={dShadow} transform="translate(2 2)" fill="var(--ink)" />
               <g className={`petal-inner ${animClass}`}>
                 <path
                   className="petal-body"
                   d={dShadow}
                   fill={petalColors?.[i] ?? petalColor}
-                  stroke="#4d4732"
+                  stroke="var(--ink)"
                   strokeWidth={2}
                 />
                 {spec.hasArrow && (
@@ -206,6 +242,7 @@ export function Daisy({
                     </foreignObject>
                   </g>
                 )}
+                {spec.hasArrow && <g transform="translate(0 -32)"><AlignmentIndicator aligned={alignedPetals?.[i] ?? false} /></g>}
               </g>
             </g>
           );
@@ -213,7 +250,8 @@ export function Daisy({
 
         {/* Center circle */}
         <g transform={`translate(${CENTER} ${CENTER})`}>
-          <circle cx={4} cy={4} r={CENTER_R} fill="#4d4732" />
+          {completed && <CompletionRipple />}
+          <circle cx={4} cy={4} r={CENTER_R} fill="var(--ink)" />
           <g
             className={
               centerGlow ? "center-glow" : centerPulsing ? "center-pulse" : ""
@@ -227,7 +265,7 @@ export function Daisy({
             <circle
               r={CENTER_R}
               fill={centerColor}
-              stroke="#4d4732"
+              stroke="var(--ink)"
               strokeWidth={2}
             />
             <g transform={`rotate(${centerDeg + idleRot})`}>
