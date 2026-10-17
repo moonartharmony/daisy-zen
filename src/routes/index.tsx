@@ -30,8 +30,39 @@ const searchSchema = z.object({
   level: z.coerce.number().int().positive().optional(),
 });
 
+const OG_IMAGE =
+  "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/9dfdb64b-30a8-4dde-895d-8f816d6011d8/id-preview-d4896d93--51390fa7-470d-42ea-a0be-d391311d492a.lovable.app-1782655794539.png";
+
 export const Route = createFileRoute("/")({
   validateSearch: (s: Record<string, unknown>) => searchSchema.parse(s),
+  head: () => ({
+    meta: [
+      { title: "Daisy Zen — Minimalist Spatial Puzzle Game" },
+      {
+        name: "description",
+        content:
+          "A minimalist, neo-brutalist puzzle game focusing on spatial intelligence and orientation.",
+      },
+      { property: "og:title", content: "Daisy Zen — Minimalist Spatial Puzzle Game" },
+      {
+        property: "og:description",
+        content:
+          "A minimalist, neo-brutalist puzzle game focusing on spatial intelligence and orientation.",
+      },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://daisy-zen.lovable.app/" },
+      { property: "og:image", content: OG_IMAGE },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Daisy Zen — Minimalist Spatial Puzzle Game" },
+      {
+        name: "twitter:description",
+        content:
+          "A minimalist, neo-brutalist puzzle game focusing on spatial intelligence and orientation.",
+      },
+      { name: "twitter:image", content: OG_IMAGE },
+    ],
+    links: [{ rel: "canonical", href: "https://daisy-zen.lovable.app/" }],
+  }),
   component: Game,
 });
 
