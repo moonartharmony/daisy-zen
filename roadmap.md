@@ -1,5 +1,9 @@
 # UI polish
 
+- [x] Refine completion badges, reward timing and restrained overlay transitions.
+- [x] Unify tactile button feedback without changing gameplay or progression.
+- [x] Verify completion-to-next-level flow and 375px layout.
+
 - [x] Improve stat badges and biome header.
 - [x] Improve petal indicators and completion ripple/rewards without changing gameplay.
 - [x] Refine completion dialog and touch controls.

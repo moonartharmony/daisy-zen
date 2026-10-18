@@ -105,13 +105,10 @@
 .game-theme[data-biome="lotus"] { --biome-bg: #B9DED4; --biome-accent: #2E6B6E; --biome-on-accent: #FFFFFF; --biome-progress: #8FC8BE; --biome-ink: #1F3B36; }
 
 .stat-badge { border: 2px solid var(--ink); box-shadow: var(--shadow-badge); }
-.neo-control { border: 2px solid var(--ink); box-shadow: var(--shadow-neo-sm); transition: transform 160ms var(--ease-quiet), box-shadow 160ms var(--ease-quiet); }
-.neo-control:active { transform: translate(2px, 2px); box-shadow: var(--shadow-flat); }
+.neo-control { border: 2px solid var(--ink); box-shadow: var(--shadow-neo); transition: box-shadow 120ms var(--ease-quiet); }
+.neo-control:active { box-shadow: var(--shadow-pressed); }
 .completion-card { border: 3px solid var(--ink); box-shadow: var(--shadow-neo-lg); }
-.next-action:active { transform: translateY(2px); box-shadow: var(--shadow-pressed); }
-.completion-backdrop { animation: completion-backdrop 220ms 450ms both; }
-.completion-entry { animation: pop-in 260ms 450ms both; }
-@keyframes completion-backdrop { from { background: transparent; backdrop-filter: blur(0); } to { background: color-mix(in oklab, var(--ink) 20%, transparent); backdrop-filter: blur(4px); } }
+.overlay-backdrop { background: color-mix(in oklab, var(--ink) 25%, transparent); backdrop-filter: blur(2px); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 1ms !important; animation-delay: 0ms !important; transition-duration: 1ms !important; }
   .completion-backdrop { background: color-mix(in oklab, var(--ink) 20%, transparent); backdrop-filter: blur(4px); }

@@ -24,6 +24,8 @@ import {
 } from "@/engine/useEmotionEngine";
 import { useProgress, scrollIdForLevel } from "@/lib/progress";
 import { updateOnWin } from "@/lib/gameState";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { OverlayCard } from "@/components/OverlayPresentation";
 
 const searchSchema = z.object({
   chapter: z
@@ -108,6 +110,9 @@ function Game() {
   const [moves, setMoves] = useState(0);
   const [hasAligned, setHasAligned] = useState(false);
   const [displayedScore, setDisplayedScore] = useState(0);
+  const [earnedXp, setEarnedXp] = useState(0);
+  const [completionVisible, setCompletionVisible] = useState(false);
+  const reducedMotion = useReducedMotion();
   const startedAtRef = useRef<number>(Date.now());
   const lastCanvasTapRef = useRef<number>(0);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -223,6 +228,18 @@ function Game() {
 
   const moveBudget = arrowedIndices.length * MOVE_BUDGET_MULT;
   const remaining = Math.max(0, moveBudget - moves);
+  const minimumMoves = arrowedIndices.reduce((sum, i) => {
+    const start = puzzle.petals[i]?.startDir;
+    return sum + (start ? stepsCW(start, puzzle.centerDir) : 0);
+  }, 0);
+
+  // Only presentation waits for the flying reward; progress is awarded as before.
+  useEffect(() => {
+    setCompletionVisible(false);
+    if (!won) return;
+    const timer = setTimeout(() => setCompletionVisible(true), reducedMotion ? 0 : 600);
+    return () => clearTimeout(timer);
+  }, [won, reducedMotion]);
 
   const setPetalAnim = (i: number, a: PetalAnim, ms: number) => {
     setPetalAnims((prev) => {
@@ -287,6 +304,7 @@ function Game() {
       const elapsed = Math.floor((Date.now() - startedAtRef.current) / 1000);
       const timeBonus = elapsed < 30 ? 50 : elapsed < 60 ? 25 : 0;
       const earned = remaining * 10 + timeBonus;
+      setEarnedXp(earned);
       setWon(true);
       haptic.win();
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
@@ -522,7 +540,7 @@ function Game() {
         <div className="flex items-center gap-3">
           <Button variant="neo" size="touch"
             onClick={handleReset}
-            className="rounded-xl py-3 text-body-lg flex-1 bg-primary text-primary-foreground hover:bg-primary/90 border-2 border-ink shadow-[3px_3px_0_var(--ink)] active:translate-y-[2px] active:shadow-none"
+            className="rounded-xl py-3 text-body-lg flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
           >
             <RotateCcw className="size-5" strokeWidth={2.5} />
             Reset
@@ -540,16 +558,21 @@ function Game() {
       </footer>
 
       {/* Chapter transition */}
+      <AnimatePresence>
       {transitionChapterId && (
         <ChapterTransition
+          key={transitionChapterId}
           chapter={chapter}
           onDone={() => setTransitionChapterId(null)}
         />
       )}
+      </AnimatePresence>
 
       {/* Poetic chapter vignette — shown once per biome */}
+      <AnimatePresence>
       {introChapterId === chapter.id && (
         <ChapterIntro
+          key={chapter.id}
           chapter={chapter}
           onEnter={() => {
             markChapterSeen(chapter.id);
@@ -557,6 +580,7 @@ function Game() {
           }}
         />
       )}
+      </AnimatePresence>
 
       {/* Zen scroll collectible modal */}
       {pendingScroll && (
@@ -572,65 +596,67 @@ function Game() {
 
       {/* Win overlay */}
       {won && (
-        <CompletionRewards originRef={flowerRef} xpRef={xpRef} scrollRef={scrollRef} hasScrollReward={Boolean(scrollIdForLevel(level))} />
+        <CompletionRewards earnedXp={earnedXp} originRef={flowerRef} xpRef={xpRef} scrollRef={scrollRef} hasScrollReward={Boolean(scrollIdForLevel(level))} />
       )}
-      {won && (
-        <div
-          className="completion-backdrop fixed inset-0 z-[90] pointer-events-auto flex items-center justify-center px-6"
+      <AnimatePresence>
+      {won && completionVisible && (
+        <motion.div key="completion" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          className="overlay-backdrop fixed inset-0 z-[90] pointer-events-auto flex items-center justify-center overflow-y-auto px-4 py-6"
         >
-          <div role="dialog" aria-modal="true" aria-labelledby="completion-title" className="completion-card completion-entry rounded-2xl bg-card text-card-foreground w-full max-w-sm p-8 flex flex-col items-center gap-5 text-center">
-            <div className="flex items-center gap-2" aria-label="Three stars">
+          <OverlayCard role="dialog" aria-modal="true" aria-labelledby="completion-title" className="completion-card rounded-2xl bg-card text-card-foreground w-full max-w-sm p-6 sm:p-8 flex flex-col items-center gap-5 text-center">
+            <div className="stat-badge rounded-full bg-biome-accent text-ink px-4 py-2 flex items-center gap-2" aria-label="Three stars">
               {[0, 1, 2].map((i) => (
                 <Star
                   key={i}
-                  className="size-10 fill-primary text-ink"
+                  className="size-7 fill-biome-accent text-ink"
                   strokeWidth={2.5}
-                  style={{ animation: `pop-in 340ms ${i * 90}ms both` }}
                 />
               ))}
             </div>
-            <h2 id="completion-title" className="text-display text-ink">
+            <h2 id="completion-title" className="text-2xl sm:text-3xl font-black uppercase text-ink leading-tight">
               Level Complete!
             </h2>
-            <div className="text-body-lg text-[color:var(--ink)]">
-              +{displayedScore} XP
+            <div className="grid grid-cols-3 gap-2 w-full text-ink">
+              <div className="stat-badge rounded-lg bg-card px-1 py-2 flex flex-col gap-1"><span className="text-[10px] font-bold">MOVES</span><span className="text-sm font-black">{moves} / {moveBudget}</span></div>
+              <div className="stat-badge rounded-lg bg-butter px-1 py-2 flex flex-col gap-1"><span className="text-[10px] font-bold">ACCURACY</span><span className="text-[11px] font-black">{moves === minimumMoves ? "PERFECT" : moves <= moveBudget ? "EFFICIENT" : "COMPLETED"}</span></div>
+              <motion.div initial={{ opacity: 0, y: reducedMotion ? 0 : 4 }} animate={{ opacity: 1, y: 0 }} className="stat-badge rounded-lg bg-primary px-1 py-2 flex flex-col gap-1"><span className="text-[10px] font-bold">REWARD</span><span className="text-sm font-black">+{displayedScore} XP</span></motion.div>
             </div>
             <Button variant="neoPrimary" size="touch"
               onClick={handleNext}
-              className="next-action rounded-xl py-3 px-6 text-body-lg w-full"
+              className="rounded-xl py-3 px-4 text-base font-black whitespace-normal w-full"
             >
               {level === chapter.levelEnd && level < TOTAL_LEVELS ? "Enter Next Biome" : "Next Level"} <ArrowRight className="size-5" strokeWidth={2.5} />
             </Button>
-          </div>
-        </div>
+          </OverlayCard>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {/* Pause overlay */}
       {paused && !won && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center px-6"
-          style={{ backgroundColor: "rgba(27,28,28,0.85)" }}
+          className="overlay-backdrop fixed inset-0 z-50 flex items-center justify-center px-6"
         >
-          <div className="neo rounded-3xl bg-white w-full max-w-sm p-8 flex flex-col gap-3 animate-pop-in">
-            <h2 className="text-headline text-center text-[color:var(--ink)] mb-2">
+          <OverlayCard role="dialog" aria-modal="true" aria-label="Paused" className="completion-card rounded-3xl bg-card w-full max-w-sm p-8 flex flex-col gap-3">
+            <h2 className="text-headline text-center text-ink mb-2">
               Paused
             </h2>
-            <button
+            <Button variant="neoPrimary" size="touch"
               onClick={() => setPaused(false)}
-              className="neo neo-press rounded-xl bg-primary text-[color:var(--primary-foreground)] py-3 text-body-lg"
+              className="rounded-xl py-3 text-body-lg"
             >
               Resume
-            </button>
-            <button
+            </Button>
+            <Button variant="neo" size="touch"
               onClick={() => {
                 handleReset();
                 setPaused(false);
               }}
-              className="neo neo-press rounded-xl bg-white text-[color:var(--ink)] py-3 text-body-lg"
+              className="rounded-xl py-3 text-body-lg"
             >
               Restart
-            </button>
-          </div>
+            </Button>
+          </OverlayCard>
         </div>
       )}
 
