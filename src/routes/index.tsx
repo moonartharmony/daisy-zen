@@ -97,6 +97,7 @@ function Game() {
     hasScroll,
     isChapterSeen,
     markChapterSeen,
+    hydrated,
   } = useProgress();
 
   const [level, setLevel] = useState<number>(search.level ?? 1);
@@ -194,10 +195,6 @@ function Game() {
       setTransitionChapterId(chapter.id);
       haptic.chapter();
     }
-    // Show poetic vignette the first time a biome opens.
-    if (!isChapterSeen(chapter.id)) {
-      setIntroChapterId(chapter.id);
-    }
     // Apply per-chapter difficulty profile to the simulation.
     engine.setDifficulty(chapter.difficulty);
     return () => {
@@ -205,6 +202,15 @@ function Game() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [puzzle]);
+
+  // The vignette is a once-per-biome moment, so it is decided only after
+  // stored progress has been read back — otherwise a biome you already
+  // entered would introduce itself again on every page load.
+  useEffect(() => {
+    if (!hydrated) return;
+    if (!isChapterSeen(chapter.id)) setIntroChapterId(chapter.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated, chapter.id]);
 
 
   const arrowedIndices = puzzle.petals
