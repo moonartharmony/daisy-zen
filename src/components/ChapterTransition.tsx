@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { Chapter } from "@/lib/chapters";
 import { motion } from "framer-motion";
 import { OverlayCard } from "@/components/OverlayPresentation";
@@ -9,10 +9,12 @@ type Props = {
 };
 
 export function ChapterTransition({ chapter, onDone }: Props) {
+  const onDoneRef = useRef(onDone);
+  useEffect(() => { onDoneRef.current = onDone; }, [onDone]);
   useEffect(() => {
-    const t = setTimeout(onDone, 2500);
+    const t = setTimeout(() => onDoneRef.current(), 2500);
     return () => clearTimeout(t);
-  }, [onDone]);
+  }, [chapter.id]);
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
