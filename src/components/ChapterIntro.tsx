@@ -62,7 +62,7 @@ export function ChapterIntro({ chapter, onEnter }: Props) {
         {/* Band 3 — action: wide, high-affordance tactile target */}
         <button
           onClick={onEnter}
-          className="w-full max-w-xs mb-1 py-3.5 px-6 flex items-center justify-center gap-2 bg-ink text-petal font-bold rounded-xl border-2 border-ink shadow-[4px_4px_0px_var(--ink)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_var(--ink)] transition-all"
+          className="w-full max-w-xs mb-1 py-3.5 px-6 flex items-center justify-center gap-2 bg-ink text-petal font-bold rounded-xl border-2 border-ink shadow-[4px_4px_0px_var(--primary)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_var(--primary)] transition-all"
         >
           Enter the {chapter.name.replace(/^The\s+/, "")}
           <ArrowRight className="size-5" strokeWidth={2.5} />
