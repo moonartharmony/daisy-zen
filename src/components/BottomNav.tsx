@@ -41,7 +41,7 @@ export function BottomNav() {
       aria-label="Primary"
       className="fixed bottom-0 inset-x-0 z-30 bg-background border-t-[3.5px] border-ink"
     >
-      <ul className="flex items-center justify-around max-w-md mx-auto px-3 py-3">
+      <ul className="flex items-center justify-around max-w-md mx-auto px-3 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
         {ITEMS.map(({ to, label, Icon }) => {
           const active = pathname === to;
           return (

@@ -30,9 +30,10 @@ export function ChapterIntro({ chapter, onEnter }: Props) {
       style={{ backgroundColor: chapter.bgColor, color: chapter.inkColor }}
     >
       <div
-        className="neo-lg rounded-3xl bg-white/85 backdrop-blur-sm max-w-md w-full p-8 flex flex-col items-center gap-5 text-center"
+        className="neo-lg rounded-3xl bg-white/85 backdrop-blur-sm max-w-md w-full p-8 flex flex-col items-center gap-4 text-center"
         style={{ color: "#1F1F1F" }}
       >
+        <div className="flex flex-col items-center gap-3">
         <div
           className="neo-sm rounded-2xl size-14 grid place-items-center"
           style={{ backgroundColor: chapter.tileColor }}
@@ -45,16 +46,16 @@ export function ChapterIntro({ chapter, onEnter }: Props) {
         >
           {chapter.bolum}
         </div>
+        </div>
         <h2 className="text-display leading-tight">{chapter.name}</h2>
         <p
-          className="text-body-lg italic leading-relaxed"
-          style={{ opacity: 0.85 }}
+          className="text-body-lg italic leading-relaxed font-medium text-ink/80"
         >
           {chapter.intro}
         </p>
         <button
           onClick={onEnter}
-          className="neo neo-press rounded-2xl bg-[color:var(--ink)] text-white py-3 px-6 text-body-lg flex items-center gap-2 mt-1 hover:-translate-y-0.5 transition-transform"
+          className="neo neo-press rounded-2xl bg-[color:var(--ink)] text-white py-3 px-6 text-body-lg flex items-center gap-2 mt-1 mb-2 shadow-[4px_4px_0_var(--ink)] active:translate-y-[2px] active:shadow-none transition-transform"
         >
           Enter the {chapter.name.replace(/^The\s+/, "")}
           <ArrowRight className="size-5" strokeWidth={2.5} />
