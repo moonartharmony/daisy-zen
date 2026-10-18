@@ -393,7 +393,7 @@ function Game() {
   return (
     <main
       data-biome={chapter.id}
-      className="game-theme chapter-bg bg-biome text-biome-ink min-h-[100dvh] w-full flex flex-col items-center px-4 py-5 pb-28 gap-6"
+      className="game-theme chapter-bg bg-biome text-biome-ink min-h-[100dvh] w-full flex flex-col items-center px-4 pt-4 pb-28 gap-6"
     >
       <header
         className="w-full max-w-md flex items-center justify-between gap-3"
@@ -490,7 +490,7 @@ function Game() {
         /></div>
       </section>
 
-      <footer className="w-full max-w-md flex flex-col gap-3">
+      <footer className="w-full max-w-md flex flex-col gap-4">
         <div className="flex items-center justify-between gap-3">
           <span className="text-label" style={{ color: "var(--ink)" }}>
             {chapter.name}
@@ -516,7 +516,7 @@ function Game() {
         <div className="flex items-center gap-3">
           <Button variant="neo" size="touch"
             onClick={handleReset}
-            className="rounded-xl py-3 text-body-lg flex-1 bg-biome-accent text-biome-on-accent hover:bg-biome-accent/90"
+            className="rounded-xl py-3 text-body-lg flex-1 bg-primary text-primary-foreground hover:bg-primary/90 border-2 border-ink shadow-[3px_3px_0_var(--ink)] active:translate-y-[2px] active:shadow-none"
           >
             <RotateCcw className="size-5" strokeWidth={2.5} />
             Reset
