@@ -94,7 +94,7 @@ function JourneyMap() {
   const isFresh = highestUnlocked <= 1;
 
   return (
-    <main className="min-h-[100dvh] w-full overflow-x-hidden bg-background flex flex-col gap-5 px-4 pt-4 pb-56">
+    <main className="min-h-[100dvh] w-full overflow-x-hidden bg-background flex flex-col gap-5 px-4 pt-4 pb-60">
       <ScreenHeader title="Journey Map" backTo="/" />
 
       {/* Top stats bar */}
@@ -143,7 +143,7 @@ function JourneyMap() {
       </section>
 
       {/* Fixed bottom primary CTA */}
-      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-md pointer-events-auto">
+      <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-md pointer-events-auto">
         <div className="bg-card rounded-2xl p-4 flex items-center justify-between gap-3 border-[3px] border-ink shadow-[var(--shadow-neo-lg)]">
           <div className="min-w-0">
             <div className="text-[11px] font-black tracking-tight text-ink/60 uppercase truncate">
