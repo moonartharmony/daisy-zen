@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import type { Chapter } from "@/lib/chapters";
+import { motion } from "framer-motion";
+import { OverlayCard } from "@/components/OverlayPresentation";
 
 type Props = {
   chapter: Chapter;
@@ -13,22 +15,21 @@ export function ChapterTransition({ chapter, onDone }: Props) {
   }, [onDone]);
 
   return (
-    <div
-      className="fixed inset-0 z-[100] pointer-events-none flex flex-col items-center justify-center gap-4 px-6 animate-chapter-fade"
-      style={{ backgroundColor: chapter.bgColor }}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="overlay-backdrop fixed inset-0 z-[100] pointer-events-none flex items-center justify-center px-6"
     >
+      <OverlayCard className="completion-card rounded-2xl bg-card text-card-foreground w-full max-w-md p-8 flex flex-col items-center gap-4 text-center">
       <h1
-        className="text-display text-white text-center"
-        style={{ letterSpacing: "-0.02em" }}
+        className="text-2xl md:text-3xl font-black uppercase text-center"
       >
         {chapter.name}
       </h1>
       <p
-        className="text-body-lg text-center italic"
-        style={{ color: "rgba(255,255,255,0.75)", fontWeight: 500 }}
+        className="text-base leading-relaxed text-center text-muted-foreground"
       >
         "{chapter.epigraph}"
       </p>
-    </div>
+      </OverlayCard>
+    </motion.div>
   );
 }
