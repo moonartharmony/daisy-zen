@@ -42,6 +42,7 @@
   --color-biome-on-accent: var(--biome-on-accent);
   --color-biome-progress: var(--biome-progress);
   --color-biome-ink: var(--biome-ink);
+  --color-butter: var(--butter);
   --font-sans: 'Space Grotesk', 'Quicksand', system-ui, sans-serif;
 }
 
@@ -54,6 +55,7 @@
   --ink-soft: #4d4732;
   --petal: #FFFFFF;
   --primary: #FFD700;       /* center + active CTA */
+  --butter: #FFF4B8;        /* chapter badge pill */
   --primary-foreground: #1F1F1F;
   --forest-green: #3E5C38;  /* replay CTA */
   --sand: #E6D9C4;          /* locked chapter card */
