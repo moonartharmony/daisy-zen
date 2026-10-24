@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { motion, useReducedMotion } from "framer-motion";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex min-h-11 min-w-11 items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -19,6 +19,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         neo: "bg-card text-card-foreground neo-control hover:bg-card/90",
         neoPrimary: "bg-primary text-primary-foreground neo-control hover:bg-primary/90",
+        neoInk: "bg-ink text-petal neo-control hover:bg-ink/90",
       },
       size: {
         default: "h-9 px-4 py-2",
@@ -54,7 +55,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => 
   const reducedMotion = useReducedMotion();
   return <MotionButton {...props} ref={ref}
     whileHover={props.disabled || reducedMotion ? undefined : { scale: 1.02 }}
-    whileTap={props.disabled || reducedMotion ? undefined : { scale: 0.97, y: 2 }}
+    whileTap={props.disabled || reducedMotion ? undefined : { scale: 0.96, y: 2 }}
     transition={{ duration: reducedMotion ? 0 : 0.12 }} />;
 });
 Button.displayName = "Button";
