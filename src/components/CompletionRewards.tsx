@@ -24,6 +24,21 @@ export function CompletionRewards({ originRef, xpRef, scrollRef, hasScrollReward
   if (!points || reducedMotion) return null;
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[95] overflow-hidden">
+      {/* Geometric spark dots bursting softly outward around the badge origin. */}
+      {Array.from({ length: 6 }, (_, i) => {
+        const ang = (i / 6) * Math.PI * 2 + Math.PI / 6;
+        const dx = Math.cos(ang) * 36;
+        const dy = Math.sin(ang) * 36;
+        return (
+          <motion.span
+            key={`dot-${i}`}
+            className="absolute left-0 top-0 h-1.5 w-1.5 rounded-full bg-fx"
+            initial={{ x: points.x - 3, y: points.y - 30, opacity: 1, scale: 1 }}
+            animate={{ x: points.x - 3 + dx, y: points.y - 30 + dy, opacity: 0, scale: 0.4 }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
+          />
+        );
+      })}
       {Array.from({ length: hasScrollReward ? 2 : 1 }, (_, i) => {
         const isScroll = i === 1;
         const Icon = isScroll ? ScrollText : Sparkles;

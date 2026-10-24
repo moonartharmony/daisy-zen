@@ -1,7 +1,7 @@
 import type { Puzzle } from "@/lib/puzzles";
 import type { WorldSnapshot } from "@/engine/types";
 import type { PetalShape } from "@/lib/chapters";
-import { memo, useEffect } from "react";
+import { memo, useEffect, useState } from "react";
 import { animate, motion, useMotionValue, useReducedMotion } from "framer-motion";
 
 export type PetalAnim = "pressed" | "aligned" | "error" | "hint" | null;
@@ -34,15 +34,15 @@ const PETAL_RY = 56;
 const PETAL_DIST = 96;
 const CENTER_R = 48;
 
-function ArrowSvg({ size = 28, color = "var(--petal)" }: { size?: number; color?: string }) {
+function ArrowSvg({ size = 28, color = "var(--fx)" }: { size?: number; color?: string }) {
   const s = size;
   return (
     <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
-      <path d="M12 3 L12 21 M12 3 L6 9 M12 3 L18 9" stroke="var(--ink)" strokeWidth={5.5} strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 3 L12 21 M12 3 L6 9 M12 3 L18 9" stroke="var(--ink)" strokeWidth={3.25} strokeLinecap="round" strokeLinejoin="round" />
       <path
         d="M12 3 L12 21 M12 3 L6 9 M12 3 L18 9"
         stroke={color}
-        strokeWidth={3}
+        strokeWidth={1.75}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -53,22 +53,67 @@ function ArrowSvg({ size = 28, color = "var(--petal)" }: { size?: number; color?
 const AlignmentIndicator = memo(function AlignmentIndicator({ aligned }: { aligned: boolean }) {
   const scale = useMotionValue(aligned ? 1 : 0);
   const reduced = useReducedMotion();
+  const [sparkKey, setSparkKey] = useState(0);
   useEffect(() => {
     if (reduced) { scale.set(aligned ? 1 : 0); return; }
     const animation = animate(scale, aligned ? [0, 1.25, 1] : 0, { duration: aligned ? 0.25 : 0.1, ease: "easeOut" });
     return () => animation.stop();
   }, [aligned, reduced, scale]);
-  return <motion.g style={{ scale, transformBox: "fill-box", transformOrigin: "center" }} aria-hidden="true">
-    <circle r={9} fill="var(--card)" stroke="var(--ink)" strokeWidth={2} />
-    <path d="M -4 0 L -1 3 L 4 -3" fill="none" stroke="var(--ink)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
-  </motion.g>;
+  // Re-trigger the 3-line spark burst each time the petal snaps into alignment.
+  useEffect(() => {
+    if (aligned && !reduced) setSparkKey((k) => k + 1);
+  }, [aligned, reduced]);
+  return (
+    <g aria-hidden="true">
+      {aligned && !reduced && sparkKey > 0 && (
+        <g key={sparkKey}>
+          {[-38, 0, 38].map((deg) => (
+            <motion.line
+              key={deg}
+              x1={0}
+              y1={-16}
+              x2={0}
+              y2={-28}
+              stroke="var(--fx)"
+              strokeWidth={2}
+              strokeLinecap="round"
+              style={{ transformBox: "fill-box", transformOrigin: "center bottom", rotate: deg }}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: [0, 1.2, 1], opacity: [0, 1, 0] }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+            />
+          ))}
+        </g>
+      )}
+      <motion.g style={{ scale, transformBox: "fill-box", transformOrigin: "center" }}>
+        <circle r={9} fill="var(--card)" stroke="var(--fx)" strokeWidth={2} />
+        <path d="M -4 0 L -1 3 L 4 -3" fill="none" stroke="var(--fx)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+      </motion.g>
+    </g>
+  );
 });
 
 function CompletionRipple() {
   const reduced = useReducedMotion();
   if (reduced) return null;
-  return <motion.circle r={CENTER_R + 3} fill="none" stroke="var(--ink)" strokeWidth={2.5}
-    style={{ transformOrigin: "0px 0px" }} initial={{ scale: 1, opacity: 0.8 }} animate={{ scale: 1.6, opacity: 0 }} transition={{ duration: 0.45, ease: "easeOut" }} />;
+  // Three staggered concentric waves expanding out of the hub.
+  return (
+    <g aria-hidden="true">
+      {[0, 1, 2].map((i) => (
+        <motion.circle
+          key={i}
+          r={CENTER_R + 3}
+          fill="none"
+          stroke="var(--fx)"
+          strokeWidth={2}
+          style={{ transformOrigin: "0px 0px" }}
+          initial={{ scale: 1, opacity: 0.8 }}
+          animate={{ scale: 1.5, opacity: 0 }}
+          transition={{ duration: 0.45, ease: "easeOut", delay: i * 0.12 }}
+        />
+      ))}
+    </g>
+  );
 }
 
 /**
@@ -166,7 +211,7 @@ export function Daisy({
         transition: "transform 80ms linear",
       }}
     >
-      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="absolute inset-0 h-full w-full">
+      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className={`absolute inset-0 h-full w-full${completed ? " completion-shiver" : ""}`}>
         {puzzle.petals.map((spec, i) => {
           const angle = i * step;
           const petal = snapshot.petals[i];

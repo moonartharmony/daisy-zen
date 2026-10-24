@@ -52,6 +52,7 @@
   --color-avatar-moon: var(--avatar-moon);
   --color-butter: var(--butter);
   --color-olive: var(--olive);
+  --color-fx: var(--fx);
   --font-sans: 'Space Grotesk', 'Quicksand', system-ui, sans-serif;
 }
 
@@ -62,6 +63,7 @@
   --peach: #FFDCC0;
   --ink: #1F1F1F;           /* outline + text */
   --olive: #3D4A33;         /* deep forest olive — hub accents + dark button fills */
+  --fx: #2E3B27;            /* effect lines — sparks, ripples, checkmarks, thin arrows, control shadows */
   --ink-soft: #4d4732;
   --petal: #FFFFFF;
   --primary: #FFD700;       /* center + active CTA */
@@ -128,8 +130,8 @@
 .game-theme[data-biome="lotus"] { --biome-tile: oklch(0.9361103 0.0221230 171.7703917); --scroll-accent: var(--biome-accent); }
 
 .stat-badge { border: 2px solid var(--ink); box-shadow: var(--shadow-badge); }
-.neo-control { border: 2px solid var(--ink); box-shadow: var(--shadow-neo); transition: box-shadow 120ms var(--ease-quiet); }
-.neo-control:active { box-shadow: var(--shadow-pressed); }
+.neo-control { border: 2px solid var(--ink); box-shadow: 4px 4px 0px 0px var(--fx); transition: box-shadow 120ms var(--ease-quiet); }
+.neo-control:active { box-shadow: 1px 1px 0px 0px var(--fx); }
 .completion-card { border: 3px solid var(--ink); box-shadow: var(--shadow-neo-lg); }
 .overlay-backdrop { background: color-mix(in oklab, var(--ink) 25%, transparent); backdrop-filter: blur(2px); }
 @media (prefers-reduced-motion: reduce) {
@@ -272,6 +274,19 @@
 @keyframes hint-breathe {
   0%, 100% { opacity: 1; }
   50%      { opacity: 0.7; }
+}
+
+/* Completion shiver — a single 200ms haptic-like tremble across the petals.
+   Purely presentational; it never touches rotation state. */
+@keyframes petal-shiver {
+  0%   { transform: translateX(0); }
+  25%  { transform: translateX(-1px); }
+  50%  { transform: translateX(1px); }
+  75%  { transform: translateX(-1px); }
+  100% { transform: translateX(0); }
+}
+.completion-shiver .petal-inner {
+  animation: petal-shiver 200ms var(--ease-quiet) 1;
 }
 
 /* Center circle: STATIC anchor. Any legacy pulse/glow becomes a no-op. */

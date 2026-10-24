@@ -55,7 +55,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => 
   const reducedMotion = useReducedMotion();
   return <MotionButton {...props} ref={ref}
     whileHover={props.disabled || reducedMotion ? undefined : { scale: 1.02 }}
-    whileTap={props.disabled || reducedMotion ? undefined : { scale: 0.96, y: 2 }}
+    whileTap={props.disabled || reducedMotion ? undefined : { scale: 0.97, y: 2 }}
     transition={{ duration: reducedMotion ? 0 : 0.12 }} />;
 });
 Button.displayName = "Button";
