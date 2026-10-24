@@ -583,6 +583,7 @@ function Game() {
       </AnimatePresence>
 
       {/* Zen scroll collectible modal */}
+      <AnimatePresence>
       {pendingScroll && (
         <ZenScroll
           chapter={chapter}
@@ -590,6 +591,7 @@ function Game() {
           onClose={() => setPendingScroll(null)}
         />
       )}
+      </AnimatePresence>
 
       {/* First-time interaction guide (L1–L2) */}
       <TutorialCoach level={level} hasTapped={moves > 0} hasAligned={hasAligned} />
