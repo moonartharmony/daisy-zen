@@ -51,6 +51,7 @@
   --color-avatar-sun: var(--avatar-sun);
   --color-avatar-moon: var(--avatar-moon);
   --color-butter: var(--butter);
+  --color-olive: var(--olive);
   --font-sans: 'Space Grotesk', 'Quicksand', system-ui, sans-serif;
 }
 
@@ -60,6 +61,7 @@
   /* Daisy Zen palette — Neubrutalist peach canvas */
   --peach: #FFDCC0;
   --ink: #1F1F1F;           /* outline + text */
+  --olive: #3D4A33;         /* deep forest olive — hub accents + dark button fills */
   --ink-soft: #4d4732;
   --petal: #FFFFFF;
   --primary: #FFD700;       /* center + active CTA */
@@ -115,7 +117,7 @@
   --avatar-moon: #C9C3E4;
 }
 
-.game-theme[data-biome="lavender"] { --biome-bg: #E9B7FF; --biome-accent: #3E4E35; --biome-on-accent: #FFFFFF; --biome-progress: #CE93D8; }
+.game-theme[data-biome="lavender"] { --biome-bg: #E9B7FF; --biome-accent: #3D4A33; --biome-on-accent: #FFFFFF; --biome-progress: #CE93D8; }
 .game-theme[data-biome="mountain"] { --biome-bg: #748392; --biome-accent: #4A5A7A; --biome-on-accent: #FFFFFF; --biome-progress: #B7C6DA; --biome-ink: #FFFFFF; }
 .game-theme[data-biome="sakura"] { --biome-bg: #FBC9A8; --biome-accent: #F15BB5; --biome-on-accent: #FFFFFF; --biome-progress: #FBD5E0; }
 .game-theme[data-biome="lotus"] { --biome-bg: #B9DED4; --biome-accent: #2E6B6E; --biome-on-accent: #FFFFFF; --biome-progress: #8FC8BE; --biome-ink: #1F3B36; }
