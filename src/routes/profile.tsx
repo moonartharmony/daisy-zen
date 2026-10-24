@@ -21,6 +21,7 @@ import { useProgress } from "@/lib/progress";
 import { CHAPTERS, getChapter, TOTAL_LEVELS } from "@/lib/chapters";
 import { useGameState } from "@/lib/gameState";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -293,14 +294,13 @@ function Profile() {
         <div className="relative">
           <AvatarBadge avatar={editing ? draft.avatar : profile.avatar} />
           {!editing && (
-            <button
+            <Button variant="neo" size="touch"
               aria-label="Edit profile"
               onClick={startEdit}
-              className="absolute bottom-0 right-0 neo-sm rounded-full size-8 grid place-items-center neo-press"
-              style={{ backgroundColor: "#2E6B6E", color: "#fff" }}
+              className="absolute bottom-0 right-0 rounded-full size-11 p-0"
             >
               <Pencil className="size-4" strokeWidth={2.75} />
-            </button>
+            </Button>
           )}
         </div>
 
@@ -399,20 +399,18 @@ function Profile() {
             />
           </section>
 
-          <button
-            className="w-full max-w-md mx-auto text-sm font-bold flex items-center justify-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
-            style={{ color: "var(--ink)" }}
+          <Button variant="ghost" size="touch"
+            className="w-full max-w-md mx-auto text-sm font-bold text-ink opacity-80 hover:opacity-100"
           >
             <Users className="size-4" strokeWidth={2.5} />
             Switch Account
-          </button>
+          </Button>
 
           <div className="w-full max-w-md mx-auto flex flex-col items-center gap-2">
-            <button
+            <Button variant="neo" size="touch"
               onClick={handleLogoutClick}
               disabled={loggingOut}
-              className="w-full neo neo-press rounded-xl bg-white py-3 text-base font-extrabold flex items-center justify-center gap-2 disabled:opacity-70"
-              style={{ color: "#C0392B" }}
+              className="w-full rounded-xl py-3 text-base font-extrabold whitespace-normal text-destructive disabled:opacity-70"
             >
               <LogOut className="size-5" strokeWidth={2.5} />
               {loggingOut
@@ -420,15 +418,14 @@ function Profile() {
                 : confirmingLogout
                   ? "Are you sure you want to disconnect?"
                   : "Logout from Daisy Zen"}
-            </button>
+            </Button>
             {confirmingLogout && !loggingOut && (
-              <button
+              <Button variant="ghost" size="touch"
                 onClick={() => setConfirmingLogout(false)}
-                className="text-xs font-bold tracking-[0.14em] uppercase underline underline-offset-4 opacity-70 hover:opacity-100 transition-opacity"
-                style={{ color: "var(--ink)" }}
+                className="text-xs font-bold uppercase underline underline-offset-4 text-ink opacity-70 hover:opacity-100"
               >
                 Stay in the flow
-              </button>
+              </Button>
             )}
           </div>
         </>
@@ -469,18 +466,18 @@ function EditForm({
         >
           Change Avatar
         </span>
-        <div className="grid grid-cols-6 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
           {AVATAR_OPTIONS.map((opt) => {
             const Icon = opt.icon;
             const active = draft.avatar === opt.id;
             return (
-              <button
+              <Button variant="neo" size="touch"
                 key={opt.id}
                 type="button"
                 aria-label={`Avatar ${opt.id}`}
                 aria-pressed={active}
                 onClick={() => setDraft((d) => ({ ...d, avatar: opt.id }))}
-                className="neo-sm neo-press rounded-xl aspect-square grid place-items-center transition-opacity"
+                className="rounded-xl aspect-square p-0"
                 style={{
                   backgroundColor: opt.bg,
                   outline: active ? "3px solid var(--ink)" : "none",
@@ -491,7 +488,7 @@ function EditForm({
                   className="size-5 text-[color:var(--ink)]"
                   strokeWidth={2.25}
                 />
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -537,24 +534,22 @@ function EditForm({
 
       {/* Actions */}
       <div className="grid grid-cols-2 gap-3 pt-2">
-        <button
+        <Button variant="neo" size="touch"
           type="button"
           onClick={onCancel}
-          className="neo neo-press rounded-xl bg-transparent py-3 text-base font-extrabold flex items-center justify-center gap-2"
-          style={{ color: "var(--ink)" }}
+          className="rounded-xl py-3 text-base font-extrabold"
         >
           <X className="size-5" strokeWidth={2.75} />
           Cancel
-        </button>
-        <button
+        </Button>
+        <Button variant="neoPrimary" size="touch"
           type="button"
           onClick={onSave}
-          className="neo neo-press rounded-xl py-3 text-base font-extrabold flex items-center justify-center gap-2"
-          style={{ backgroundColor: "#FFE57F", color: "var(--ink)" }}
+          className="rounded-xl py-3 text-base font-extrabold whitespace-normal bg-avatar-sparkles hover:bg-avatar-sparkles/90"
         >
           <Check className="size-5" strokeWidth={2.75} />
           Save Changes
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -44,6 +44,12 @@
   --color-biome-ink: var(--biome-ink);
   --color-biome-tile: var(--biome-tile);
   --color-scroll-accent: var(--scroll-accent);
+  --color-avatar-users: var(--avatar-users);
+  --color-avatar-flower: var(--avatar-flower);
+  --color-avatar-sparkles: var(--avatar-sparkles);
+  --color-avatar-leaf: var(--avatar-leaf);
+  --color-avatar-sun: var(--avatar-sun);
+  --color-avatar-moon: var(--avatar-moon);
   --color-butter: var(--butter);
   --font-sans: 'Space Grotesk', 'Quicksand', system-ui, sans-serif;
 }
@@ -100,7 +106,13 @@
   --biome-progress: #FFD500;
   --biome-ink: #1F1F1F;
   --biome-tile: oklch(1 0 0);
-  --scroll-accent: oklch(0.441 0.066 139.4);
+  --scroll-accent: oklch(0.4408925 0.0673835 140.3431116);
+  --avatar-users: #D8C3A8;
+  --avatar-flower: #F7C6D0;
+  --avatar-sparkles: #FFE57F;
+  --avatar-leaf: #B8D6CC;
+  --avatar-sun: #FFC98A;
+  --avatar-moon: #C9C3E4;
 }
 
 .game-theme[data-biome="lavender"] { --biome-bg: #E9B7FF; --biome-accent: #3E4E35; --biome-on-accent: #FFFFFF; --biome-progress: #CE93D8; }
@@ -108,10 +120,10 @@
 .game-theme[data-biome="sakura"] { --biome-bg: #FBC9A8; --biome-accent: #F15BB5; --biome-on-accent: #FFFFFF; --biome-progress: #FBD5E0; }
 .game-theme[data-biome="lotus"] { --biome-bg: #B9DED4; --biome-accent: #2E6B6E; --biome-on-accent: #FFFFFF; --biome-progress: #8FC8BE; --biome-ink: #1F3B36; }
 
-.game-theme[data-biome="lavender"] { --biome-tile: oklch(0.925 0.029 308.1); --scroll-accent: var(--biome-accent); }
-.game-theme[data-biome="mountain"] { --biome-tile: oklch(0.906 0.028 86.6); --scroll-accent: var(--biome-accent); }
-.game-theme[data-biome="sakura"] { --biome-tile: oklchch(0.902 0.044 358.3); --scroll-accent: var(--biome-accent); }
-.game-theme[data-biome="lotus"] { --biome-tile: oklch(0.936 0.023 165.6); --scroll-accent: var(--biome-accent); }
+.game-theme[data-biome="lavender"] { --biome-tile: oklch(0.9276854 0.0304099 309.0734269); --scroll-accent: var(--biome-accent); }
+.game-theme[data-biome="mountain"] { --biome-tile: oklch(0.9054446 0.0284505 86.6485089); --scroll-accent: var(--biome-accent); }
+.game-theme[data-biome="sakura"] { --biome-tile: oklch(0.9080903 0.0446326 358.6954489); --scroll-accent: var(--biome-accent); }
+.game-theme[data-biome="lotus"] { --biome-tile: oklch(0.9361103 0.0221230 171.7703917); --scroll-accent: var(--biome-accent); }
 
 .stat-badge { border: 2px solid var(--ink); box-shadow: var(--shadow-badge); }
 .neo-control { border: 2px solid var(--ink); box-shadow: var(--shadow-neo); transition: box-shadow 120ms var(--ease-quiet); }
