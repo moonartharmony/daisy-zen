@@ -82,9 +82,9 @@ export const CHAPTERS: Chapter[] = [
     inkColor: "#1F1F1F",
     petalColor: "#FFFFFF",
     petalAlt: "#C9AEE8",
-    petalShape: "teardrop",
+    petalShape: "leaf",
     tileColor: "#EDE2F7",
-    accentColor: "#3E4E35",
+    accentColor: "#3D4A33",
     alertColor: "#FF6B6B",
     difficulty: { windStrength: 0.06, decayMult: 1.1, tolerance: 4 },
     scrolls: [

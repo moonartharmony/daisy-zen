@@ -19,7 +19,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         neo: "bg-card text-card-foreground neo-control hover:bg-card/90",
         neoPrimary: "bg-primary text-primary-foreground neo-control hover:bg-primary/90",
-        neoInk: "bg-ink text-petal neo-control hover:bg-ink/90",
+        neoInk: "bg-olive text-petal neo-control hover:bg-olive/90",
       },
       size: {
         default: "h-9 px-4 py-2",

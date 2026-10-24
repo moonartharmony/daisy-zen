@@ -85,10 +85,10 @@ function petalPathFor(
 ): string {
   switch (shape) {
     case "leaf": {
-      // Forest: rounded teardrop with bulb OUTWARD (-y) and softly tapered
-      // toward the center (+y), giving the dense layered daisy silhouette.
-      const w = rx * 1.15;
-      return `M 0 ${-ry} C ${w} ${-ry * 0.55} ${w * 0.85} ${ry * 0.2} 0 ${ry} C ${-w * 0.85} ${ry * 0.2} ${-w} ${-ry * 0.55} 0 ${-ry} Z`;
+      // Lavender: symmetrical pointed leaf (vesica) — sharp tips at BOTH
+      // ends (-y outward, +y inward), gently curved sides like a lavender bud.
+      const w = rx * 1.05;
+      return `M 0 ${-ry} C ${w} ${-ry * 0.4} ${w} ${ry * 0.4} 0 ${ry} C ${-w} ${ry * 0.4} ${-w} ${-ry * 0.4} 0 ${-ry} Z`;
     }
     case "halfcircle": {
       // Mountain: clean 180° semi-dome. Flat chord faces INWARD (+y toward
@@ -101,13 +101,10 @@ function petalPathFor(
       return `M ${-r} ${chordY} A ${r} ${r} 0 0 1 ${r} ${chordY} Z`;
     }
     case "teardrop": {
-      // Sakura: tapered tear-drop, sharp point facing OUTWARD (-y), rounded
-      // bulb facing the center (+y).
+      // Sakura: cherry-blossom petal — softly curved pointed tip facing
+      // OUTWARD (-y), tapered base narrowing toward the center (+y).
       const w = rx * 1.1;
-      const bulb = ry * 0.55;
-      return `M 0 ${-ry} C ${w} ${-ry * 0.15} ${w} ${ry * 0.55} 0 ${ry} C ${-w} ${ry * 0.55} ${-w} ${-ry * 0.15} 0 ${-ry} Z`
-        // intentionally asymmetric vertical to keep the outer vertex sharp.
-        .replace(/(\.15)/, () => (0.15 + Math.min(0.05, bulb * 0)).toString());
+      return `M 0 ${-ry} C ${w} ${-ry * 0.15} ${w * 0.9} ${ry * 0.55} 0 ${ry} C ${-w * 0.9} ${ry * 0.55} ${-w} ${-ry * 0.15} 0 ${-ry} Z`;
     }
     case "pill":
     default: {
