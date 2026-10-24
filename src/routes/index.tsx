@@ -583,6 +583,7 @@ function Game() {
       </AnimatePresence>
 
       {/* Zen scroll collectible modal */}
+      <AnimatePresence>
       {pendingScroll && (
         <ZenScroll
           chapter={chapter}
@@ -590,6 +591,7 @@ function Game() {
           onClose={() => setPendingScroll(null)}
         />
       )}
+      </AnimatePresence>
 
       {/* First-time interaction guide (L1–L2) */}
       <TutorialCoach level={level} hasTapped={moves > 0} hasAligned={hasAligned} />
@@ -633,8 +635,9 @@ function Game() {
       </AnimatePresence>
 
       {/* Pause overlay */}
+      <AnimatePresence>
       {paused && !won && (
-        <div
+        <motion.div key="pause" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           className="overlay-backdrop fixed inset-0 z-50 flex items-center justify-center px-6"
         >
           <OverlayCard role="dialog" aria-modal="true" aria-label="Paused" className="completion-card rounded-3xl bg-card w-full max-w-sm p-8 flex flex-col gap-3">
@@ -657,8 +660,9 @@ function Game() {
               Restart
             </Button>
           </OverlayCard>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       <BottomNav />
     </main>

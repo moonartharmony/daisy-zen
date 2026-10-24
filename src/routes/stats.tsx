@@ -15,6 +15,7 @@ import type { ComponentType, SVGProps } from "react";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { BottomNav } from "@/components/BottomNav";
 import { EmptyStats } from "@/components/EmptyStats";
+import { Button } from "@/components/ui/button";
 import { useProgress } from "@/lib/progress";
 import { CHAPTERS, getChapter, getChapterById, type ChapterId } from "@/lib/chapters";
 import {
@@ -379,13 +380,11 @@ function Stats() {
           </div>
         </article>
 
-        <Link
+        <Button asChild variant="neoPrimary" size="touch" className="rounded-2xl py-3 text-body-lg font-extrabold whitespace-normal"><Link
           to="/journey"
-          className="neo neo-press rounded-2xl bg-primary text-center py-3 text-body-lg font-extrabold hover:-translate-y-0.5 transition-transform"
-          style={{ color: "var(--ink)" }}
         >
           Return to Journey Map
-        </Link>
+        </Link></Button>
       </section>
 
       <BottomNav />

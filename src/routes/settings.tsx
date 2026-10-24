@@ -4,6 +4,7 @@ import { Mail, LogOut, Check } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -109,19 +110,14 @@ function SettingsPage() {
           >
             {sessionEmail ?? "Anchored"}
           </p>
-          <button
+          <Button variant="neo" size="touch"
             onClick={handleSignOut}
             disabled={signingOut}
-            className="w-full rounded-xl bg-white py-3 text-base font-extrabold flex items-center justify-center gap-2 disabled:opacity-70 neo-press"
-            style={{
-              border: "3px solid #1F1F1F",
-              boxShadow: "4px 4px 0px #1F1F1F",
-              color: "#C0392B",
-            }}
+            className="w-full rounded-xl py-3 text-base font-extrabold whitespace-normal text-destructive disabled:opacity-70"
           >
             <LogOut className="size-5" strokeWidth={2.5} />
             {signingOut ? "Disconnecting…" : "Logout from Daisy Zen"}
-          </button>
+          </Button>
         </section>
       ) : (
         <section
@@ -193,20 +189,14 @@ function SettingsPage() {
                   {error}
                 </p>
               )}
-              <button
+              <Button variant="neoPrimary" size="touch"
                 type="submit"
                 disabled={sending}
-                className="w-full rounded-xl py-3 text-base font-extrabold flex items-center justify-center gap-2 disabled:opacity-70 neo-press"
-                style={{
-                  border: "3px solid #1F1F1F",
-                  boxShadow: "4px 4px 0px #1F1F1F",
-                  backgroundColor: "#FFE57F",
-                  color: "var(--ink)",
-                }}
+                className="w-full rounded-xl py-3 text-base font-extrabold bg-avatar-sparkles hover:bg-avatar-sparkles/90 disabled:opacity-70"
               >
                 <Mail className="size-5" strokeWidth={2.5} />
                 {sending ? "Sending…" : "Send magic link"}
-              </button>
+              </Button>
             </form>
           )}
         </section>

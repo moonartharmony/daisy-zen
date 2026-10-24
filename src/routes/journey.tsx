@@ -225,16 +225,16 @@ function LevelNode({
   }
   if (state === "done") {
     return (
-      <button
+      <Button variant="neo" size="touch"
         type="button"
         onClick={onClick}
         aria-label={`Replay level ${level}`}
         title={`Level ${level}`}
-        className="size-11 shrink-0 rounded-full border-2 border-ink shadow-[2px_2px_0_var(--ink)] grid place-items-center text-card active:translate-y-[2px] active:shadow-none transition-transform"
+        className="size-11 shrink-0 rounded-full p-0 text-card"
         style={{ backgroundColor: accent }}
       >
         <Check className="size-5 drop-shadow-[0_1px_0_var(--ink)]" strokeWidth={4} />
-      </button>
+      </Button>
     );
   }
   return (

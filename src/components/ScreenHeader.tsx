@@ -1,5 +1,6 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import { ArrowLeft, Home } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   title: string;
@@ -19,21 +20,20 @@ export function ScreenHeader({ title, backTo, showHome = true }: Props) {
   return (
     <header className="w-full max-w-md mx-auto flex items-center justify-between gap-3 pt-2">
       {backTo ? (
-        <Link
+        <Button asChild variant="neo" size="touch" className="rounded-xl size-12 p-0"><Link
           to={backTo}
           aria-label="Back"
-          className="neo neo-press rounded-xl bg-white size-12 grid place-items-center"
         >
           <ArrowLeft className="size-5" strokeWidth={2.75} />
-        </Link>
+        </Link></Button>
       ) : (
-        <button
+        <Button variant="neo" size="touch"
           aria-label="Back"
           onClick={() => router.history.back()}
-          className="neo neo-press rounded-xl bg-white size-12 grid place-items-center"
+          className="rounded-xl size-12 p-0"
         >
           <ArrowLeft className="size-5" strokeWidth={2.75} />
-        </button>
+        </Button>
       )}
 
       <h1
@@ -44,13 +44,12 @@ export function ScreenHeader({ title, backTo, showHome = true }: Props) {
       </h1>
 
       {showHome ? (
-        <Link
+        <Button asChild variant="neo" size="touch" className="rounded-xl size-12 p-0"><Link
           to="/"
           aria-label="Home"
-          className="neo neo-press rounded-xl bg-white size-12 grid place-items-center"
         >
           <Home className="size-5" strokeWidth={2.75} />
-        </Link>
+        </Link></Button>
       ) : (
         <span className="size-12" aria-hidden />
       )}

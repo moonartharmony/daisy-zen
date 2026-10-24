@@ -62,9 +62,9 @@ export function ChapterIntro({ chapter, onEnter }: Props) {
         </div>
 
         {/* Band 3 — action: wide, high-affordance tactile target */}
-        <Button variant="neo" size="touch"
+        <Button variant="neoInk" size="touch"
           onClick={onEnter}
-          className="w-full max-w-xs mb-1 py-3.5 px-4 whitespace-normal bg-ink hover:bg-ink text-petal font-bold rounded-xl"
+          className="w-full max-w-xs mb-1 py-3.5 px-6 whitespace-normal font-bold rounded-xl"
         >
           Enter the {chapter.name.replace(/^The\s+/, "")}
           <ArrowRight className="size-5" strokeWidth={2.5} />
