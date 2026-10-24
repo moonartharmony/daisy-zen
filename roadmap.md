@@ -1,7 +1,7 @@
 # UI polish
 
-- [ ] Apply Principal Product Engineer screen polish without changing game state.
-- [ ] Verify first three levels, modal transitions, English labels and 375px touch layout.
+- [x] Apply Principal Product Engineer screen polish without changing game state.
+- [x] Verify first three levels, modal transitions, English labels and 375px touch layout.
 
 - [x] Refine completion badges, reward timing and restrained overlay transitions.
 - [x] Unify tactile button feedback without changing gameplay or progression.
